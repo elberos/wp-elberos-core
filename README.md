@@ -1,2 +1,3 @@
-# wp-core
-Elberos Wordpress Core
+# wp-elberos-core
+
+WordPress Elberos Core

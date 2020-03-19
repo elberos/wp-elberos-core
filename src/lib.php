@@ -1,0 +1,179 @@
+<?php
+
+/*!
+ *  Elberos Framework
+ *
+ *  (c) Copyright 2016-2020 "Ildar Bikmamatov" <support@elberos.org>
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+namespace Elberos;
+
+
+/**
+ * Remove last slash
+ */
+function remove_last_slash($path)
+{
+	$sz = strlen($path);
+    if ($sz == 0) return "";
+	if ($path[$sz - 1] == "/") return substr($path, 0, -1);
+	return $path;
+}
+
+
+/**
+ * Make a string's first character uppercase
+ * http://stackoverflow.com/questions/2517947/ucfirst-function-for-multibyte-character-encodings
+ *
+ * @param string $path The input string
+ * @return string Returns the resulting string
+ */
+function mb_ucfirst($string, $encoding='utf-8')
+{
+    $strlen = mb_strlen($string, $encoding);
+    $firstChar = mb_substr($string, 0, 1, $encoding);
+    $then = mb_substr($string, 1, $strlen - 1, $encoding);
+    return mb_strtoupper($firstChar, $encoding) . $then;
+}
+
+
+
+/**
+ * Returns information about a file path.
+ * From http://php.net/manual/en/function.pathinfo.php#107461
+ *
+ * @param string $path The path to be parsed
+ * @return array
+ */
+function mb_pathinfo($filepath)
+{
+    preg_match('%^(.*?)[\\\\/]*(([^/\\\\]*?)(\.([^\.\\\\/]+?)|))[\\\\/\.]*$%im',$filepath,$m);
+    $ret['dirname']=isset($m[1])?$m[1]:'';
+    $ret['basename']=isset($m[2])?$m[2]:'';
+    $ret['extension']=isset($m[5])?$m[5]:'';
+    $ret['filename']=isset($m[3])?$m[3]:'';;
+    return $ret;
+}
+
+
+
+/**
+ * Return extension
+ */
+function mb_extension($filepath)
+{
+    $ret = mb_pathinfo($filepath);
+    return $ret['extension'];
+}
+
+
+
+/**
+ * Make file dir
+ *
+ * @param string $path The path of the filename
+ */
+function make_dir_by_filename($file_path, $mode = 0755)
+{
+	$arr = mb_pathinfo($file_path);
+	$dirname = $arr['dirname'];
+	if (!file_exists($dirname)) 
+	{
+		mkdir ($dirname, $mode, true);
+	}
+}
+
+
+
+/**
+ * Convert to money
+ */ 
+function to_money($value, $decimals=2)
+{
+	return number_format($value, $decimals, ".", " ");
+}
+
+
+
+function str_split2($str, $split_length)
+{
+	$str = (string) $str;
+	$pos = strlen($str) - $split_length;
+	$res = [];
+	
+	while ($pos >= 0){
+		$res[] = substr($str, $pos, $split_length);
+		$pos -= $split_length;
+	}
+	
+	if ($pos < 0){
+		$res[] = substr($str, 0, $pos + $split_length);
+	}
+	$res = array_reverse($res);
+	
+	return $res;
+}
+
+
+
+/**
+ * Split number
+ *
+ * @param $number
+ * @param $split_length
+ * @param $count
+ * @param $cut_end
+ * @return 
+ */
+function split_number($number, $split_length, $count=-1, $cut_end = true){
+	
+	$arr = str_split2($number, $split_length);
+	$arr_len = count($arr);
+	
+	if ($count == -1)
+	{
+		for ($i=0; $i<$arr_len; $i++)
+		{
+			$arr[$i] = str_pad($arr[$i], $split_length, '0', STR_PAD_LEFT);
+		}
+		return $arr;
+	}
+	
+	if (!$cut_end){
+		$count = $count - 1;
+	}
+	
+	$res = [];
+	while ($count > 0)
+	{
+		
+		$c = 0;
+		if (count($arr) > 0)
+			$c = array_pop($arr);
+		
+		$c = str_pad($c, $split_length, '0', STR_PAD_LEFT);
+		$res[] = $c;
+		$count --;
+	}
+	
+	if (!$cut_end)
+	{
+		$res[] = implode("", $arr);
+	}
+	
+	$res = array_reverse($res);
+	
+	return $res;
+}

@@ -1,0 +1,18 @@
+{
+	"name": "elberos/wp-elberos-core",
+	"type": "library",
+	"description": "Wordpress Elberos Core",
+	"license": "Apache-2.0",
+	"version": "1.0.1",
+	"authors": [
+		{
+			"name": "Ildar Bikmamatov",
+			"email": "support@elberos.org"
+		}
+	],
+	"autoload": {
+		"files": [ "wp-elberos-core.php" ]
+	},
+	"require": {
+	}
+}
