@@ -177,3 +177,27 @@ function split_number($number, $split_length, $count=-1, $cut_end = true){
 	
 	return $res;
 }
+
+
+function createDateTime($timestamp, $tz)
+{
+	$dt = new \DateTime();
+	$dt->setTimestamp($timestamp);
+	$dt->setTimezone($tz);
+	return $dt;
+}
+
+
+function tzdate($format, $timestamp, $tz)
+{
+	$dt = new \DateTime();
+	$dt->setTimestamp($timestamp);
+	$dt->setTimezone($tz);
+	return  $dt->format($format);
+}
+
+function tztime($format, $date, $tz)
+{
+	$dt = \DateTime::createFromFormat($format, $date, $tz);
+	return $dt->getTimestamp();
+}

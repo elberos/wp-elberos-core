@@ -1,6 +1,6 @@
 <?php
 
-/*!
+/**
  *  Elberos Framework
  *
  *  (c) Copyright 2016-2020 "Ildar Bikmamatov" <support@elberos.org>

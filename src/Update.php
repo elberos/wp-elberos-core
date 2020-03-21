@@ -1,6 +1,6 @@
 <?php
 
-/*!
+/**
  *  Elberos Framework
  *
  *  (c) Copyright 2016-2020 "Ildar Bikmamatov" <support@elberos.org>
@@ -71,7 +71,15 @@ class Update
 		$img->open($abs_orig_path);
 		if ($img->isLoaded())
 		{
-			$img->scaleTo($width, $height);
+			if ($kind == 'scaleTo') $img->scaleTo($width, $height);
+			else if ($kind == 'contain' || $kind == 'cover')
+			{
+				$pos_x = isset($opt['pos_x']) ? $opt['pos_x'] : 'center';
+				$pos_y = isset($opt['pos_y']) ? $opt['pos_y'] : 'center';
+				$scale = isset($opt['scale']) ? $opt['scale'] : true;
+				if ($kind == 'contain') $img->resizeContain($width, $height, $pos_x, $pos_y, $scale);
+				else if ($kind == 'cover') $img->resizeCover($width, $height, $pos_x, $pos_y, $scale);
+			}
 			$img->save($abs_resize_path);
 			$img->destroy();
 			unset($img);
@@ -129,9 +137,26 @@ class Update
 			[
 				"width" => 200,
 				"height" => 200,
-				"kind" => "thumbnail",
+				"kind" => "scaleTo",
 			]
 		);
+		
+		if ($opt != null && isset($opt['images']))
+		{
+			foreach ($opt['images'] as $image)
+			{
+				$image_name = $image['name'];
+				$upload_path = $upload_prefix . "-" . $field_name . "-" . $image_name . "." . $ext;
+				$field = static::update_field($field, $image_name, $upload_path);
+				static::resize_image
+				(
+					$abs_path,
+					$upload_orig_path,
+					$upload_path,
+					$image
+				);
+			}
+		}
 		
 		$item[$field_name] = json_encode($field);
 		return $item;
