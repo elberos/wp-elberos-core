@@ -187,17 +187,48 @@ function createDateTime($timestamp, $tz)
 	return $dt;
 }
 
+function createFromFormat($format, $date, $tz)
+{
+	$dt = \DateTime::createFromFormat($format, $date, $tz);
+	return $dt;
+}
 
 function tzdate($format, $timestamp, $tz)
 {
 	$dt = new \DateTime();
 	$dt->setTimestamp($timestamp);
 	$dt->setTimezone($tz);
-	return  $dt->format($format);
+	return $dt->format($format);
 }
 
 function tztime($format, $date, $tz)
 {
 	$dt = \DateTime::createFromFormat($format, $date, $tz);
 	return $dt->getTimestamp();
+}
+
+function from_gmtime($date, $format = 'Y-m-d H:i:s')
+{
+	$dt = \DateTime::createFromFormat('Y-m-d H:i:s', $date, new \DateTimeZone('UTC'));
+	$dt->setTimezone( new \DateTimeZone(date_default_timezone_get()) );
+	return $dt->format($format);
+}
+
+function get_wp_timezone()
+{
+	$timezone_string = get_option( 'timezone_string' );
+	if (!empty($timezone_string)) return $timezone_string;
+	$offset = get_option( 'gmt_offset' );
+	$hours = (int)$offset;
+	$minutes = abs(($offset - (int)$offset) * 60);
+	$offset = sprintf('%+03d:%02d', $hours, $minutes);
+	return "GMT" . $offset;
+}
+
+function wp_from_gmtime($date, $format = 'Y-m-d H:i:s')
+{
+	//var_dump(get_wp_timezone());
+	$dt = \DateTime::createFromFormat('Y-m-d H:i:s', $date, new \DateTimeZone('UTC'));
+	$dt->setTimezone( new \DateTimeZone( get_wp_timezone() ) );
+	return $dt->format($format);
 }

@@ -198,10 +198,14 @@ class Update
 		$action = $obj->current_action();
 		$item = $default;
 		$item_id = (int) (isset($_REQUEST['id']) ? $_REQUEST['id'] : 0);
-		$item = $wpdb->get_row
-		(
-			$wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $item_id), ARRAY_A
-		);
+		
+		if ($item_id > 0)
+		{
+			$item = $wpdb->get_row
+			(
+				$wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $item_id), ARRAY_A
+			);
+		}
 		
 		$message = "";
 		$notice = "";
@@ -251,6 +255,11 @@ class Update
 			];
 		}
 		
+		if (method_exists($obj, 'process_item'))
+		{
+			$item = $obj->process_item($item);
+		}
+		
 		$success_save = false;
 		
 		/* Create */
@@ -277,7 +286,10 @@ class Update
 		/* Update */
 		else
 		{
-			$item = $obj->upload_images($item);
+			if (method_exists($obj, 'upload_images'))
+			{
+				$item = $obj->upload_images($item);
+			}
 			$result = $wpdb->update($table_name, $item, array('id' => $item['id']));
 			if ($result)
 			{
