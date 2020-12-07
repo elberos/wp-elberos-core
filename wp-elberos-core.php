@@ -14,3 +14,4 @@ include __DIR__ . "/src/RawString.php";
 include __DIR__ . "/src/Image.php";
 include __DIR__ . "/src/Update.php";
 include __DIR__ . "/src/Dialog.php";
+include __DIR__ . "/src/Timber.php";
