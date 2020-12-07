@@ -5,6 +5,25 @@ namespace Elberos;
 if ( class_exists( '\Timber' ) )
 {
 
+
+// ÐŸÐµÑ€ÐµÐ¾Ð¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ SEO ÐºÐ¾Ð´ Ð¿Ð»Ð°Ð³Ð¸Ð½Ð° Rank Math Ð½Ð° ÐºÐ¾Ð´ Ð¸Ð· ÑˆÐ°Ð±Ð»Ð¾Ð½Ð°
+add_action
+(
+	'plugins_loaded',
+	function ()
+	{
+		if (class_exists(RankMath::class))
+		{
+			// Remove RankMath SEO Frontend Block
+			$rank_math = RankMath::get();
+			remove_action( 'plugins_loaded', [ $rank_math, 'init_frontend' ], 15 );
+		}
+	},
+	0
+);
+
+
+// Ð¡Ð°Ð¹Ñ‚
 class Site extends \Timber\Site 
 {
 	
@@ -49,65 +68,9 @@ class Site extends \Timber\Site
 		$this->register_hooks();
 		
 		// Register routes
-		$this->register_routes(); // in file routes
+		do_action('elberos_register_routes', $this);
+		$this->register_routes();
 	}
-	
-	public function setup()
-	{
-		/* Setup base variables */
-		$this->f_inc = $this->get_f_inc();
-		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
-		$this->categories = get_categories();
-		$this->post = get_queried_object();
-		if ($this->post != null)
-		{
-			$this->post_id = ($this->post != null) ? $this->post->ID : "";
-			if ($this->post instanceof WP_POST)
-			{
-				$this->post_category = get_the_category($this->post_id);
-				$this->current_category = isset($this->post_category[0]) ? $this->post_category[0] : null;
-			}
-			if ($this->post instanceof WP_Term) $this->current_category = get_category($this->post->cat_ID);
-		}
-		$this->page_vars = 
-		[
-			"wp_show" => THEME_WP_SHOW,
-			"is_admin" => current_user_can('administrator'),
-			"is_archive" => is_archive(),
-			"is_category" => is_category(),
-			"is_page" => is_page(),
-			"is_home" => is_home() && $this->route_info == null,
-			"is_front_page" => is_front_page(),
-			"is_single" => is_single(),
-			"is_singular" => is_singular(),
-			"is_post" => $this->post instanceof WP_POST,
-			"is_404" => is_404(),
-		];
-		$this->language = get_locale();
-		$this->language_code = $this->get_current_locale_code();
-		$this->title = $this->get_page_title();
-		$this->full_title = $this->get_page_full_title($this->title);
-		$this->description = $this->get_page_description();
-		$this->robots = $this->get_page_robots();
-		$this->name = $this->get_site_name();
-		$this->page = max( 1, (int) get_query_var( 'paged' ) );
-		$this->pages = $GLOBALS['wp_query']->max_num_pages;
-		
-		/* Setup prev and next url */
-		$this->setup_links();
-		
-		/* Setup article tags */
-		$this->setup_article_tags();
-		
-		/* Setup breadcrumbs */
-		$this->setup_breadcrumbs();
-		
-		$this->initialized = true;
-		
-		/* After setup */
-		$this->setup_after();
-	}
-	
 	
 	
 	/** Theme settings **/
@@ -187,21 +150,88 @@ class Site extends \Timber\Site
 	 */
 	function route_render()
 	{
-		$template = $this->route_info['template'];
-		$context = Timber::context();
-		Timber::render( $template, $context );
+		$template = 'pages/index.twig';
+		if ($this->route_info != null)
+		{
+			$template = $this->route_info['template'];
+		}
+		$context = \Timber::context();
+		
+		if (isset($this->route_info['params']['context']))
+		{
+			$context = $this->route_info['params']['context']($this, $context);
+		}
+		
+		\Timber::render( $template, $context );
 	}
 	
 	
 	
 	/** Setup **/
 	
+	public function setup()
+	{
+		/* Setup base variables */
+		$this->f_inc = $this->get_f_inc();
+		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
+		$this->categories = get_categories();
+		$this->post = get_queried_object();
+		if ($this->post != null)
+		{
+			$this->post_id = ($this->post != null) ? $this->post->ID : "";
+			if ($this->post instanceof WP_POST)
+			{
+				$this->post_category = get_the_category($this->post_id);
+				$this->current_category = isset($this->post_category[0]) ? $this->post_category[0] : null;
+			}
+			if ($this->post instanceof WP_Term) $this->current_category = get_category($this->post->cat_ID);
+		}
+		$this->page_vars =
+		[
+			"wp_show" => THEME_WP_SHOW,
+			"is_admin" => current_user_can('administrator'),
+			"is_archive" => is_archive(),
+			"is_category" => is_category(),
+			"is_page" => is_page(),
+			"is_home" => is_home() && $this->route_info == null,
+			"is_front_page" => is_front_page(),
+			"is_single" => is_single(),
+			"is_singular" => is_singular(),
+			"is_post" => $this->post instanceof WP_POST,
+			"is_404" => is_404(),
+		];
+		$this->language = get_locale();
+		$this->language_code = $this->get_current_locale_code();
+		$this->title = $this->get_page_title();
+		$this->full_title = $this->get_page_full_title($this->title);
+		$this->description = $this->get_page_description();
+		$this->robots = $this->get_page_robots();
+		$this->name = $this->get_site_name();
+		$this->page = max( 1, (int) get_query_var( 'paged' ) );
+		$this->pages = $GLOBALS['wp_query']->max_num_pages;
+		
+		/* Setup prev and next url */
+		$this->setup_links();
+		
+		/* Setup article tags */
+		$this->setup_article_tags();
+		
+		/* Setup breadcrumbs */
+		$this->setup_breadcrumbs();
+		
+		$this->initialized = true;
+		
+		/* After setup */
+		$this->setup_after();
+	}
+	
+	
 	public function setup_breadcrumbs()
 	{
 		$category_base = get_option("category_base", "");
 		
 		$this->breadcrumbs = [];
-		$this->add_breadcrumbs("Ãëàâíàÿ", "/");
+		$this->add_breadcrumbs("Ð“Ð»Ð°Ð²Ð½Ð°Ñ", "/");
 		
 		if ($this->route_info != null)
 		{
@@ -219,7 +249,7 @@ class Site extends \Timber\Site
 			if ($category_base != "" && $category_base != ".")
 			{
 				$url .= "/articles";
-				$this->add_breadcrumbs("Ñòàòüè", $url);
+				$this->add_breadcrumbs("Ð¡Ñ‚Ð°Ñ‚ÑŒÐ¸", $url);
 			}
 			
 			if ($this->current_category != null)
@@ -253,7 +283,7 @@ class Site extends \Timber\Site
 		
 		if ($this->page > 1)
 		{
-			/* $this->add_breadcrumbs("Ñòðàíèöà " . $this->page, urlGetAdd($this->request)); */
+			/* $this->add_breadcrumbs("Ð¡Ñ‚Ñ€Ð°Ð½Ð¸Ñ†Ð° " . $this->page, urlGetAdd($this->request)); */
 		}
 		
 		//var_dump($this->breadcrumbs);
@@ -415,19 +445,19 @@ class Site extends \Timber\Site
 			$title = "";
 			if ($this->post != null && $this->post->taxonomy == 'category')
 			{
-				$title = "Êàòåãîðèÿ " . $this->post->name;
+				$title = "ÐšÐ°Ñ‚ÐµÐ³Ð¾Ñ€Ð¸Ñ " . $this->post->name;
 			}
 			else if ($this->post != null && $this->post->taxonomy == 'post_tag')
 			{
-				$title = "Òåã " . $this->post->name;
+				$title = "Ð¢ÐµÐ³ " . $this->post->name;
 			}
 			else if (is_archive())
 			{
-				$title = "Àðõèâ çà " . $this->get_the_archive_title();
+				$title = "ÐÑ€Ñ…Ð¸Ð² Ð·Ð° " . $this->get_the_archive_title();
 			}
 			else if ($this->search_text != null)
 			{
-				$title = "Ðåçóëüòàòû ïîèñêà äëÿ " . $this->search_text;
+				$title = "Ð ÐµÐ·ÑƒÐ»ÑŒÑ‚Ð°Ñ‚Ñ‹ Ð¿Ð¾Ð¸ÑÐºÐ° Ð´Ð»Ñ " . $this->search_text;
 			}
 			else
 			{
@@ -438,7 +468,7 @@ class Site extends \Timber\Site
 		$page = max( 1, (int) get_query_var( 'paged' ) );
 		if ($page > 1)
 		{
-			$title .= " ñòðàíèöà " . $page;
+			$title .= " ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†Ð° " . $page;
 		}
 		
 		return $title;
@@ -655,6 +685,9 @@ class Site extends \Timber\Site
 		$twig->addFunction( new \Twig_SimpleFunction( 'count', array( $this, 'get_count' ) ) );
 		$twig->addFunction( new \Twig_SimpleFunction( 'dump', array( $this, 'var_dump' ) ) );
 		$twig->addFunction( new \Twig_SimpleFunction( 'url', array( $this, 'url_new' ) ) );
+		
+		$loader = $twig->getLoader();
+		/* $loader->addPath($path, $name); */
 		
 		return $twig;
 	}
