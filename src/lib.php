@@ -256,3 +256,30 @@ function wp_langs()
 	}
 	return $res;
 }
+
+
+/**
+ * Encode base64 url
+ */
+function base64_encode_url($s)
+{
+	$s = base64_encode($s);
+	$s = str_replace('+', '-', $s);
+	$s = str_replace('/', '_', $s);
+	$s = str_replace('=', '', $s);
+	return $s;
+}
+
+
+/**
+ * Decode base64 url
+ */
+function base64_decode_url($s)
+{
+	$c = 4 - strlen($s) % 4;
+	if ($c < 4 && $c > 0) $s .= str_repeat('=', $c);
+	$s = str_replace('-', '+', $s);
+	$s = str_replace('_', '/', $s);
+	return base64_decode($s);
+}
+
