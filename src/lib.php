@@ -187,22 +187,25 @@ function createDateTime($timestamp, $tz)
 	return $dt;
 }
 
-function createFromFormat($format, $date, $tz)
+function createFromFormat($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
+	$tz = $tz instanceof \DateTimeZone ? $tz : new \DateTimeZone($tz);
 	$dt = \DateTime::createFromFormat($format, $date, $tz);
 	return $dt;
 }
 
-function tzdate($format, $timestamp, $tz)
+function tzdate($timestamp = null, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
+	if ($timestamp === null) $timestamp = time();
 	$dt = new \DateTime();
 	$dt->setTimestamp($timestamp);
-	$dt->setTimezone($tz);
+	$dt->setTimezone($tz instanceof \DateTimeZone ? $tz : new \DateTimeZone($tz));
 	return $dt->format($format);
 }
 
-function tztime($format, $date, $tz)
+function tztime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
+	$tz = $tz instanceof \DateTimeZone ? $tz : new \DateTimeZone($tz);
 	$dt = \DateTime::createFromFormat($format, $date, $tz);
 	return $dt->getTimestamp();
 }
@@ -231,4 +234,25 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s')
 	$dt = \DateTime::createFromFormat('Y-m-d H:i:s', $date, new \DateTimeZone('UTC'));
 	$dt->setTimezone( new \DateTimeZone( get_wp_timezone() ) );
 	return $dt->format($format);
+}
+
+function wp_langs()
+{
+	$res = [];
+	if ( defined( 'POLYLANG_VERSION' ) )
+	{
+		$links = PLL()->links;
+		$langs = $links->model->get_languages_list( array( 'hide_empty' => 1 ));
+		foreach ($langs as $lang)
+		{
+			$res[] =
+			[
+				"name" => $lang->name,
+				"locale" => $lang->locale,
+				"slug" => $lang->slug,
+				"item" => $lang,
+			];
+		}
+	}
+	return $res;
 }

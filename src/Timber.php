@@ -161,7 +161,7 @@ class Site extends \Timber\Site
 		{
 			$context = $this->route_info['params']['context']($this, $context);
 		}
-		
+		//var_dump($template);
 		\Timber::render( $template, $context );
 	}
 	
@@ -624,16 +624,27 @@ class Site extends \Timber\Site
 		
 		if (gettype($this->routes) == 'array')
 		{
+			$langs = \Elberos\wp_langs();
+			if ($langs != null && count($langs) > 0)
+			{
+				$langs = array_map(function($item){ return $item['slug']; }, $langs);
+			}
 			foreach ($this->routes as $route)
 			{
 				$matches = [];
 				$match = $route['match'];
+				if ($langs != null && count($langs) > 0)
+				{
+					$match = "/(" . implode("|", $langs) . ")" . $match;
+				}
 				$match = str_replace("/", "\\/", $match);
-				$flag = preg_match_all("/^" . $match . "$/i", $request_uri, $matches);
+				$match = "/^" . $match . "$/i";				
+				$flag = preg_match_all($match, $request_uri, $matches);
 				if ($flag)
 				{
 					$this->route_info = $route;
 					$this->route_info['matches'] = $matches;
+					break;
 				}
 			}
 		}
@@ -685,9 +696,6 @@ class Site extends \Timber\Site
 		$twig->addFunction( new \Twig_SimpleFunction( 'count', array( $this, 'get_count' ) ) );
 		$twig->addFunction( new \Twig_SimpleFunction( 'dump', array( $this, 'var_dump' ) ) );
 		$twig->addFunction( new \Twig_SimpleFunction( 'url', array( $this, 'url_new' ) ) );
-		
-		$loader = $twig->getLoader();
-		/* $loader->addPath($path, $name); */
 		
 		return $twig;
 	}

@@ -185,6 +185,24 @@ class Update
 	
 	
 	/**
+	 * Intersect
+	 */
+	static function intersect($item, $arr)
+	{
+		$res = [];
+		foreach ($item as $key => $value)
+		{
+			if (in_array($key, $arr))
+			{
+				$res[$key] = $value;
+			}
+		}
+		return $res;
+	}
+	
+	
+	
+	/**
 	 * Save or update
 	 */
 	static function wp_save_or_update($obj, $nonce_action)
@@ -207,6 +225,7 @@ class Update
 			);
 		}
 		
+		$action = "";
 		$message = "";
 		$notice = "";
 		
@@ -255,18 +274,21 @@ class Update
 			];
 		}
 		
+		$process_item = $item;
 		if (method_exists($obj, 'process_item'))
 		{
-			$item = $obj->process_item($item);
+			$process_item = $obj->process_item($item);
+			foreach ($process_item as $key => $value) $item[$key] = $value;
 		}
 		
 		$success_save = false;
 		
 		/* Create */
-		if ($item['id'] == 0)
+		if ($item_id == 0)
 		{
-			$result = $wpdb->insert($table_name, $item);
+			$result = $wpdb->insert($table_name, $process_item);
 			$item['id'] = $wpdb->insert_id;
+			$item_id = $wpdb->insert_id;
 			
 			if ($result)
 			{
@@ -277,10 +299,12 @@ class Update
 					//$diff = static::diff($item, $new_item);
 					if ($item)
 					{
-						$result = $wpdb->update($table_name, $item, array('id' => $item['id']));
+						$result = $wpdb->update($table_name, $item, array('id' => $item_id));
 					}
 				}
 			}
+			
+			$action = "create";
 		}
 		
 		/* Update */
@@ -290,11 +314,9 @@ class Update
 			{
 				$item = $obj->upload_images($item);
 			}
-			$result = $wpdb->update($table_name, $item, array('id' => $item['id']));
-			if ($result)
-			{
-				$success_save = true;
-			}
+			$result = $wpdb->update($table_name, $process_item, array('id' => $item_id));
+			$success_save = true;
+			$action = "update";
 		}
 		
 		/* Message */
@@ -305,6 +327,12 @@ class Update
 		else
 		{
 			$notice = __('Ошибка при обновлении элемента', 'template');
+		}
+		
+		/* After process item */
+		if (method_exists($obj, 'after_process_item'))
+		{
+			$obj->after_process_item($action, $success_save, $item);
 		}
 		
 		return
