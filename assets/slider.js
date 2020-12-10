@@ -2,7 +2,6 @@
 
 /*!
  *  Elberos Slider Plugin
- *  URL: https://github.com/elberos/wp-elberos-slider 
  *
  *  (c) Copyright 2020 "Ildar Bikmamatov" <support@elberos.org>
  *

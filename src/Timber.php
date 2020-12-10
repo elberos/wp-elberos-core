@@ -32,7 +32,9 @@ class Site extends \Timber\Site
 	 */
 	public $robots;
 	public $categories;
+	public $language;
 	public $language_code;
+	public $locale_prefix;
 	public $routes;
 	public $route_info = null;
 	public $request = null;
@@ -60,6 +62,8 @@ class Site extends \Timber\Site
 	public $post_category = null;
 	public $current_category = null;
 	public $initialized = false;
+	public $current_user = null;
+	public $jwt = null;
 	
 	
 	/** Constructor **/
@@ -207,6 +211,12 @@ class Site extends \Timber\Site
 		];
 		$this->language = get_locale();
 		$this->language_code = $this->get_current_locale_code();
+		$this->locale_prefix = "";
+		$langs = \Elberos\wp_langs();
+		if ($langs != null && count($langs) > 0)
+		{
+			$this->locale_prefix = "/" . $this->language_code;
+		}
 		$this->title = $this->get_page_title();
 		$this->full_title = $this->get_page_full_title($this->title);
 		$this->description = $this->get_page_description();
@@ -225,6 +235,9 @@ class Site extends \Timber\Site
 		$this->setup_breadcrumbs();
 		
 		$this->initialized = true;
+		
+		/* Call action */
+		do_action('elberos_setup_after', $this);
 		
 		/* After setup */
 		$this->setup_after();
