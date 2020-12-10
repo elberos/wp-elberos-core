@@ -38,7 +38,7 @@ class Elberos_Plugin
 			'admin_init', 
 			function()
 			{
-				require_once __DIR__ . "/delivery/admin-delivery.php";
+				require_once __DIR__ . "/delivery/admin-delivery-log.php";
 				require_once __DIR__ . "/delivery/admin-mail-settings.php";
 				require_once __DIR__ . "/forms/admin-forms-settings.php";
 				require_once __DIR__ . "/forms/admin-forms-data.php";
@@ -117,7 +117,7 @@ class Elberos_Plugin
 			'manage_options', 'elberos-delivery-log',
 			function()
 			{
-				echo 2;
+				\Elberos\Delivery\Log::show();
 			}
 		);
 	}

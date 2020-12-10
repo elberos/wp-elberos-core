@@ -230,10 +230,13 @@ function get_wp_timezone()
 
 function wp_from_gmtime($date, $format = 'Y-m-d H:i:s')
 {
-	//var_dump(get_wp_timezone());
 	$dt = \DateTime::createFromFormat('Y-m-d H:i:s', $date, new \DateTimeZone('UTC'));
-	$dt->setTimezone( new \DateTimeZone( get_wp_timezone() ) );
-	return $dt->format($format);
+	if ($dt)
+	{
+		$dt->setTimezone( new \DateTimeZone( get_wp_timezone() ) );
+		return $dt->format($format);
+	}
+	return "";
 }
 
 function wp_langs()
