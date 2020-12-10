@@ -38,13 +38,13 @@ class Elberos_Plugin
 			'admin_init', 
 			function()
 			{
+				require_once __DIR__ . "/delivery/admin-delivery.php";
+				require_once __DIR__ . "/delivery/admin-mail-settings.php";
 				require_once __DIR__ . "/forms/admin-forms-settings.php";
 				require_once __DIR__ . "/forms/admin-forms-data.php";
-				require_once __DIR__ . "/forms/admin-mail-settings.php";
 			}
 		);
 		add_action('admin_menu', 'Elberos_Plugin::register_admin_menu');
-		add_action('rest_api_init', 'Elberos_Plugin::register_api');
 		add_action('send_headers', 'Elberos_Plugin::send_headers');
 		
 		// Add Cron
@@ -81,20 +81,20 @@ class Elberos_Plugin
 	public static function register_admin_menu()
 	{
 		add_menu_page(
-			'Формы', 'Формы', 
+			'Формы', 'Формы',
 			'manage_options', 'elberos-forms',
 			function ()
 			{
 				\Elberos\Forms\Settings::show();
 			},
 			null,
-			9
+			35
 		);
 		
 		add_submenu_page(
-			'elberos-forms', 
-			'Данные форм', 'Данные форм', 
-			'manage_options', 'elberos-forms-data', 
+			'elberos-forms',
+			'Данные форм', 'Данные форм',
+			'manage_options', 'elberos-forms-data',
 			function()
 			{
 				\Elberos\Forms\Data::show();
@@ -102,12 +102,22 @@ class Elberos_Plugin
 		);
 		
 		add_submenu_page(
-			'elberos-forms', 
-			'Настройки почты', 'Настройки почты', 
-			'manage_options', 'elberos-mail-settings', 
+			'options-general.php',
+			'Настройки почты', 'Настройки почты',
+			'manage_options', 'elberos-mail-settings',
 			function()
 			{
-				\Elberos\Forms\MailSettings::show();
+				\Elberos\Delivery\MailSettings::show();
+			}
+		);
+		
+		add_submenu_page(
+			'options-general.php',
+			'Лог доставки сообщений', 'Лог доставки сообщений',
+			'manage_options', 'elberos-delivery-log',
+			function()
+			{
+				echo 2;
 			}
 		);
 	}
@@ -150,24 +160,6 @@ class Elberos_Plugin
 		}
 	}
 	
-	
-	
-	/**
-	 * Register API
-	 */
-	public static function register_api()
-	{
-		register_rest_route
-		(
-			'elberos_forms',
-			'submit_form',
-			array(
-				'methods' => 'POST',
-				'callback' => function ($arr){ return \Elberos\Forms\Api::submit_form($arr); },
-			)
-		);
-	}
-	
 }
 
 include __DIR__ . "/src/lib.php";
@@ -178,11 +170,11 @@ include __DIR__ . "/src/Image.php";
 include __DIR__ . "/src/Update.php";
 include __DIR__ . "/src/Dialog.php";
 include __DIR__ . "/src/Timber.php";
-include __DIR__ . "/forms/helper.php";
 include __DIR__ . "/forms/forms.php";
 include __DIR__ . "/forms/forms-api.php";
-include __DIR__ . "/forms/mail-sender.php";
+include __DIR__ . "/forms/forms-helper.php";
 
 Elberos_Plugin::init();
+\Elberos\Forms\Api::init();
 
 }

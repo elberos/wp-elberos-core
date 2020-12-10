@@ -29,6 +29,34 @@ class Api
 {
 	
 	/**
+	 * Init api
+	 */
+	public static function init()
+	{
+		add_action('rest_api_init', '\\Elberos\\Forms\\Api::register_api');
+	}
+	
+	
+	
+	/**
+	 * Register API
+	 */
+	public static function register_api()
+	{
+		register_rest_route
+		(
+			'elberos_forms',
+			'submit_form',
+			array(
+				'methods' => 'POST',
+				'callback' => function ($arr){ return static::submit_form($arr); },
+			)
+		);
+	}
+	
+	
+	
+	/**
 	 * Get field by name
 	 */
 	public static function getFieldByName($fields, $field_name)

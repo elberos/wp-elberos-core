@@ -37,13 +37,17 @@ class Site extends \Timber\Site
 	public $route_info = null;
 	public $request = null;
 	public $f_inc = "";
-	public $full_title = "";
 	public $search_text = "";
 	public $page_vars = [];
 	public $page = 0;
 	public $pages = 0;
 	public $breadcrumbs = null;
+	public $title = "";
+	public $full_title = "";
+	public $description = "";
 	public $og_type = "";
+	public $open_graph = [];
+	public $article_publisher = "";
 	public $article_tags = [];
 	public $article_section = "";
 	public $article_published_time = "";
@@ -176,9 +180,10 @@ class Site extends \Timber\Site
 		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
 		$this->categories = get_categories();
 		$this->post = get_queried_object();
+		if (!($this->post instanceof WP_POST)) $this->post = null;
 		if ($this->post != null)
 		{
-			$this->post_id = ($this->post != null) ? $this->post->ID : "";
+			$this->post_id = ($this->post != null && $this->post instanceof WP_POST) ? $this->post->ID : "";
 			if ($this->post instanceof WP_POST)
 			{
 				$this->post_category = get_the_category($this->post_id);
@@ -271,12 +276,11 @@ class Site extends \Timber\Site
 			}
 		}
 		
-		if ($this->page_vars["is_page"])
+		if ($this->page_vars["is_page"] && $this->post instanceof WP_POST)
 		{
 			$this->add_breadcrumbs($this->post->post_title, $this->remove_site_url(get_the_permalink($this->post)) );
 		}
-		
-		if ($this->page_vars["is_single"])
+		else if ($this->page_vars["is_single"] && $this->post instanceof WP_POST)
 		{
 			$this->add_breadcrumbs($this->post->post_title, $this->remove_site_url(get_the_permalink($this->post)) );
 		}
@@ -336,6 +340,9 @@ class Site extends \Timber\Site
 			/* Setup article tags */
 			$tags = wp_get_post_tags($this->post_id);
 			$this->article_tags = array_map( function ($item) { return $item->name; }, $tags );
+			
+			/* Setup publisher */
+			$this->article_publisher = $this->get_site_name();
 		}
 	}
 	
@@ -370,9 +377,9 @@ class Site extends \Timber\Site
 	
 	function get_route_params()
 	{
-		if ($this->route_params == null) return null;
-		if (!isset($this->route_params['params'])) return null;
-		return $this->route_params['params'];
+		if ($this->route_info == null) return null;
+		if (!isset($this->route_info['params'])) return null;
+		return $this->route_info['params'];
 	}
 	
 	function get_category_by_id($cat_id)
@@ -443,11 +450,11 @@ class Site extends \Timber\Site
 		{
 			$vars = $this->page_vars;
 			$title = "";
-			if ($this->post != null && $this->post->taxonomy == 'category')
+			if ($this->post != null && $this->post instanceof WP_POST && $this->post->taxonomy == 'category')
 			{
 				$title = "Категория " . $this->post->name;
 			}
-			else if ($this->post != null && $this->post->taxonomy == 'post_tag')
+			else if ($this->post != null && $this->post instanceof WP_POST && $this->post->taxonomy == 'post_tag')
 			{
 				$title = "Тег " . $this->post->name;
 			}
@@ -458,6 +465,10 @@ class Site extends \Timber\Site
 			else if ($this->search_text != null)
 			{
 				$title = "Результаты поиска для " . $this->search_text;
+			}
+			else if ($this->route_info != null)
+			{
+				$title = $this->route_info['params']['title'];
 			}
 			else
 			{
@@ -529,6 +540,8 @@ class Site extends \Timber\Site
 	
 	public function get_the_archive_title() 
 	{
+		$title = "";
+		
 		if ( is_category() ) {
 			/* translators: Category archive title. %s: Category name. */
 			$title = sprintf( __( '%s' ), single_cat_title( '', false ) );
