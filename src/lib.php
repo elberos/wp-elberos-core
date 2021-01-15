@@ -260,6 +260,11 @@ function wp_langs()
 	return $res;
 }
 
+function is_langs()
+{
+	$langs = \Elberos\wp_langs();
+	return $langs != null && count($langs) > 0;
+}
 
 /**
  * Encode base64 url

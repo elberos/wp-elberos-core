@@ -47,6 +47,22 @@ class Elberos_Plugin
 		add_action('admin_menu', 'Elberos_Plugin::register_admin_menu');
 		add_action('send_headers', 'Elberos_Plugin::send_headers');
 		
+		/* Disable Rank Math Seo Output */
+		add_action
+		(
+			'plugins_loaded',
+			function ()
+			{
+				if (class_exists(RankMath::class))
+				{
+					// Remove RankMath SEO Frontend Block
+					$rank_math = RankMath::get();
+					remove_action( 'plugins_loaded', [ $rank_math, 'init_frontend' ], 15 );
+				}
+			},
+			0
+		);
+		
 		// Add Cron
 		/*
 		add_filter( 'cron_schedules', 'Elberos_Plugin::cron_schedules' );
