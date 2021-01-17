@@ -320,10 +320,12 @@ class Data_Table extends \WP_List_Table
 								<td class='forms_data_item_key'>Title</td>
 								<td class='forms_data_item_value'><?php echo esc_html($item['form_title']); ?></td>
 							</tr>
-							<?php echo implode($res_data, ""); ?>
+							<?php echo implode("", $res_data); ?>
 							<tr class='forms_data_item'>
 								<td class='forms_data_item_key'>Дата</td>
-								<td class='forms_data_item_value'><?php echo esc_html(\Elberos\wp_from_gmtime($item['gmtime_add'])); ?></td>
+								<td class='forms_data_item_value'>
+									<?php echo esc_html(\Elberos\wp_from_gmtime($item['gmtime_add'])); ?>
+								</td>
 							</tr>
 						</table>
 					</div>

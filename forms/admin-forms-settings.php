@@ -61,6 +61,7 @@ class Settings_Table extends \WP_List_Table
 			'id' => 0,
 			'name' => '',
 			'api_name' => '',
+			'email_to' => '',
 			'settings' => '',
 		);
 	}
@@ -78,6 +79,7 @@ class Settings_Table extends \WP_List_Table
 			'cb' => '<input type="checkbox" />', 
 			'name' => __('Name', 'elberos-forms'),
 			'api_name' => __('Api Name', 'elberos-forms'),
+			'email_to' => __('Email to', 'elberos-forms'),
 			'buttons' => __('', 'elberos-forms'),
 		);
 		return $columns;
@@ -311,6 +313,12 @@ class Settings_Table extends \WP_List_Table
 				value="<?php echo esc_attr($item['api_name'])?>" >
 		</p>
 		<p>	
+			<label for="email_to"><?php _e('Email to:', 'elberos-forms')?></label>
+		<br>
+			<input id="email_to" name="email_to" type="text" style="width: 100%"
+				value="<?php echo esc_attr($item['email_to'])?>" >
+		</p>
+		<p>
 			<label for="settings"><?php _e('Settings:', 'elberos-forms')?></label>
 		<br>
 			<textarea id="settings" name="settings" style="width: 100%;height: 300px;"><?php echo $item['settings']; ?></textarea>

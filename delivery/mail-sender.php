@@ -29,22 +29,53 @@ if ( !class_exists( MailSender::class ) )
 	{
 		
 		/**
+		 * Get mail plan
+		 */
+		public static function getPlan($plan)
+		{
+			global $wpdb;
+			$table_clients = $wpdb->prefix . 'elberos_mail_settings';
+			$sql = $wpdb->prepare
+			(
+				"SELECT * FROM $table_clients WHERE plan=%s and enable=1 and is_deleted=0", $plan
+			);
+			return $wpdb->get_row($sql, ARRAY_A);
+		}
+		
+		
+		
+		/**
 		 * Send mail
 		 */
-		public static function sendMail($title, $message, $params = [])
+		public static function sendMail($plan, $email_to, $title, $message, $params = [])
 		{
-			$uuid = isset($params['uuid']) ? $params['uuid'] : wp_generate_uuid4();
-			$enable = get_option( 'elberos_forms_mail_enable', 'no' );
-			$host = get_option( 'elberos_forms_mail_host', '' );
-			$port = get_option( 'elberos_forms_mail_port', '' );
-			$login = get_option( 'elberos_forms_mail_login', '' );
-			$password = get_option( 'elberos_forms_mail_password', '' );
-			$ssl_enable = get_option( 'elberos_forms_mail_ssl_enable', '' );
-			$email_to = get_option( 'elberos_forms_mail_email_to', [] );
+			/* Enable Swift Mailer */
+			wp_swiftmailer_load();
 			
-			if ($enable != "yes")
+			/* Check mail settings */
+			$row = static::getPlan($plan);
+			if (!$row) $row = static::getPlan("default");
+			if (!$row)
 			{
 				return [-2, 'Mail is Disable'];
+			}
+			
+			$uuid = isset($params['uuid']) ? $params['uuid'] : wp_generate_uuid4();
+			$enable = $row['enable'];
+			$host = $row['host'];
+			$port = $row['port'];
+			$login = $row['login'];
+			$password = $row['password'];
+			$ssl_enable = $row['ssl_enable'];
+			
+			if ($enable != "1")
+			{
+				return [-2, 'Mail is Disable'];
+			}
+			
+			if ($email_to == null || count($email_to) == 0)
+			{
+				return [-3, 'email_to is empty'];
 			}
 			
 			// Create message
@@ -101,15 +132,16 @@ if ( !class_exists( MailSender::class ) )
 		
 		
 		/**
-		 *
+		 * Returns forms mail
 		 */
 		public static function getFormsMail($item)
 		{
 			$site_name = get_bloginfo("", "name");
 			$form_id = $item['form_id'];
+			$item_title = $item['form_title'];
 			$form_title = FormsHelper::get_form_title($form_id);
-			$item_title = $item['title'];
-			$title = "Новый заказ " . $form_title . " с сайта " . $site_name;
+			$title = "Новый заказ " . ($item_title != "" ? $item_title : $form_title) . " с сайта " . $site_name;
+			$email_to = FormsHelper::get_form_email_to($form_id);
 			
 			$form_data_res = []; $form_data_utm = [];
 			$form_data = @json_decode($item['data'], true);
@@ -200,7 +232,7 @@ if ( !class_exists( MailSender::class ) )
 			$message = ob_get_contents();
 			ob_end_clean();
 			
-			return [$title, $message];
+			return [$title, $message, $email_to];
 		}
 		
 		
@@ -234,10 +266,12 @@ if ( !class_exists( MailSender::class ) )
 			{
 				$send_email_uuid = $item['send_email_uuid'];
 				if ($send_email_uuid == "") $send_email_uuid = wp_generate_uuid4();
-				list ($title, $message) = static::getFormsMail($item);
+				list ($title, $message, $email_to) = static::getFormsMail($item);
 				list ($send_email_code, $send_email_error) = 
 					static::sendMail
 					(
+						"forms",
+						$email_to,
 						$title,
 						$message,
 						[

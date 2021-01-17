@@ -64,14 +64,12 @@ class Elberos_Plugin
 		);
 		
 		// Add Cron
-		/*
 		add_filter( 'cron_schedules', 'Elberos_Plugin::cron_schedules' );
 		if ( !wp_next_scheduled( 'elberos_forms_cron_send_mail' ) )
 		{
 			wp_schedule_event( time() + 60, 'elberos_forms_two_minute', 'elberos_forms_cron_send_mail' );
 		}
 		add_action( 'elberos_forms_cron_send_mail', 'Elberos\Forms\MailSender::cron_send_mail' );
-		*/
 	}	
 	
 	
@@ -186,6 +184,7 @@ include __DIR__ . "/src/Image.php";
 include __DIR__ . "/src/Update.php";
 include __DIR__ . "/src/Dialog.php";
 include __DIR__ . "/src/Timber.php";
+include __DIR__ . "/delivery/mail-sender.php";
 include __DIR__ . "/forms/forms.php";
 include __DIR__ . "/forms/forms-api.php";
 include __DIR__ . "/forms/forms-helper.php";

@@ -27,7 +27,7 @@ if ( !class_exists( FormsHelper::class ) )
 
 class FormsHelper
 {
-	static $forms_settings;
+	static $forms_settings = null;
 	
 	
 	public static function get_forms_table_name()
@@ -46,6 +46,7 @@ class FormsHelper
 	
 	public static function load_forms_settings()
 	{
+		if (static::$forms_settings != null) return;
 		global $wpdb;
 		$forms_table_name = static::get_forms_table_name();
 		static::$forms_settings = $wpdb->get_results
@@ -61,6 +62,7 @@ class FormsHelper
 	
 	public static function get_form_settings($form_id)
 	{
+		static::load_forms_settings();
 		$forms_settings = static::$forms_settings;
 		foreach ($forms_settings as $item)
 		{
@@ -76,12 +78,31 @@ class FormsHelper
 	
 	public static function get_form_title($form_id)
 	{
+		static::load_forms_settings();
 		$forms_settings = static::$forms_settings;
 		foreach ($forms_settings as $item)
 		{
 			if ($item['id'] == $form_id)
 			{
 				return $item['name'];
+			}
+		}
+		return null;
+	}
+	
+	
+	public static function get_form_email_to($form_id)
+	{
+		static::load_forms_settings();
+		$forms_settings = static::$forms_settings;
+		foreach ($forms_settings as $item)
+		{
+			if ($item['id'] == $form_id)
+			{
+				$arr = explode(",", $item['email_to']);
+				$arr = array_map(function($s){ return trim($s); }, $arr);
+				$arr = array_filter($arr, function($s){ return $s != ""; });
+				return $arr;
 			}
 		}
 		return null;

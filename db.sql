@@ -41,6 +41,7 @@ CREATE TABLE `wp_elberos_forms` (
   `name` varchar(255) NOT NULL,
   `api_name` varchar(255) NOT NULL,
   `settings` text NOT NULL,
+  `email_to` varchar(255) NOT NULL,
   `is_deleted` tinyint(4) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -79,4 +80,4 @@ CREATE TABLE `wp_elberos_mail_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
--- 2021-01-17 11:15:36
+-- 2021-01-17 14:35:39
