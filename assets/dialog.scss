@@ -193,11 +193,19 @@
 	padding: 20px 0px;
 	
 	.elberos_dialog{
-		max-width: 90%;
+		max-width: 1000px;
 		background: transparent;
 		border: 0px transparent solid;
 		text-align: center;
 		
 		padding: 0px;
+		
+		@media (max-width: 1200px){
+			max-width: 90%;
+		}
+		
+		&__image_preview{
+			max-width: 1000px;
+		}
 	}
 }

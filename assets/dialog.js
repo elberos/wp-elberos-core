@@ -285,7 +285,29 @@ $(document).on('click', '.elberos_dialog__box .elberos_dialog__box_table', funct
 });
 
 
+/** Web Form Dialog **/
 
+function ElberosFormDialog()
+{
+	ElberosDialog.call(this);
+}
+
+ElberosFormDialog.prototype = Object.create(ElberosDialog.prototype);
+ElberosFormDialog.prototype.constructor = ElberosDialog;
+
+Object.assign( ElberosFormDialog.prototype, {
+	getDialogHtml: function()
+	{
+		var $dialog = $('<div class="elberos_dialog"></div>');
+		
+		$dialog.append(this.getButtonCloseHtml());
+		$dialog.append(this.getTitleHtml());
+		$dialog.append(this.getContentHtml());
+		$dialog.append("<div class='clear'></div>");
+		
+		return $dialog;
+	},
+});
 
 
 /** Web Image Dialog **/

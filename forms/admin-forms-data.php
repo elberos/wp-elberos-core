@@ -138,7 +138,7 @@ class Data_Table extends \WP_List_Table
 			if ($title == "") continue;
 			$res[] = $title . ": ". mb_substr($value, 0, 30);
 		}
-		return implode($res, "<br/>\n");
+		return implode("<br/>\n", $res);
 	}
 	
 	
@@ -155,7 +155,7 @@ class Data_Table extends \WP_List_Table
 			if ($key == "") continue;
 			$res[] = $key . ": ". mb_substr($value, 0, 30);
 		}
-		return implode($res, "<br/>\n");
+		return implode("<br/>\n", $res);
 	}
 	
 	function column_gmtime_add($item)

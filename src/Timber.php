@@ -163,6 +163,12 @@ class Site extends \Timber\Site
 		{
 			$template = $this->route_info['template'];
 		}
+		
+		if (isset($this->route_info['params']['render']))
+		{
+			$this->route_info['params']['render']($this);
+		}
+		
 		$context = \Timber::context();
 		
 		if (isset($this->route_info['params']['context']))

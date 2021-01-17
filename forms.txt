@@ -1,0 +1,25 @@
+{
+	"fields": 
+	[
+		{
+			"name": "name",
+			"title": "Имя",
+			"required": true
+		},
+		{
+			"name": "phone",
+			"title": "Телефон",
+			"required": true
+		},
+		{
+			"name": "email",
+			"title": "E-mail",
+			"required": true
+		},
+		{
+			"name": "message",
+			"title": "Сообщение",
+			"required": true
+		}
+	]
+}

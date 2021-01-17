@@ -20,6 +20,67 @@
 
 
 /**
+ * Send api request
+ */
+function api_send_form($form, namespace, route, callback)
+{
+	var contentType = 'application/x-www-form-urlencoded; charset=UTF-8';
+	var processData = true;
+	var send_data = {};
+	var arr = $form.find('input');
+	for (var i=0; i<arr.length; i++)
+	{
+		var $item = $(arr[i]);
+		var name = $item.attr('name');
+		send_data[name] = $item.val();
+	}
+	
+	$.ajax({
+		url: "/wp-json/" + namespace + "/" + route + "/",
+		data: send_data,
+		dataType: 'json',
+		method: 'post',
+		
+		cache: false,
+		contentType: contentType,
+		processData: processData,
+		xhrFields: { withCredentials: true },
+		
+		beforeSend: (function(send_data){ return function(xhr)
+		{
+			// this picks up value set in functions.php to allow authentication
+			// to be passed through with function so WP knows to allow deletion.
+			xhr.setRequestHeader('X-WP-Nonce', send_data['_wpnonce']);
+		}})(send_data),
+		
+		success: (function(callback){
+			return function(data, textStatus, jqXHR)
+			{
+				if (data.success)
+				{
+					callback(data);
+				}
+				else
+				{
+					callback(data);
+				}
+			}
+		})(callback),
+		
+		error: (function(callback){
+			return function(data, textStatus, jqXHR){
+				
+				callback({
+					message: "System error",
+					code: -100,
+				});
+				
+			}
+		})(callback),
+	});
+}
+
+/**
  * Send data
  */
 function ElberosFormSendData ( form_api_name, send_data, callback )
@@ -104,7 +165,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 	var wp_nonce = $form.find('.web_form__wp_nonce').val();
 	
 	var data = {};
-	var arr = $form.find('.web_form__field_value');
+	var arr = $form.find('.web_form__value');
 	for (var i=0; i<arr.length; i++)
 	{
 		var $item = $(arr[i]);
@@ -112,8 +173,8 @@ function ElberosFormSubmit ( $form, settings, callback )
 		data[name] = $item.val();
 	}
 	
-	$form.find('.web_form__result').removeClass('.web_form__result--error');
-	$form.find('.web_form__result').removeClass('.web_form__result--success');
+	$form.find('.web_form__result').removeClass('web_form__result--error');
+	$form.find('.web_form__result').removeClass('web_form__result--success');
 	$form.find('.web_form__result').html('Ожидайте. Идет отправка запроса');
 	ElberosFormClearFieldsResult( $form );
 	
@@ -134,7 +195,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 			
 			if (res.code == 1)
 			{
-				$form.find('.web_form__result').addClass('.web_form__result--success');
+				$form.find('.web_form__result').addClass('web_form__result--success');
 				if (settings.success_message == undefined)
 				{
 					$form.find('.web_form__result').html(res.message);
@@ -144,15 +205,18 @@ function ElberosFormSubmit ( $form, settings, callback )
 					$form.find('.web_form__result').html(settings.success_message);
 				}
 				sendSiteEvent('metrika_event', metrika_event);
-				setTimeout
-				(
-					(function(redirect){ return function(){ document.location = redirect; }})(redirect),
-					1000
-				);
+				if (redirect != undefined)
+				{
+					setTimeout
+					(
+						(function(redirect){ return function(){ document.location = redirect; }})(redirect),
+						500
+					);
+				}
 			}
 			else
 			{
-				$form.find('.web_form__result').addClass('.web_form__result--error');
+				$form.find('.web_form__result').addClass('web_form__result--error');
 				$form.find('.web_form__result').html(res.message);
 				
 				if (res.code == -2)
@@ -168,11 +232,11 @@ function ElberosFormSubmit ( $form, settings, callback )
 
 
 /**
- * Submit form
+ * Show form dialog
  */
-function ElberosFormDialog($content, settings)
+function ElberosFormShowDialog($content, settings)
 {
-	var class_name = window['ElberosDialog'];
+	var class_name = window['ElberosFormDialog'];
 	if (settings.dialog_class_name != undefined && window[settings.dialog_class_name] != undefined)
 	{
 		class_name = window[settings.dialog_class_name];
@@ -198,6 +262,11 @@ function ElberosFormDialog($content, settings)
 				}
 			}
 		};
+	}
+	
+	if (settings.button_submit_text != undefined)
+	{
+		dialog.$el.find('.button--submit').html(settings.button_submit_text);
 	}
 	
 	dialog.$el.find('.button--submit').click(
