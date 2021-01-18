@@ -88,6 +88,8 @@ class Data_Table extends \WP_List_Table
             'data' => __('DATA', 'elberos-forms'),
             'utm' => __('UTM', 'elberos-forms'),
             'gmtime_add' => __('Дата', 'elberos-forms'),
+            'spam' => __('Спам', 'elberos-forms'),
+            'send_email_error' => __('Ошибка почты', 'elberos-forms'),
             'buttons' => __('', 'elberos-forms'),
         );
         return $columns;

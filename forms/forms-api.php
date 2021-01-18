@@ -176,7 +176,7 @@ class Api
 			return 
 			[
 				"success" => false,
-				"message" => __("Ошибка валидации данных", "elberos-forms"),
+				"message" => __("Ошибка. Проверьте корректность введенных данных", "elberos-forms"),
 				"fields" => $fields,
 				"code" => -2,
 			];
@@ -199,14 +199,19 @@ class Api
 		$utm_s = json_encode($utm);
 		$gmtime_add = gmdate('Y-m-d H:i:s');
 		
-		$q = $wpdb->prepare(
+		/* Check if spam */
+		$ip = \Elberos\get_client_ip();
+		$spam = static::checkSpam($ip);
+		
+		$q = $wpdb->prepare
+		(
 			"INSERT INTO $table_forms_data_name
 				(
-					form_id, form_title, data, utm, gmtime_add
+					form_id, form_title, data, utm, gmtime_add, spam
 				) 
-				VALUES( %d, %s, %s, %s, %s )",
+				VALUES( %d, %s, %s, %s, %s, %d )",
 			[
-				$form_id, $form_title, $data_s, $utm_s, $gmtime_add
+				$form_id, $form_title, $data_s, $utm_s, $gmtime_add, $spam
 			]
 		);
 		$wpdb->query($q);
@@ -218,6 +223,76 @@ class Api
 			"fields" => [],
 			"code" => 1,
 		];
+	}
+	
+	
+	/**
+	 * Check spam by ip
+	 */
+	static function checkSpam($ip)
+	{
+		global $wpdb;
+		
+		$time = time();
+		$spam_result = 0;
+		
+		$table_name = $wpdb->prefix . 'elberos_forms_ip';
+		$sql = $wpdb->prepare
+		(
+			"SELECT * FROM $table_name WHERE ip=%s", $ip
+		);
+		$row = $wpdb->get_row($sql, ARRAY_A);
+		if ($row == null)
+		{
+			$q = $wpdb->prepare
+			(
+				"INSERT INTO $table_name
+					(
+						ip, count, last
+					) 
+					VALUES( %s, %d, %d )",
+				[
+					$ip, 1, $time
+				]
+			);
+			$wpdb->query($q);
+		}
+		
+		else
+		{
+			$count = $row["count"];
+			if ($row["last"] + 15*60 > $time)
+			{
+				if ($count >= 3)
+				{
+					$spam_result = 1;
+					$count--;
+				}
+			}
+			else
+			{
+				$count = 0;
+			}
+			
+			$wpdb->query
+			(
+				$wpdb->prepare
+				(
+					"UPDATE $table_name SET
+						count=%d,
+						last=%d
+					WHERE ip = %s",
+					[
+						$count + 1,
+						$time,
+						$ip
+					]
+				)
+			);
+		}
+		
+		
+		return $spam_result;
 	}
 	
 }

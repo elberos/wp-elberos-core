@@ -291,3 +291,19 @@ function base64_decode_url($s)
 	return base64_decode($s);
 }
 
+
+/**
+ * Returns ip
+ */
+function get_client_ip()
+{
+	if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+	{
+		return $_SERVER['HTTP_X_FORWARDED_FOR'];
+	}
+	else
+	{
+		return $_SERVER['REMOTE_ADDR'];
+	}
+	return "0";
+}

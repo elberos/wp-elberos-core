@@ -242,6 +242,7 @@ if ( !class_exists( MailSender::class ) )
 		 */
 		public static function cron_send_mail()
 		{
+			
 			global $wpdb;
 			
 			// Load Forms Settings
@@ -264,22 +265,31 @@ if ( !class_exists( MailSender::class ) )
 			
 			foreach ($items as $item)
 			{
+				$send_email_code = -1;
+				$send_email_error = "Unknown error";
 				$send_email_uuid = $item['send_email_uuid'];
 				if ($send_email_uuid == "") $send_email_uuid = wp_generate_uuid4();
 				list ($title, $message, $email_to) = static::getFormsMail($item);
-				list ($send_email_code, $send_email_error) = 
-					static::sendMail
-					(
-						"forms",
-						$email_to,
-						$title,
-						$message,
-						[
-							'uuid'=>$send_email_uuid
-						]
-					);
 				
-				//var_dump($message);
+				if ($item["spam"] == 0)
+				{
+					list ($send_email_code, $send_email_error) = 
+						static::sendMail
+						(
+							"forms",
+							$email_to,
+							$title,
+							$message,
+							[
+								'uuid'=>$send_email_uuid
+							]
+						);
+				}
+				else
+				{
+					$send_email_code = -4;
+					$send_email_error = "Client spam";
+				}
 				
 				$wpdb->query
 				(
