@@ -45,6 +45,7 @@ class Site extends \Timber\Site
 	public $pages = 0;
 	public $breadcrumbs = null;
 	public $title = "";
+	public $title_suffix = " | ";
 	public $full_title = "";
 	public $description = "";
 	public $og_type = "";
@@ -177,7 +178,7 @@ class Site extends \Timber\Site
 		{
 			$context = $this->route_info['params']['context']($this, $context);
 		}
-		//var_dump($template);
+		//var_dump($this->full_title);
 		\Timber::render( $template, $context );
 	}
 	
@@ -317,6 +318,7 @@ class Site extends \Timber\Site
 	public function setup_links()
 	{
 		$this->canonical_url = $this->get_canonical_url();
+		//var_dump($this->canonical_url);
 		
 		if (!is_singular())
 		{
@@ -456,6 +458,7 @@ class Site extends \Timber\Site
 		
 		$is_langs = \Elberos\is_langs();
 		$site_url = $this->site_url;
+		$paged = max( 1, (int) get_query_var( 'paged' ) );
 		
 		if ($is_langs)
 		{
@@ -469,7 +472,6 @@ class Site extends \Timber\Site
 			
 			if ($un_paged)
 			{
-				$paged = max( 1, (int) get_query_var( 'paged' ) );
 				$str = "page/" . $paged;
 				$pos = strpos($uri, $str);
 				if ($pos !== false)
@@ -482,7 +484,7 @@ class Site extends \Timber\Site
 		}
 		
 		if (substr($url, -1) == "/") $url = substr($url, 0, -1);
-		if ($uri == false) $url .= "/";
+		if ((is_home() && $this->route_info == null && $paged == 1) || $uri == false) $url .= "/";
 		
 		return $url;
 	}
@@ -550,11 +552,11 @@ class Site extends \Timber\Site
 	
 	public function get_page_full_title($title)
 	{
-		if (is_home())
+		if (is_home() && $this->route_info == null)
 		{
 			return $title;
 		}
-		return $title . " | " . $this->name;
+		return $title . $this->title_suffix . $this->name;
 	}
 	
 	public function get_page_description()
