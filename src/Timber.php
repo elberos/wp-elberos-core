@@ -195,7 +195,7 @@ class Site extends \Timber\Site
 		if (!($this->post instanceof \WP_POST)) $this->post = null;
 		if ($this->post != null)
 		{
-			$this->post_id = ($this->post != null && $this->post instanceof WP_POST) ? $this->post->ID : "";
+			$this->post_id = ($this->post != null && $this->post instanceof \WP_POST) ? $this->post->ID : "";
 			if ($this->post instanceof \WP_POST)
 			{
 				$this->post_category = get_the_category($this->post_id);
