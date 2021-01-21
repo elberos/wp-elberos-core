@@ -48,6 +48,7 @@ class Site extends \Timber\Site
 	public $full_title = "";
 	public $description = "";
 	public $og_type = "";
+	public $og_image = "";
 	public $open_graph = [];
 	public $article_publisher = "";
 	public $article_tags = [];
@@ -64,6 +65,7 @@ class Site extends \Timber\Site
 	public $initialized = false;
 	public $current_user = null;
 	public $jwt = null;
+	public $index_twig = 'pages/index.twig';
 	
 	
 	/** Constructor **/
@@ -158,7 +160,7 @@ class Site extends \Timber\Site
 	 */
 	function route_render()
 	{
-		$template = 'pages/index.twig';
+		$template = $this->index_twig;
 		if ($this->route_info != null)
 		{
 			$template = $this->route_info['template'];
@@ -190,16 +192,16 @@ class Site extends \Timber\Site
 		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
 		$this->categories = get_categories();
 		$this->post = get_queried_object();
-		if (!($this->post instanceof WP_POST)) $this->post = null;
+		if (!($this->post instanceof \WP_POST)) $this->post = null;
 		if ($this->post != null)
 		{
 			$this->post_id = ($this->post != null && $this->post instanceof WP_POST) ? $this->post->ID : "";
-			if ($this->post instanceof WP_POST)
+			if ($this->post instanceof \WP_POST)
 			{
 				$this->post_category = get_the_category($this->post_id);
 				$this->current_category = isset($this->post_category[0]) ? $this->post_category[0] : null;
 			}
-			if ($this->post instanceof WP_Term) $this->current_category = get_category($this->post->cat_ID);
+			if ($this->post instanceof \WP_Term) $this->current_category = get_category($this->post->cat_ID);
 		}
 		$this->page_vars =
 		[
@@ -212,7 +214,7 @@ class Site extends \Timber\Site
 			"is_front_page" => is_front_page(),
 			"is_single" => is_single(),
 			"is_singular" => is_singular(),
-			"is_post" => $this->post instanceof WP_POST,
+			"is_post" => $this->post instanceof \WP_POST,
 			"is_404" => is_404(),
 		];
 		$this->language = get_locale();
@@ -231,7 +233,7 @@ class Site extends \Timber\Site
 		$this->page = max( 1, (int) get_query_var( 'paged' ) );
 		$this->pages = $GLOBALS['wp_query']->max_num_pages;
 		
-		/* Setup prev and next url */
+		/* Setup canonical, prev and next url */
 		$this->setup_links();
 		
 		/* Setup article tags */
@@ -295,11 +297,11 @@ class Site extends \Timber\Site
 			}
 		}
 		
-		if ($this->page_vars["is_page"] && $this->post instanceof WP_POST)
+		if ($this->page_vars["is_page"] && $this->post instanceof \WP_POST)
 		{
 			$this->add_breadcrumbs($this->post->post_title, $this->remove_site_url(get_the_permalink($this->post)) );
 		}
-		else if ($this->page_vars["is_single"] && $this->post instanceof WP_POST)
+		else if ($this->page_vars["is_single"] && $this->post instanceof \WP_POST)
 		{
 			$this->add_breadcrumbs($this->post->post_title, $this->remove_site_url(get_the_permalink($this->post)) );
 		}
@@ -318,13 +320,29 @@ class Site extends \Timber\Site
 		
 		if (!is_singular())
 		{
+			$canonical_url_get = "";
 			$canonical_url = $this->get_canonical_url(true);
 			$paged = max( 1, (int) get_query_var( 'paged' ) );
 			$max_page = $GLOBALS['wp_query']->max_num_pages;
 			
+			$is_get = strpos($canonical_url, "?");
+			if ($is_get)
+			{
+				$canonical_url_get = substr($canonical_url, $is_get);
+				$canonical_url = substr($canonical_url, 0, $is_get);
+			}
+			
 			$prev_url = ($paged <= 2) ? $canonical_url : $this->url_concat($canonical_url, "/page/" . ($paged - 1));
 			$next_url = $this->url_concat($canonical_url, "/page/" . ($paged + 1));
 			
+			//var_dump($canonical_url);
+			//var_dump($canonical_url_get);
+			
+			if ($is_get)
+			{
+				$prev_url .= $canonical_url_get;
+				$next_url .= $canonical_url_get;
+			}
 			if ($paged >= 2 && $paged < $max_page)
 			{
 				$this->prev_url = $prev_url;
@@ -333,12 +351,18 @@ class Site extends \Timber\Site
 			{
 				$this->next_url = $next_url;
 			}
+			
+			$is_langs = \Elberos\is_langs();
+			if ($is_langs)
+			{
+				$locale_code = $this->get_current_locale_code();
+			}
 		}
 	}
 	
 	public function setup_article_tags()
 	{
-		if ($this->post instanceof WP_POST)
+		if ($this->post instanceof \WP_POST)
 		{
 			$this->og_type = "article";
 			
@@ -362,6 +386,19 @@ class Site extends \Timber\Site
 			
 			/* Setup publisher */
 			$this->article_publisher = $this->get_site_name();
+			
+			/* Setup og image */
+			$media_id = get_post_thumbnail_id($this->post->ID);
+			if ($media_id)
+			{
+				$image = wp_get_attachment_image_src($media_id, "medium_large");
+				$image_href = isset($image[0]) ? $image[0] : null;
+				if ($image_href)
+				{
+					$image_time = strtotime($this->post->post_modified);
+					$this->og_image = $image_href . '?_' . $image_time;
+				}
+			}
 		}
 	}
 	
@@ -417,26 +454,33 @@ class Site extends \Timber\Site
 	{
 		global $wp;
 		
+		$is_langs = \Elberos\is_langs();
 		$site_url = $this->site_url;
-		$locale_code = $this->get_current_locale_code();
 		
-		$uri = $this->request['uri'];
-		if (strpos($uri, $locale_code) === 0)
+		if ($is_langs)
 		{
-			$uri = substr($uri, strlen($locale_code) + 1);
-		}
-		
-		if ($un_paged)
-		{
-			$paged = max( 1, (int) get_query_var( 'paged' ) );
-			$str = "page/" . $paged;
-			if (strpos($uri, $str) !== false)
+			$locale_code = $this->get_current_locale_code();
+			$uri = $this->request['uri'];
+			
+			if (strpos($uri, "/" . $locale_code) === 0)
 			{
-				$uri = substr($uri, 0, -strlen($str));
+				$uri = substr($uri, strlen($locale_code) + 1);
 			}
+			
+			if ($un_paged)
+			{
+				$paged = max( 1, (int) get_query_var( 'paged' ) );
+				$str = "page/" . $paged;
+				$pos = strpos($uri, $str);
+				if ($pos !== false)
+				{
+					$uri = substr($uri, 0, $pos) . substr($uri, $pos + strlen($str));
+				}
+			}
+			
+			$url = $this->url_concat($site_url . "/" . $locale_code, $uri);
 		}
 		
-		$url = $this->url_concat($site_url . "/" . $locale_code, $uri);
 		if (substr($url, -1) == "/") $url = substr($url, 0, -1);
 		if ($uri == false) $url .= "/";
 		
@@ -469,11 +513,11 @@ class Site extends \Timber\Site
 		{
 			$vars = $this->page_vars;
 			$title = "";
-			if ($this->post != null && $this->post instanceof WP_POST && $this->post->taxonomy == 'category')
+			if ($this->post != null && $this->post instanceof \WP_POST && $this->post->taxonomy == 'category')
 			{
 				$title = "Категория " . $this->post->name;
 			}
-			else if ($this->post != null && $this->post instanceof WP_POST && $this->post->taxonomy == 'post_tag')
+			else if ($this->post != null && $this->post instanceof \WP_POST && $this->post->taxonomy == 'post_tag')
 			{
 				$title = "Тег " . $this->post->name;
 			}
