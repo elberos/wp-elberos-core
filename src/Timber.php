@@ -565,7 +565,7 @@ class Site extends \Timber\Site
 		$route_params = $this->get_route_params();
 		if ($route_params != null)
 		{
-			return $route_params['description'];
+			return isset($route_params['description']) ? $route_params['description'] : get_bloginfo("description");
 		}
 		
 		if (class_exists(\RankMath\Paper\Paper::class))

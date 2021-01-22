@@ -140,7 +140,7 @@ if ( !class_exists( MailSender::class ) )
 			$form_id = $item['form_id'];
 			$item_title = $item['form_title'];
 			$form_title = FormsHelper::get_form_title($form_id);
-			$title = "Новый заказ " . ($item_title != "" ? $item_title : $form_title) . " с сайта " . $site_name;
+			$title = ($item_title != "" ? $item_title : $form_title) . " с сайта " . $site_name;
 			$email_to = FormsHelper::get_form_email_to($form_id);
 			
 			$form_data_res = []; $form_data_utm = [];
