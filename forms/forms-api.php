@@ -76,7 +76,7 @@ class Api
 	/**
 	 * Api submit form
 	 */
-	public function submit_form($params)
+	public static function submit_form($params)
 	{
 		global $wpdb;
 		

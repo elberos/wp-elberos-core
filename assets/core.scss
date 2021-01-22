@@ -676,10 +676,18 @@ ol, ul {
 
 /* Forms */
 .web_form{
+	&__title, &__subtitle{
+		text-align: center;
+		margin-bottom: 10px;
+	}
+	&__title{
+		font-weight: bold;
+		font-size: 150%;
+	}
 	&__result{
 		text-align: center;
-		padding-top: 5px;
-		padding-bottom: 10px;
+		margin-top: 5px;
+		margin-bottom: 10px;
 		
 		&--success{
 			color: green;
@@ -689,7 +697,7 @@ ol, ul {
 		}
 	}
 	&__row{
-		padding-bottom: 10px;
+		margin-bottom: 10px;
 	}
 	&__field_result{
 		color: red;
@@ -713,12 +721,24 @@ ol, ul {
 	}
 	&__field_image_preview{
 		display: block;
-		padding-bottom: 5px;
+		margin-bottom: 5px;
 	}
 	&__label{
 		display: block;
-		padding-bottom: 5px;
+		margin-bottom: 5px;
 		font-weight: bold;
+	}
+	&__input{
+		border: 1px #B3B3B3 solid;
+		background-color: white;
+		
+		&:focus, &:active {
+			outline: 0;
+		}
+	}
+	&__input, .button{
+		width: 100%;
+		padding: 10px;
 	}
 }
 
@@ -726,15 +746,15 @@ ol, ul {
 	width: 600px;
 	margin-right: auto;
 	margin-left: auto;
-	padding-top: 10px;
-	padding-bottom: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 
 .web_form--flat{
 	.web_form{
 		
 		&__row{
-			padding-bottom: 15px;
+			margin-bottom: 15px;
 		}
 		
 		&__input--text, &__input--password, &__select, &__textarea{
