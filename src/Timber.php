@@ -482,6 +482,11 @@ class Site extends \Timber\Site
 			
 			$url = $this->url_concat($site_url . "/" . $locale_code, $uri);
 		}
+		else
+		{
+			$uri = $this->request['uri'];
+			$url = $this->url_concat($site_url, $uri);
+		}
 		
 		if (substr($url, -1) == "/") $url = substr($url, 0, -1);
 		if ((is_home() && $this->route_info == null && $paged == 1) || $uri == false) $url .= "/";
@@ -502,9 +507,13 @@ class Site extends \Timber\Site
 	public function get_page_title()
 	{
 		$route_params = $this->get_route_params();
-		if ($route_params != null)
+		if ($route_params != null && isset($route_params['title']))
 		{
 			return $route_params['title'];
+		}
+		if ($route_params != null && isset($route_params['full_title']))
+		{
+			return $route_params['full_title'];
 		}
 		
 		if (is_home())
@@ -555,6 +564,10 @@ class Site extends \Timber\Site
 		if (is_home() && $this->route_info == null)
 		{
 			return $title;
+		}
+		if ($this->route_info != null && isset($this->route_info['params']['full_title']))
+		{
+			return $this->route_info['params']['full_title'];
 		}
 		return $title . $this->title_suffix . $this->name;
 	}
