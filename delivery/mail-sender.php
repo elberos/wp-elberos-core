@@ -221,7 +221,6 @@ if ( !class_exists( MailSender::class ) )
 			</head>
 			<body>
 			<div style="font-family:verdana;font-size:16px">
-			<h1>Новый заказ</h1>
 			<table class="forms_data_display_item">
 				<?php echo implode($res_data, ""); ?>
 			</table>
