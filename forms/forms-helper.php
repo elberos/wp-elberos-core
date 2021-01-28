@@ -51,10 +51,7 @@ class FormsHelper
 		$forms_table_name = static::get_forms_table_name();
 		static::$forms_settings = $wpdb->get_results
 		(
-			$wpdb->prepare
-			(
-				"SELECT t.* FROM $forms_table_name as t", []
-			),
+			"SELECT t.* FROM $forms_table_name as t",
 			ARRAY_A
 		);
 	}
