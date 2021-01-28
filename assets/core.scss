@@ -466,7 +466,7 @@ ol, ul {
 	position: relative;
 	background: #FFF;
 	padding: 20px;
-	width: auto;
+	width: 100%;
 	margin: 0px auto;
 	border-radius: 0px;
 	z-index: 99999;
@@ -475,6 +475,10 @@ ol, ul {
 	&__box_table{
 		width: 100%;
 		min-height: 100%;
+	}
+	
+	&__box_td{
+		vertical-align: middle;
 	}
 	
 	&__box{
