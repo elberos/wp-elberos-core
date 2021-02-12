@@ -307,3 +307,97 @@ function get_client_ip()
 	}
 	return "0";
 }
+
+
+/**
+ * Update meta array
+ */
+function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
+{
+	if (gettype($arr) != "array") return;
+	
+	global $wpdb;
+	
+	$table = $wpdb->prefix . "postmeta";
+	$sql = $wpdb->prepare
+	(
+		"SELECT t.* FROM {$table} as t
+		WHERE t.post_id = %d and t.meta_key = %s", $post_id, $meta_key
+	);
+	$items = $wpdb->get_results($sql, ARRAY_A);
+	
+	// Extract json from meta_value
+	if ($item_key_id != "")
+	{
+		$items = array_map
+		(
+			function($item)
+			{
+				$item['meta_value'] = @json_decode($item['meta_value'], true);
+				return $item;
+			},
+			$items
+		);
+	}
+	
+	// Add meta_value to arr
+	$arr = array_map
+	(
+		function($item)
+		{
+			return [ 'meta_value' => $item ];
+		},
+		$arr
+	);
+	
+	$find_item = function($items, $value, $item_key_id)
+	{
+		foreach ($items as $c)
+		{
+			if ($item_key_id == "")
+			{
+				if ($c['meta_value'] == $value['meta_value'])
+				{
+					return $c;
+				}
+			}
+			else
+			{
+				if (isset($c['meta_value'][$item_key_id]) && isset($value['meta_value'][$item_key_id]))
+				{
+					if ($c['meta_value'][$item_key_id] == $value['meta_value'][$item_key_id])
+					{
+						return $c;
+					}
+				}
+			}
+		}
+		return null;
+	};
+	
+	/* Add */
+	foreach ($arr as $arr_item)
+	{
+		$find = $find_item($items, $arr_item, $item_key_id);
+		if (!$find)
+		{
+			$meta_value_text = $arr_item['meta_value'];
+			if (gettype($meta_value_text) == "array")
+			{
+				$meta_value_text = json_encode($meta_value_text);
+			}
+			$wpdb->insert($table, ['post_id' => $post_id, 'meta_key' => $meta_key, 'meta_value' => $meta_value_text]);
+		}
+	}
+	
+	/* Delete */
+	foreach ($items as $c)
+	{
+		$find = $find_item($arr, $c, $item_key_id);
+		if (!$find)
+		{
+			$wpdb->delete($table, ['meta_id' => $c['meta_id']]);
+		}
+	}
+	
+}
