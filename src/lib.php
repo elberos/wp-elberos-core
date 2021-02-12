@@ -333,7 +333,7 @@ function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
 		(
 			function($item)
 			{
-				$item['meta_value'] = @json_decode($item['meta_value'], true);
+				$item['meta_value'] = @unserialize($item['meta_value']);
 				return $item;
 			},
 			$items
@@ -384,7 +384,7 @@ function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
 			$meta_value_text = $arr_item['meta_value'];
 			if (gettype($meta_value_text) == "array")
 			{
-				$meta_value_text = json_encode($meta_value_text);
+				$meta_value_text = serialize($meta_value_text);
 			}
 			$wpdb->insert($table, ['post_id' => $post_id, 'meta_key' => $meta_key, 'meta_value' => $meta_value_text]);
 		}
