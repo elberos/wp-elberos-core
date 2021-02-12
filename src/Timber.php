@@ -196,6 +196,7 @@ class Site extends \Timber\Site
 		$post = get_queried_object();
 		if ($post != null && $post instanceof \WP_POST)
 		{
+			$this->post = $post;
 			$this->post_id = $this->post->ID;
 			$this->post_category = get_the_category($this->post_id);
 			$this->current_category = isset($this->post_category[0]) ? $this->post_category[0] : null;
