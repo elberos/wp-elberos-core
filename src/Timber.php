@@ -689,7 +689,7 @@ class Site extends \Timber\Site
 		{
 			return $this->title;
 		}		
-		return $this->title . " | " . $this->site_name;
+		return $this->title . $this->title_suffix . $this->site_name;
 	}
 	
 	
