@@ -59,6 +59,7 @@ class Site extends \Timber\Site
 	public $canonical_url = "";
 	public $prev_url = "";
 	public $next_url = "";
+	public $term = null;
 	public $post = null;
 	public $post_id = "";
 	public $post_category = null;
@@ -192,17 +193,17 @@ class Site extends \Timber\Site
 		$this->f_inc = $this->get_f_inc();
 		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
 		$this->categories = get_categories();
-		$this->post = get_queried_object();
-		if (!($this->post instanceof \WP_POST)) $this->post = null;
-		if ($this->post != null)
+		$post = get_queried_object();
+		if ($post != null && $post instanceof \WP_POST)
 		{
-			$this->post_id = ($this->post != null && $this->post instanceof \WP_POST) ? $this->post->ID : "";
-			if ($this->post instanceof \WP_POST)
-			{
-				$this->post_category = get_the_category($this->post_id);
-				$this->current_category = isset($this->post_category[0]) ? $this->post_category[0] : null;
-			}
-			if ($this->post instanceof \WP_Term) $this->current_category = get_category($this->post->cat_ID);
+			$this->post_id = $this->post->ID;
+			$this->post_category = get_the_category($this->post_id);
+			$this->current_category = isset($this->post_category[0]) ? $this->post_category[0] : null;
+		}
+		if ($post != null && $post instanceof \WP_Term)
+		{
+			$this->term = $post;
+			$this->current_category = get_category($this->term->cat_ID);
 		}
 		$this->page_vars =
 		[
@@ -504,6 +505,37 @@ class Site extends \Timber\Site
 		return get_bloginfo("description");
 	}
 	
+	public function get_term_title()
+	{
+		$vars = $this->page_vars;
+		$title = "";
+		if ($this->term != null && $this->term->taxonomy == 'category')
+		{
+			$title = "Категория " . $this->term->name;
+		}
+		else if ($this->term != null && $this->term->taxonomy == 'post_tag')
+		{
+			$title = "Тег " . $this->term->name;
+		}
+		else if (is_archive())
+		{
+			$title = "Архив за " . $this->get_the_archive_title();
+		}
+		else if ($this->search_text != null)
+		{
+			$title = "Результаты поиска для " . $this->search_text;
+		}
+		else if ($this->route_info != null)
+		{
+			$title = $this->route_info['params']['title'];
+		}
+		else
+		{
+			$title = get_the_title();
+		}
+		return $title;
+	}
+	
 	public function get_page_title()
 	{
 		$route_params = $this->get_route_params();
@@ -522,32 +554,7 @@ class Site extends \Timber\Site
 		}
 		else
 		{
-			$vars = $this->page_vars;
-			$title = "";
-			if ($this->post != null && $this->post instanceof \WP_POST && $this->post->taxonomy == 'category')
-			{
-				$title = "Категория " . $this->post->name;
-			}
-			else if ($this->post != null && $this->post instanceof \WP_POST && $this->post->taxonomy == 'post_tag')
-			{
-				$title = "Тег " . $this->post->name;
-			}
-			else if (is_archive())
-			{
-				$title = "Архив за " . $this->get_the_archive_title();
-			}
-			else if ($this->search_text != null)
-			{
-				$title = "Результаты поиска для " . $this->search_text;
-			}
-			else if ($this->route_info != null)
-			{
-				$title = $this->route_info['params']['title'];
-			}
-			else
-			{
-				$title = get_the_title();
-			}
+			$title = $this->get_term_title();
 		}
 		
 		$page = max( 1, (int) get_query_var( 'paged' ) );
