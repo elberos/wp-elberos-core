@@ -641,11 +641,11 @@ class Site
 		$title = "";
 		if ($this->term != null && $this->term->taxonomy == 'category')
 		{
-			$title = "Категория " . $this->term->name;
+			$title = $this->term->name;
 		}
 		else if ($this->term != null && $this->term->taxonomy == 'post_tag')
 		{
-			$title = "Тег " . $this->term->name;
+			$title = $this->term->name;
 		}
 		else if (is_archive())
 		{
@@ -655,10 +655,6 @@ class Site
 		{
 			$title = "Результаты поиска для " . $this->search_text;
 		}
-		else if ($this->route_info != null)
-		{
-			$title = $this->route_info['params']['title'];
-		}
 		else
 		{
 			$title = get_the_title();
@@ -666,7 +662,7 @@ class Site
 		return $title;
 	}
 	
-	public function get_page_title()
+	public function get_current_title()
 	{
 		$route_params = $this->get_route_params();
 		if ($route_params != null && isset($route_params['title']))
@@ -686,6 +682,13 @@ class Site
 		{
 			$title = $this->get_term_title();
 		}
+		
+		return $title;
+	}
+	
+	public function get_page_title()
+	{
+		$title = $this->get_current_title();
 		
 		$page = max( 1, (int) get_query_var( 'paged' ) );
 		if ($page > 1)
@@ -905,10 +908,6 @@ class Site
 		
 		// Undefined functions
 		$twig->registerUndefinedFunctionCallback(function ($name) {
-			if (method_exists($this, $name))
-			{
-				return new \Twig\TwigFunction( $name, array( $this, $name ) );
-			}
 			if (!function_exists($name))
 			{
 				return false;
@@ -916,10 +915,6 @@ class Site
 			return new \Twig\TwigFunction($name, $name);
 		});
 		$twig->registerUndefinedFilterCallback(function ($name) {
-			if (method_exists($this, $name))
-			{
-				return new \Twig\TwigFunction( $name, array( $this, $name ) );
-			}
 			if (!function_exists($name))
 			{
 				return false;
