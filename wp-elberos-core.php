@@ -176,18 +176,19 @@ class Elberos_Plugin
 	
 }
 
-include __DIR__ . "/src/lib.php";
-include __DIR__ . "/src/Html.php";
-include __DIR__ . "/src/RawString.php";
-include __DIR__ . "/src/Slider.php";
-include __DIR__ . "/src/Image.php";
-include __DIR__ . "/src/Update.php";
-include __DIR__ . "/src/Dialog.php";
-include __DIR__ . "/src/Timber.php";
-include __DIR__ . "/delivery/mail-sender.php";
-include __DIR__ . "/forms/forms.php";
-include __DIR__ . "/forms/forms-api.php";
-include __DIR__ . "/forms/forms-helper.php";
+require_once __DIR__ . "/src/lib.php";
+require_once __DIR__ . "/src/Html.php";
+require_once __DIR__ . "/src/RawString.php";
+require_once __DIR__ . "/src/Site.php";
+require_once __DIR__ . "/src/Slider.php";
+require_once __DIR__ . "/src/Image.php";
+require_once __DIR__ . "/src/Update.php";
+require_once __DIR__ . "/src/Dialog.php";
+require_once __DIR__ . "/delivery/mail-sender.php";
+require_once __DIR__ . "/forms/forms.php";
+require_once __DIR__ . "/forms/forms-api.php";
+require_once __DIR__ . "/forms/forms-helper.php";
+require_once __DIR__ . "/vendor/autoload.php";
 
 Elberos_Plugin::init();
 \Elberos\Forms\Api::init();

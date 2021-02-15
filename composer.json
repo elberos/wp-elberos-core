@@ -14,5 +14,6 @@
 		"files": [ "wp-elberos-core.php" ]
 	},
 	"require": {
+		"twig/twig": "^3.0"
 	}
 }

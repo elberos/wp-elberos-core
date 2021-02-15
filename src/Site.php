@@ -2,10 +2,6 @@
 
 namespace Elberos;
 
-if ( class_exists( '\Timber' ) )
-{
-
-
 // Переопределение SEO код плагина Rank Math на код из шаблона
 add_action
 (
@@ -24,14 +20,16 @@ add_action
 
 
 // Сайт
-class Site extends \Timber\Site 
+class Site
 {
-	
 	/**
 	 * Context
 	 */
+	public $wp_query = null;
+	public $site_name = "";
+	public $site_url = "";
 	public $robots;
-	public $categories;
+	public $categories = null;
 	public $language;
 	public $language_code;
 	public $locale_prefix;
@@ -57,6 +55,7 @@ class Site extends \Timber\Site
 	public $article_published_time = "";
 	public $article_modified_time = "";
 	public $canonical_url = "";
+	public $canonical_url_un_paged = "";
 	public $prev_url = "";
 	public $next_url = "";
 	public $term = null;
@@ -68,14 +67,18 @@ class Site extends \Timber\Site
 	public $current_user = null;
 	public $jwt = null;
 	public $index_twig = 'pages/index.twig';
+	public $context = [];
+	public $twig = null;
+	public $twig_loader = null;
+	public $twig_cache = true;
+	public $twig_templates = ["templates"];
+	public $posts = null;
 	
 	
 	/** Constructor **/
 	
 	public function __construct() 
 	{
-		parent::__construct();
-		
 		// Register hooks
 		$this->register_hooks();
 		
@@ -85,15 +88,20 @@ class Site extends \Timber\Site
 	}
 	
 	
+	
 	/** Theme settings **/
 	
 	public function action_widgets_init()
 	{
 	}
 	
+	
+	
 	public function action_theme_supports() 
 	{
 	}
+	
+	
 	
 	/** This is where you can register custom post types. */
 	public function action_register_post_types()
@@ -101,25 +109,14 @@ class Site extends \Timber\Site
 		
 	}
 	
+	
+	
 	/** This is where you can register custom taxonomies. */
 	public function action_register_taxonomies()
 	{
 
 	}
 	
-	
-	/** 
-	 * This is where you add some context 
-	 *
-	 * @param string $context context['this'] Being the Twig's {{ this }}.
-	 */
-	public function action_add_to_context( $context ) 
-	{
-		/* Setup context */
-		$context['site'] = $this;
-		$context = $this->extend_context($context);
-		return $context;
-	}
 	
 	
 	/**
@@ -131,6 +128,7 @@ class Site extends \Timber\Site
 	}
 	
 	
+	
 	/**
 	 * Assets increment
 	 */
@@ -140,12 +138,14 @@ class Site extends \Timber\Site
 	}
 	
 	
+	
 	/**
 	 * Custom routes
 	 */
 	function register_routes()
 	{
 	}
+	
 	
 	
 	/**
@@ -157,30 +157,52 @@ class Site extends \Timber\Site
 	}
 	
 	
+	
 	/**
 	 * Render custom route
 	 */
-	function route_render()
+	function render_page($template, $context = null)
 	{
+		if ($context == null) $context = $this->context;
+		if (gettype($template) == 'array')
+		{
+			foreach ($template as $t)
+			{
+				try
+				{
+					$res = $this->twig->render($t, $context);
+					return $res;
+				}
+				catch (\Twig\Error\LoaderError $err)
+				{
+				}
+			}
+		}
+		else
+		{
+			return $this->twig->render($template, $context);
+		}
+		return "";
+	}
+	
+	
+	
+	/**
+	 * Render
+	 */
+	function render()
+	{
+		$context = $this->context;
 		$template = $this->index_twig;
 		if ($this->route_info != null)
 		{
 			$template = $this->route_info['template'];
 		}
-		
-		if (isset($this->route_info['params']['render']))
-		{
-			$this->route_info['params']['render']($this);
-		}
-		
-		$context = \Timber::context();
-		
 		if (isset($this->route_info['params']['context']))
 		{
 			$context = $this->route_info['params']['context']($this, $context);
 		}
-		//var_dump($this->full_title);
-		\Timber::render( $template, $context );
+		return $this->render_page($template, $context);
 	}
 	
 	
@@ -189,10 +211,18 @@ class Site extends \Timber\Site
 	
 	public function setup()
 	{
+		global $wp_query;
+		
+		/* Init */
+		$this->setup_init();
+		
 		/* Setup base variables */
+		$this->wp_query = $wp_query;
+		$this->site_url = get_site_url();
+		$this->site_name = $this->get_site_name();
+		$this->theme_link = get_template_directory_uri();
 		$this->f_inc = $this->get_f_inc();
 		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
-		$this->categories = get_categories();
 		$post = get_queried_object();
 		if ($post != null && $post instanceof \WP_POST)
 		{
@@ -217,8 +247,10 @@ class Site extends \Timber\Site
 			"is_front_page" => is_front_page(),
 			"is_single" => is_single(),
 			"is_singular" => is_singular(),
+			"is_search" => is_search(),
 			"is_post" => $this->post instanceof \WP_POST,
 			"is_404" => is_404(),
+			"have_posts" => have_posts(),
 		];
 		$this->language = get_locale();
 		$this->language_code = $this->get_current_locale_code();
@@ -232,9 +264,10 @@ class Site extends \Timber\Site
 		$this->full_title = $this->get_page_full_title($this->title);
 		$this->description = $this->get_page_description();
 		$this->robots = $this->get_page_robots();
-		$this->name = $this->get_site_name();
 		$this->page = max( 1, (int) get_query_var( 'paged' ) );
-		$this->pages = $GLOBALS['wp_query']->max_num_pages;
+		$this->max_pages = $this->wp_query->max_num_pages;
+		$this->canonical_url = $this->get_canonical_url();
+		$this->canonical_url_un_paged = $this->get_canonical_url(true);
 		
 		/* Setup canonical, prev and next url */
 		$this->setup_links();
@@ -245,6 +278,13 @@ class Site extends \Timber\Site
 		/* Setup breadcrumbs */
 		$this->setup_breadcrumbs();
 		
+		/* Create twig */
+		$this->create_twig();
+		
+		/* Create context */
+		$this->create_context();
+		
+		/* Set initialized */
 		$this->initialized = true;
 		
 		/* Call action */
@@ -254,6 +294,9 @@ class Site extends \Timber\Site
 		$this->setup_after();
 	}
 	
+	public function setup_init()
+	{
+	}
 	
 	public function setup_breadcrumbs()
 	{
@@ -319,15 +362,12 @@ class Site extends \Timber\Site
 	
 	public function setup_links()
 	{
-		$this->canonical_url = $this->get_canonical_url();
-		//var_dump($this->canonical_url);
-		
 		if (!is_singular())
 		{
 			$canonical_url_get = "";
-			$canonical_url = $this->get_canonical_url(true);
+			$canonical_url = $this->canonical_url_un_paged;
 			$paged = max( 1, (int) get_query_var( 'paged' ) );
-			$max_page = $GLOBALS['wp_query']->max_num_pages;
+			$max_pages = $this->max_pages;
 			
 			$is_get = strpos($canonical_url, "?");
 			if ($is_get)
@@ -347,19 +387,13 @@ class Site extends \Timber\Site
 				$prev_url .= $canonical_url_get;
 				$next_url .= $canonical_url_get;
 			}
-			if ($paged >= 2 && $paged < $max_page)
+			if ($paged >= 2 && $paged < $max_pages)
 			{
 				$this->prev_url = $prev_url;
 			}
-			if ($paged < $max_page)
+			if ($paged < $max_pages)
 			{
 				$this->next_url = $next_url;
-			}
-			
-			$is_langs = \Elberos\is_langs();
-			if ($is_langs)
-			{
-				$locale_code = $this->get_current_locale_code();
 			}
 		}
 	}
@@ -404,6 +438,62 @@ class Site extends \Timber\Site
 				}
 			}
 		}
+	}
+	
+	
+	/**
+	 * Create context
+	 */
+	public function create_context()
+	{
+		/* Setup context */
+		$context = [];
+		$context['site'] = $this;
+		$context = $this->extend_context($context);
+		$context = apply_filters( 'elberos_context', $context );
+		$this->context = $context;
+	}
+	
+	
+	/**
+	 * Create twig
+	 */
+	public function create_twig()
+	{
+		$twig_opt = array
+		(
+			'autoescape'=>true,
+			'charset'=>'utf-8',
+			'optimizations'=>-1,
+		);
+
+		/* Enable cache */
+		if ($this->twig_cache)
+		{
+			$twig_opt['cache'] = ABSPATH.'wp-content/cache/twig';
+			$twig_opt['auto_reload'] = true;
+		}
+		
+		/* Create twig loader */
+		$this->twig_loader = new \Twig\Loader\FilesystemLoader();
+		foreach ($this->twig_templates as $template)
+		{
+			$this->twig_loader->addPath(get_template_directory() . '/' . $template);
+		}
+		do_action('elberos_twig_loader', [$this->twig_loader]);
+		
+		/* Create twig instance */
+		$this->twig = new \Twig\Environment
+		(
+			$this->twig_loader,
+			$twig_opt
+		);
+		
+		/* Set strategy */
+		$this->twig->getExtension(\Twig\Extension\EscaperExtension::class)->setDefaultStrategy('html');
+		
+		/* Do action */
+		do_action('elberos_twig', [$this->twig]);
 	}
 	
 	
@@ -496,6 +586,27 @@ class Site extends \Timber\Site
 		return $url;
 	}
 	
+	function get_canonical_url_page($page)
+	{
+		$canonical_url = $this->canonical_url_un_paged;
+		
+		$is_get = strpos($canonical_url, "?");
+		if ($is_get)
+		{
+			$canonical_url_get = substr($canonical_url, $is_get);
+			$canonical_url = substr($canonical_url, 0, $is_get);
+		}
+		
+		$url = ($page <= 1) ? $canonical_url : $this->url_concat($canonical_url, "/page/" . $page);
+		
+		if ($is_get)
+		{
+			$url .= $canonical_url_get;
+		}
+		
+		return $url;
+	}
+	
 	public function get_site_name()
 	{
 		return get_bloginfo("name");
@@ -577,7 +688,7 @@ class Site extends \Timber\Site
 		{
 			return $this->route_info['params']['full_title'];
 		}
-		return $title . $this->title_suffix . $this->name;
+		return $title . $this->title_suffix . $this->site_name;
 	}
 	
 	public function get_page_description()
@@ -661,8 +772,7 @@ class Site extends \Timber\Site
 	{
 		add_action( 'do_parse_request', array( $this, 'action_do_parse_request' ) );
 		add_action( 'after_setup_theme', array( $this, 'action_theme_supports' ) );
-		add_filter( 'timber/context', array( $this, 'action_add_to_context' ) );
-		add_filter( 'timber/twig', array( $this, 'action_add_to_twig' ) );
+		add_action( 'elberos_twig', array( $this, 'action_add_to_twig' ) );
 		add_action( 'init', array( $this, 'action_register_post_types' ) );
 		add_action( 'init', array( $this, 'action_register_taxonomies' ) );
 		add_action( 'init', array( $this, 'action_setup_route' ) );
@@ -692,7 +802,6 @@ class Site extends \Timber\Site
 		}		
 		return $this->title . $this->title_suffix . $this->site_name;
 	}
-	
 	
 	function filter_template_include($template)
 	{
@@ -773,30 +882,43 @@ class Site extends \Timber\Site
 	 */
 	public function action_add_to_twig( $twig )
 	{
-		$twig->addExtension( new \Twig_Extension_StringLoader() );		
+		// Extensions https://twig.symfony.com/doc/3.x/api.html
+		$twig->addExtension( new \Twig\Extension\StringLoaderExtension() );	
+		
+		// Undefined functions
 		$twig->registerUndefinedFunctionCallback(function ($name) {
 			if (method_exists($this, $name))
 			{
-				return new \Twig_Function_Function( array( $this, $name ) );
+				return new \Twig\TwigFunction( $name, array( $this, $name ) );
 			}
 			if (!function_exists($name))
 			{
 				return false;
 			}
-			return new \Twig_Function_Function($name);
+			return new \Twig\TwigFunction($name, $name);
 		});
-		
 		$twig->registerUndefinedFilterCallback(function ($name) {
+			if (method_exists($this, $name))
+			{
+				return new \Twig\TwigFunction( $name, array( $this, $name ) );
+			}
 			if (!function_exists($name))
+			{
 				return false;
-			return new \Twig_Function_Function($name);
+			}
+			return new \Twig\TwigFunction($name, $name);
 		});
 		
-		$twig->addFunction( new \Twig_SimpleFunction( 'count', array( $this, 'get_count' ) ) );
-		$twig->addFunction( new \Twig_SimpleFunction( 'dump', array( $this, 'var_dump' ) ) );
-		$twig->addFunction( new \Twig_SimpleFunction( 'url', array( $this, 'url_new' ) ) );
-		
-		return $twig;
+		// Default functions
+		$twig->addFunction( new \Twig\TwigFunction( 'count', array( $this, 'get_count' ) ) );
+		$twig->addFunction( new \Twig\TwigFunction( 'dump', array( $this, 'var_dump' ) ) );
+		$twig->addFunction( new \Twig\TwigFunction( 'url', array( $this, 'url_new' ) ) );
+		$twig->addFunction( new \Twig\TwigFunction( 'function', function($name)
+		{
+			$args = func_get_args();
+			array_shift($args);
+			return call_user_func_array($name, $args);
+		} ) );
 	}
 	
 	function get_sub_categories($categories, $parent_id)
@@ -837,8 +959,9 @@ class Site extends \Timber\Site
 		return false;
 	}
 	
-	function post_preview($content, $count = 50)
+	function post_preview($content, $count = 150)
 	{
+		$allowed_tags = "";
 		$f = preg_match('/<!--\s?more(.*?)?-->/', $content, $readmore_matches);
 		if ($readmore_matches != null and isset($readmore_matches[0]))
 		{
@@ -849,17 +972,23 @@ class Site extends \Timber\Site
 			}
 			else
 			{
-				$text = $content;
+				$content = preg_replace('/<!--\s?more(.*?)?-->/', '', $content);
+				$content = strip_tags($content, $allowed_tags);
+				$content = trim(preg_replace("/[\n\r\t ]+/", ' ', $content), ' ');
+				$text = mb_substr($content, 0, $count) . "...";
 			}
 		}
 		else
 		{
-			$text = $content;
+			$content = preg_replace('/<!--\s?more(.*?)?-->/', '', $content);
+			$content = strip_tags($content, $allowed_tags);
+			$content = trim(preg_replace("/[\n\r\t ]+/", ' ', $content), ' ');
+			$text = mb_substr($content, 0, $count) . "...";
 		}
 		$preview = $text;
 		//$preview = str_replace("<p>", "", $preview);
 		//$preview = str_replace("</p>", "<br/>", $preview);
-		$preview = \Timber\TextHelper::trim_words($preview, $count, "", "a span b i br blockquote p");
+		//$preview = \Timber\TextHelper::trim_words($preview, $count, "", "a span b i br blockquote p");
 		
 		return $preview;
 	}
@@ -933,6 +1062,41 @@ class Site extends \Timber\Site
 		$inc = isset($image['inc']) ? $image['inc'] : "1";
 		return $path . "?_=" . $inc;
 	}
-}
-
+	
+	
+	
+	/**
+	 * Returns wordpress posts
+	 */
+	function get_posts_from_query($wp_query)
+	{
+		return $wp_query->get_posts();
+	}
+	
+	
+	
+	/**
+	 * Returns wordpress posts
+	 */
+	function require_current_posts()
+	{
+		if ($this->posts == null)
+		{
+			$this->posts = $this->get_posts_from_query($this->wp_query);
+		}
+		return $this->posts;
+	}
+	
+	
+	/**
+	 * Returns wordpress categories
+	 */
+	function require_current_categories()
+	{
+		if ($this->categories == null)
+		{
+			$this->categories = get_categories();
+		}
+		return $this->categories;
+	}
 }
