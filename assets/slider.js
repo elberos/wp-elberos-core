@@ -3,7 +3,7 @@
 /*!
  *  Elberos Slider Plugin
  *
- *  (c) Copyright 2020 "Ildar Bikmamatov" <support@elberos.org>
+ *  (c) Copyright 2020 Elberos Team <support@elberos.org>
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
