@@ -712,6 +712,20 @@ class Site
 		return $title . $this->title_suffix . $this->site_name;
 	}
 	
+	public function get_current_description()
+	{
+		$str = "";
+		if (class_exists(\RankMath\Paper\Paper::class))
+		{
+			$str = \RankMath\Paper\Paper::get()->get_description();
+		}
+		if ($str == "")
+		{
+			$str = get_bloginfo("description");
+		}
+		return $str;
+	}
+	
 	public function get_page_description()
 	{
 		$str = "";
@@ -720,16 +734,7 @@ class Site
 		{
 			return isset($route_params['description']) ? $route_params['description'] : get_bloginfo("description");
 		}
-		
-		if (class_exists(\RankMath\Paper\Paper::class))
-		{
-			$str = \RankMath\Paper\Paper::get()->get_description();
-			if ($str == "")
-			{
-				$str = get_bloginfo("description");
-			}
-		}
-		
+		$str = $this->get_current_description();
 		return $str;
 	}
 	
