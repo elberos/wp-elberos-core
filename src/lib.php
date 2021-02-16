@@ -107,6 +107,47 @@ function to_money($value, $decimals=2)
 
 
 
+/**
+ * Make index
+ *
+ * @param array $arr
+ * @param string $field_name
+ * @return array
+ */
+function make_index($arr, $field_name='id')
+{
+	$index = [];
+	foreach ($arr as $key => &$val){
+		if (!isset($val[$field_name]))
+			continue;
+		$index[ $val[$field_name] ] = $key;
+	}
+	return $index;
+}
+
+
+
+/**
+ * Get row from index
+ *
+ * @param array $arr
+ * @param string $field_name
+ * @return array
+ */
+function index($arr, $index, $value, $default = null)
+{
+	if (!isset($index[$value]))
+		return $default;
+
+	$key = $index[$value];
+
+	if (!isset($arr[$key]))
+		return $default;
+
+	return $arr[$key];
+}
+
+
 function str_split2($str, $split_length)
 {
 	$str = (string) $str;
