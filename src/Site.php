@@ -216,9 +216,9 @@ class Site
 		{
 			$template = $this->route_info['template'];
 		}
-		if (isset($this->route_info['params']['context']))
+		if (isset($this->route_info['params']['render']))
 		{
-			$context = $this->route_info['params']['context']($this, $context);
+			$this->route_info['params']['render']($this);
 		}
 		return $this->render_page($template, $context);
 	}
@@ -230,6 +230,15 @@ class Site
 	public function setup()
 	{
 		global $wp_query;
+		
+		/* Set title suffix */
+		if (class_exists(\RankMath::class))
+		{
+			$rank_math = \RankMath::get();
+			$titles = $rank_math->settings->get("titles");
+			$this->title_suffix = isset($titles["title_separator"]) ? $titles["title_separator"] : "";
+			$this->title_suffix = " " . $this->title_suffix . " ";
+		}
 		
 		/* Init */
 		$this->setup_init();
@@ -298,9 +307,6 @@ class Site
 		
 		/* Create twig */
 		$this->create_twig();
-		
-		/* Create context */
-		$this->create_context();
 		
 		/* Set initialized */
 		$this->initialized = true;
@@ -467,8 +473,20 @@ class Site
 		/* Setup context */
 		$context = [];
 		$context['site'] = $this;
+		
+		/* Extend context */
 		$context = $this->extend_context($context);
+		
+		/* Route info */
+		if (isset($this->route_info['params']['context']))
+		{
+			$context = $this->route_info['params']['context']($this, $context);
+		}
+		
+		/* Apply filter */
 		$context = apply_filters( 'elberos_context', $context );
+		
+		/* Set context */
 		$this->context = $context;
 	}
 	
@@ -678,6 +696,10 @@ class Site
 		{
 			$title = $this->get_site_name();
 		}
+		else if (class_exists(\RankMath\Paper\Paper::class))
+		{
+			$title = \RankMath\Paper\Paper::get()->get_title();
+		}
 		else
 		{
 			$title = $this->get_term_title();
@@ -882,6 +904,9 @@ class Site
 				}
 			}
 		}
+		
+		/* Create context */
+		$this->create_context();
 	}
 	
 	function action_do_parse_request()
