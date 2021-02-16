@@ -252,12 +252,39 @@ function wp_langs()
 			[
 				"name" => $lang->name,
 				"locale" => $lang->locale,
+				"code" => $lang->slug,
 				"slug" => $lang->slug,
 				"item" => $lang,
 			];
 		}
 	}
 	return $res;
+}
+
+function wp_get_default_lang()
+{
+	$default_lang = "ru";
+	if ( defined( "POLYLANG_VERSION" ) )
+	{
+		$default_lang = PLL()->options['default_lang'];
+	}
+	$default_lang = apply_filters("elberos_default_lang", $default_lang);
+	return $default_lang;
+}
+
+function wp_get_alias($text, $alias = "")
+{
+	$default_lang = \Elberos\wp_get_default_lang();
+	$text_en = isset($text["en"]) ? $text["en"] : "";
+	$text_ru = isset($text["ru"]) ? $text["ru"] : "";
+	$text_default = isset($text[$default_lang]) ? $text[$default_lang] : "";
+	if ($alias == "")
+	{
+		if ($text_en) $alias = sanitize_title($text_en);
+		else if ($text_ru) $alias = sanitize_title($text_ru);
+		else if ($text_default) $alias = sanitize_title($text_default);
+	}
+	return $alias;
 }
 
 function is_langs()
