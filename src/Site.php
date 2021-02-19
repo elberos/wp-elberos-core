@@ -91,6 +91,8 @@ class Site
 	public $twig_cache = true;
 	public $twig_templates = ["templates"];
 	public $posts = null;
+	public $charset = "UTF-8";
+	public $pingback_url = "";
 	
 	
 	/** Constructor **/
@@ -295,6 +297,7 @@ class Site
 		$this->max_pages = $this->wp_query->max_num_pages;
 		$this->canonical_url = $this->get_canonical_url();
 		$this->canonical_url_un_paged = $this->get_canonical_url(true);
+		$this->pingback_url = home_url("/xmlrpc.php");
 		
 		/* Setup canonical, prev and next url */
 		$this->setup_links();
@@ -708,16 +711,20 @@ class Site
 		return $title;
 	}
 	
-	public function get_page_title()
+	public function get_paged_title($title)
 	{
-		$title = $this->get_current_title();
-		
 		$page = max( 1, (int) get_query_var( 'paged' ) );
 		if ($page > 1)
 		{
 			$title .= " страница " . $page;
 		}
-		
+		return $title;
+	}
+	
+	public function get_page_title()
+	{
+		$title = $this->get_current_title();
+		$title = $this->get_paged_title($title);
 		return $title;
 	}
 	
@@ -964,20 +971,6 @@ class Site
 		} ) );
 	}
 	
-	function get_sub_categories($categories, $parent_id)
-	{
-		if (gettype($categories) != 'array') return [];
-		return array_filter
-		(
-			$categories,
-			function ($item) use ($parent_id)
-			{
-				if ($item->parent == $parent_id) return true;
-				return false;
-			}
-		);
-	}
-	
 	function url_concat($url, $add)
 	{
 		if (strlen($add) == 0) return $url;
@@ -1012,6 +1005,8 @@ class Site
 			if ($f)
 			{
 				$text = $pieces[0];
+				$allowed_tags = "<p><img><br/>";
+				$text = strip_tags($text, $allowed_tags);
 			}
 			else
 			{
@@ -1141,5 +1136,23 @@ class Site
 			$this->categories = get_categories();
 		}
 		return $this->categories;
+	}
+	
+	
+	/**
+	 * Returns wordpress sub categories
+	 */
+	function get_sub_categories($categories, $parent_id)
+	{
+		if (gettype($categories) != 'array') return [];
+		return array_filter
+		(
+			$categories,
+			function ($item) use ($parent_id)
+			{
+				if ($item->parent == $parent_id) return true;
+				return false;
+			}
+		);
 	}
 }
