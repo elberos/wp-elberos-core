@@ -220,42 +220,33 @@ function split_number($number, $split_length, $count=-1, $cut_end = true){
 }
 
 
-function createDateTime($timestamp, $tz)
+function create_date_from_timestamp($timestamp, $tz)
 {
+	$tz = $tz instanceof \DateTimeZone ? $tz : new \DateTimeZone($tz);
 	$dt = new \DateTime();
 	$dt->setTimestamp($timestamp);
 	$dt->setTimezone($tz);
 	return $dt;
 }
 
-function createFromFormat($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
+function create_date_from_string($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
 	$tz = $tz instanceof \DateTimeZone ? $tz : new \DateTimeZone($tz);
 	$dt = \DateTime::createFromFormat($format, $date, $tz);
 	return $dt;
 }
 
-function tzdate($timestamp = null, $format = 'Y-m-d H:i:s', $tz = 'UTC')
+function tz_date($timestamp = null, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
 	if ($timestamp === null) $timestamp = time();
-	$dt = new \DateTime();
-	$dt->setTimestamp($timestamp);
-	$dt->setTimezone($tz instanceof \DateTimeZone ? $tz : new \DateTimeZone($tz));
+	$dt = \Elberos\create_date_from_timestamp($timestamp, $tz);
 	return $dt->format($format);
 }
 
-function tztime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
+function tz_timestamp($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
-	$tz = $tz instanceof \DateTimeZone ? $tz : new \DateTimeZone($tz);
-	$dt = \DateTime::createFromFormat($format, $date, $tz);
+	$dt = \Elberos\create_date_from_string($date, $format, $tz);
 	return $dt->getTimestamp();
-}
-
-function from_gmtime($date, $format = 'Y-m-d H:i:s')
-{
-	$dt = \DateTime::createFromFormat('Y-m-d H:i:s', $date, new \DateTimeZone('UTC'));
-	$dt->setTimezone( new \DateTimeZone(date_default_timezone_get()) );
-	return $dt->format($format);
 }
 
 function get_wp_timezone()
@@ -269,9 +260,9 @@ function get_wp_timezone()
 	return "GMT" . $offset;
 }
 
-function wp_from_gmtime($date, $format = 'Y-m-d H:i:s')
+function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
-	$dt = \DateTime::createFromFormat('Y-m-d H:i:s', $date, new \DateTimeZone('UTC'));
+	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
 	if ($dt)
 	{
 		$dt->setTimezone( new \DateTimeZone( get_wp_timezone() ) );
@@ -311,6 +302,16 @@ function wp_get_default_lang()
 	}
 	$default_lang = apply_filters("elberos_default_lang", $default_lang);
 	return $default_lang;
+}
+
+function wp_hide_default_lang()
+{
+	$res = false;
+	if ( defined( "POLYLANG_VERSION" ) )
+	{
+		$res = PLL()->options['hide_default'];
+	}
+	return $res;
 }
 
 function wp_get_alias($text, $alias = "")

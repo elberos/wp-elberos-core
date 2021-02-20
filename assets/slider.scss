@@ -7,6 +7,9 @@
 		position: relative;
 		box-sizing: border-box;
 	}
+	&__item.swipe{
+		user-select: none
+	}
 	&__points{
 		padding-top: 20px;
 		text-align: center;

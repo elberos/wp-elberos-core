@@ -175,7 +175,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 	
 	$form.find('.web_form__result').removeClass('web_form__result--error');
 	$form.find('.web_form__result').removeClass('web_form__result--success');
-	$form.find('.web_form__result').html('Ожидайте. Идет отправка запроса');
+	$form.find('.web_form__result').html('РћР¶РёРґР°Р№С‚Рµ РёРґС‘С‚ РѕС‚РїСЂР°РІРєР° Р·Р°РїСЂРѕСЃР°');
 	ElberosFormClearFieldsResult( $form );
 	
 	ElberosFormSendData

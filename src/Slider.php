@@ -49,6 +49,9 @@ class Slider
 	var $width = 'auto';
 	var $height = -1;
 	var $js_init = true;
+	var $swipe = false;
+	var $mobile_swipe = true;
+	var $js_script = "";
 	
 	
 	/**
@@ -69,12 +72,11 @@ class Slider
 	/**
 	 * Output load js and css
 	 */
-	public static function loadAssets($load_css = false)
+	public static function loadAssets($f_inc)
 	{
 		$content = "\$load.subscribe(['jquery_loaded'])".
 		".load([".
-			($load_css ? "'/wp-content/plugins/wp-elberos-core/assets/slider.css', " : "") .
-			"'/wp-content/plugins/wp-elberos-core/assets/slider.js', " .
+			"'/wp-content/plugins/wp-elberos-core/assets/slider.js?_" . $f_inc . "', " .
 		"])".
 		".deliver('elberos_slider_loaded');";
 		return $content;
@@ -115,6 +117,7 @@ class Slider
 					$subparams['class'] = '';
 				}
 				$subparams['class'] .= ' fake';
+				if ($this->swipe) $subparams['class'] .= ' swipe';
 				if ($first) $first = false; else $subparams['style'] = "display:none;";
 				$component_content[] = Html::elem("div", "elberos_slider__item", $subparams, $html);
 				$pos++;
@@ -137,6 +140,7 @@ class Slider
 			{
 				$subparams['class'] .= ' current';
 			}
+			if ($this->swipe) $subparams['class'] .= ' swipe';
 			if ($first) $first = false; else $subparams['style'] = "display:none;";
 			$component_content[] = Html::elem("div", "elberos_slider__item", $subparams, $html);
 			$pos++;
@@ -155,6 +159,7 @@ class Slider
 					$subparams['class'] = '';
 				}
 				$subparams['class'] .= ' fake';
+				if ($this->swipe) $subparams['class'] .= ' swipe';
 				if ($first) $first = false; else $subparams['style'] = "display:none;";
 				$component_content[] = Html::elem("div", "elberos_slider__item", $subparams, $html);
 				$pos++;
@@ -223,6 +228,11 @@ class Slider
 			new RawString($js_var_name . ".autoplay = " . json_encode($this->autoplay) . ";"),
 			new RawString($js_var_name . ".autoplay_timeout = " . json_encode($this->autoplay_timeout) . ";"),
 			new RawString($js_var_name . ".infinity = " . json_encode($this->infinity) . ";"),
+			new RawString($js_var_name . ".swipe = " . json_encode($this->swipe) . ";"),
+			new RawString($this->js_script),
+			$this->mobile_swipe ?
+				new RawString("if (window.innerWidth<800)" . $js_var_name . ".swipe = true;")
+			: "",
 			new RawString($js_var_name . ".init();"),
 			new RawString($js_var_name . ".setPos(" . json_encode($this->current_pos) . ", false);"),
 			$this->autoplay ? new RawString($js_var_name . ".startAutoplay();") : null,
