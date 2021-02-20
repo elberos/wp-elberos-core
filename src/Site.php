@@ -591,9 +591,15 @@ class Site
 		$site_url = $this->site_url;
 		$paged = max( 1, (int) get_query_var( 'paged' ) );
 		
+		$locale_code = $this->get_current_locale_code();
+		$default_lang = \Elberos\wp_get_default_lang();
+		$hide_default_lang = \Elberos\wp_hide_default_lang();
+		if ($is_langs)
+			if ($hide_default_lang and $default_lang == $locale_code)
+				$is_langs = false;
+		
 		if ($is_langs)
 		{
-			$locale_code = $this->get_current_locale_code();
 			$uri = $this->request['uri'];
 			
 			if (strpos($uri, "/" . $locale_code) === 0)
