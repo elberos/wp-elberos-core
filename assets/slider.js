@@ -37,6 +37,7 @@ function ElberosSlider($el, params)
 	this.infinity = false;
 	this.vertical = false;
 	this.animate = true;
+	this.animate_process = false;
 	this.swipe = true;
 	this.swipe_x = 0;
 	this.swipe_y = 0;
@@ -91,6 +92,11 @@ Object.assign( ElberosSlider.prototype, {
 			var body = document.getElementsByTagName("body")[0];
 			body.addEventListener('mousemove', bindCtx(this.mouseMove, this));
 			body.addEventListener('mouseup', bindCtx(this.mouseUp, this));
+			
+			el.addEventListener("touchstart", bindCtx(this.mouseDown, this), false);
+			el.addEventListener("touchend", bindCtx(this.mouseUp, this), false);
+			el.addEventListener("touchcancel", bindCtx(this.mouseCancel, this), false);
+			el.addEventListener("touchmove", bindCtx(this.mouseMove, this), false);
 		}
 		
 		// Calc slider count
@@ -191,6 +197,7 @@ Object.assign( ElberosSlider.prototype, {
 			if (animate)
 			{
 				this.stopAutoplay();
+				this.animate_process = true;
 				$slider__items.animate
 				(
 					{ "top": newTop+"px" },
@@ -209,6 +216,7 @@ Object.assign( ElberosSlider.prototype, {
 			if (animate)
 			{
 				this.stopAutoplay();
+				this.animate_process = true;
 				$slider__items.animate
 				(
 					{ "left": newLeft+"px" },
@@ -237,6 +245,7 @@ Object.assign( ElberosSlider.prototype, {
 			this.current_pos = Number(new_pos);
 		}
 		
+		this.animate_process = false;
 		this.startAutoplay();
 	},
 	
@@ -316,6 +325,7 @@ Object.assign( ElberosSlider.prototype, {
 	{
 		var find_item = $(e.target).parents('.elberos_slider__item').get(0);
 		if (find_item == undefined) return;
+		if (this.animate_process) return;
 		if (this.swipe)
 		{
 			var $slider__items = this.$el.find('.elberos_slider__items');
@@ -323,8 +333,18 @@ Object.assign( ElberosSlider.prototype, {
 			var slider_left = Number($slider__items.css('left').replace('px', ''));
 			this.swipe_start_x = slider_left;
 			this.swipe_start_y = slider_top;
-			this.swipe_x = e.pageX;
-			this.swipe_y = e.pageY;
+			
+			if (TouchEvent != undefined && e instanceof TouchEvent)
+			{
+				this.swipe_x = e.changedTouches[0].pageX;
+				this.swipe_y = e.changedTouches[0].pageY;
+			}
+			else
+			{
+				this.swipe_x = e.pageX;
+				this.swipe_y = e.pageY;
+			}
+			
 			this.swipe_process = true;
 			this.stopAutoplay();
 		}
@@ -342,8 +362,22 @@ Object.assign( ElberosSlider.prototype, {
 			var $slider__items = this.$el.find('.elberos_slider__items');
 			var slider_top = $slider__items.get(0).offsetTop;
 			var slider_left = $slider__items.get(0).offsetLeft;
-			var shift_x = e.pageX - this.swipe_x;
-			var shift_y = e.pageY - this.swipe_y;
+			var pageX = 0;
+			var pageY = 0;
+			
+			if (TouchEvent != undefined && e instanceof TouchEvent)
+			{
+				pageX = e.changedTouches[0].pageX;
+				pageY = e.changedTouches[0].pageY;
+			}
+			else
+			{
+				pageX = e.pageX;
+				pageY = e.pageY;
+			}
+			
+			var shift_x = pageX - this.swipe_x;
+			var shift_y = pageY - this.swipe_y;
 			this.swipe_shift_x = shift_x;
 			this.swipe_shift_y = shift_y;
 			
@@ -369,9 +403,15 @@ Object.assign( ElberosSlider.prototype, {
 		{
 			this.swipe_process = false;
 			
+			var shift = 150;
+			if (TouchEvent != undefined && e instanceof TouchEvent)
+			{
+				shift = 100;
+			}
+			
 			if (this.vertical)
 			{
-				if (this.swipe_shift_y < -150 || this.swipe_shift_y > 150)
+				if (this.swipe_shift_y < -shift || this.swipe_shift_y > shift)
 				{
 					this.makeSwipe(this.animate);
 				}
@@ -382,7 +422,7 @@ Object.assign( ElberosSlider.prototype, {
 			}
 			else
 			{
-				if (this.swipe_shift_x < -150 || this.swipe_shift_x > 150)
+				if (this.swipe_shift_x < -shift || this.swipe_shift_x > shift)
 				{
 					this.makeSwipe(this.animate);
 				}
@@ -393,6 +433,19 @@ Object.assign( ElberosSlider.prototype, {
 			}
 			
 			this.startAutoplay();
+		}
+	},
+	
+	
+	
+	/**
+	 * Mouse cancel
+	 */
+	mouseCancel: function ()
+	{
+		if (this.swipe_process)
+		{
+			this.cancelSwipe(this.animate);
 		}
 	},
 	

@@ -209,7 +209,7 @@ class Data_Table extends \WP_List_Table
 				INNER JOIN $forms_settings_table_name as forms on (forms.id = t.form_id)
 				ORDER BY $orderby $order LIMIT %d OFFSET %d",
 				$per_page,
-				$paged
+				$paged * $per_page
 			),
 			ARRAY_A
 		);
