@@ -1183,4 +1183,18 @@ class Site
 			}
 		);
 	}
+	
+	
+	/**
+	 * Get site menu
+	 */
+	function get_site_menu($menu_name)
+	{
+		$menu = get_term_by('name', $menu_name, 'nav_menu');
+		if ($menu)
+		{
+			return wp_get_nav_menu_items($menu->term_id);
+		}
+		return null;
+	}
 }
