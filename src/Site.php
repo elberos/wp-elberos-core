@@ -314,6 +314,12 @@ class Site
 		/* Set initialized */
 		$this->initialized = true;
 		
+		/* Extend context */
+		$this->context = $this->extend_context($this->context);
+
+		/* Apply filter */
+		$this->context = apply_filters( 'elberos_context', $this->context );
+		
 		/* Call action */
 		do_action('elberos_setup_after', $this);
 		
@@ -477,17 +483,11 @@ class Site
 		$context = [];
 		$context['site'] = $this;
 		
-		/* Extend context */
-		$context = $this->extend_context($context);
-		
 		/* Route info */
 		if (isset($this->route_info['params']['context']))
 		{
 			$context = $this->route_info['params']['context']($this, $context);
 		}
-		
-		/* Apply filter */
-		$context = apply_filters( 'elberos_context', $context );
 		
 		/* Set context */
 		$this->context = $context;
@@ -591,9 +591,15 @@ class Site
 		$site_url = $this->site_url;
 		$paged = max( 1, (int) get_query_var( 'paged' ) );
 		
+		$locale_code = $this->get_current_locale_code();
+		$default_lang = \Elberos\wp_get_default_lang();
+		$hide_default_lang = \Elberos\wp_hide_default_lang();
+		if ($is_langs)
+			if ($hide_default_lang and $default_lang == $locale_code)
+				$is_langs = false;
+		
 		if ($is_langs)
 		{
-			$locale_code = $this->get_current_locale_code();
 			$uri = $this->request['uri'];
 			
 			if (strpos($uri, "/" . $locale_code) === 0)
@@ -888,6 +894,7 @@ class Site
 		if (gettype($this->routes) == 'array')
 		{
 			$langs = \Elberos\wp_langs();
+			$hide_default_lang = \Elberos\wp_hide_default_lang();
 			if ($langs != null && count($langs) > 0)
 			{
 				$langs = array_map(function($item){ return $item['slug']; }, $langs);
@@ -901,13 +908,26 @@ class Site
 					$match = "/(" . implode("|", $langs) . ")" . $match;
 				}
 				$match = str_replace("/", "\\/", $match);
-				$match = "/^" . $match . "$/i";				
+				$match = "/^" . $match . "$/i";
 				$flag = preg_match_all($match, $request_uri, $matches);
 				if ($flag)
 				{
 					$this->route_info = $route;
 					$this->route_info['matches'] = $matches;
 					break;
+				}
+				if ($hide_default_lang)
+				{
+					$match = $route['match'];
+					$match = str_replace("/", "\\/", $match);
+					$match = "/^" . $match . "$/i";
+					$flag = preg_match_all($match, $request_uri, $matches);
+					if ($flag)
+					{
+						$this->route_info = $route;
+						$this->route_info['matches'] = $matches;
+						break;
+					}
 				}
 			}
 		}
@@ -1054,7 +1074,7 @@ class Site
 		$s = "";
 		if ($flag)
 		{
-			$s = '<link rel="stylesheet" href="'.$this->theme->link."/".$css_name.'?_'.$this->f_inc.'" '.
+			$s = '<link rel="stylesheet" href="'.$this->theme_link."/".$css_name.'?_'.$this->f_inc.'" '.
 				'type="text/css" media="screen" />';
 		}
 		else
@@ -1101,6 +1121,20 @@ class Site
 		return $path . "?_=" . $inc;
 	}
 	
+	
+	/**
+	 * Returns wp post date
+	 */
+	function wp_post_date($date, $format = 'Y-m-d H:i:s')
+	{
+		$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', \Elberos\get_wp_timezone());
+		if ($dt)
+		{
+			$dt->setTimezone( new \DateTimeZone( \Elberos\get_wp_timezone() ) );
+			return $dt->format($format);
+		}
+		return "";
+	}
 	
 	
 	/**
@@ -1154,5 +1188,19 @@ class Site
 				return false;
 			}
 		);
+	}
+	
+	
+	/**
+	 * Get site menu
+	 */
+	function get_site_menu($menu_name)
+	{
+		$menu = get_term_by('name', $menu_name, 'nav_menu');
+		if ($menu)
+		{
+			return wp_get_nav_menu_items($menu->term_id);
+		}
+		return null;
 	}
 }
