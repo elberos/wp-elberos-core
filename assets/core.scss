@@ -732,7 +732,7 @@ ol, ul {
 		margin-bottom: 5px;
 		font-weight: bold;
 	}
-	&__input{
+	&__input--text, &__input--textarea{
 		border: 1px #B3B3B3 solid;
 		background-color: white;
 		
@@ -740,9 +740,12 @@ ol, ul {
 			outline: 0;
 		}
 	}
-	&__input, .button{
+	&__input--text, &__input--textarea{
 		width: 100%;
 		padding: 10px;
+	}
+	&__input--textarea{
+		resize: vertical;
 	}
 }
 

@@ -160,10 +160,12 @@ function ElberosFormSendData ( form_api_name, send_data, callback )
  */
 function ElberosFormSubmit ( $form, settings, callback )
 {
+	var validation = settings.validation;
 	var form_api_name = settings.api_name;
 	var form_title = settings.form_title != undefined ? settings.form_title : "";
 	var wp_nonce = $form.find('.web_form__wp_nonce').val();
 	
+	/* Get data */
 	var data = {};
 	var arr = $form.find('.web_form__value');
 	for (var i=0; i<arr.length; i++)
@@ -173,6 +175,21 @@ function ElberosFormSubmit ( $form, settings, callback )
 		data[name] = $item.val();
 	}
 	
+	/* Validation */
+	if (typeof validation == "function")
+	{
+		var res = validation({
+			"form": $form,
+			"data": data,
+			"settings": settings,
+		});
+		if (res == false)
+		{
+			return;
+		}
+	}
+	
+	/* Result */
 	$form.find('.web_form__result').removeClass('web_form__result--error');
 	$form.find('.web_form__result').removeClass('web_form__result--success');
 	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
@@ -246,6 +263,22 @@ function ElberosFormShowDialog($content, settings)
 	dialog.setContent($content.html());
 	dialog.open();
 	if (settings.dialog_title != undefined) dialog.setTitle(settings.dialog_title);
+	
+	/* Rename id */
+	var gen_id = Math.random();
+	var $el = dialog.$el;
+	$el.find(".web_form__input").each(function(){
+		var id = $(this).attr("id");
+		var new_id = id + "_" + gen_id;
+		$el.find("label[for=" + id + "]").attr("for", new_id);
+		$(this).attr("id", new_id)
+	});
+	
+	/* Result */
+	$el.find('.web_form__result').removeClass('web_form__result--error');
+	$el.find('.web_form__result').removeClass('web_form__result--success');
+	$el.find('.web_form__result').html('');
+	ElberosFormClearFieldsResult( $el );
 	
 	var callback = null;
 	if (typeof settings.callback != "undefined") callback = settings.callback;
