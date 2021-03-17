@@ -1203,4 +1203,13 @@ class Site
 		}
 		return null;
 	}
+	
+	
+	/**
+	 * Get cookie
+	 */
+	function get_cookie($key, $value = "")
+	{
+		return isset($_COOKIE[$key]) ? $_COOKIE[$key] : $value;
+	}
 }
