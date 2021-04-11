@@ -70,9 +70,13 @@ function api_send_form($form, namespace, route, callback)
 		error: (function(callback){
 			return function(data, textStatus, jqXHR){
 				
+				var json = data.responseJSON;
+				if (json == null) json = {};
+				
 				callback({
-					message: "System error",
 					code: -100,
+					message: json.message || "System error",
+					error_code: json.code || -100,
 				});
 				
 			}
@@ -142,9 +146,13 @@ function ElberosFormSendData ( form_api_name, send_data, callback )
 		error: (function(callback){
 			return function(data, textStatus, jqXHR){
 				
+				var json = data.responseJSON;
+				if (json == null) json = {};
+				
 				callback({
-					message: "System error",
 					code: -100,
+					message: json.message || "System error",
+					error_code: json.code || -100,
 				});
 				
 			}
@@ -153,6 +161,53 @@ function ElberosFormSendData ( form_api_name, send_data, callback )
 	
 }
 
+
+/**
+ * Get data
+ */
+function ElberosFormGetData ( $form )
+{
+	/* Get data */
+	var data = {};
+	var arr = $form.find('.web_form__value');
+	for (var i=0; i<arr.length; i++)
+	{
+		var $item = $(arr[i]);
+		var name = $item.attr('data-name');
+		data[name] = $item.val();
+	}
+	return data;
+}
+
+
+/**
+ * Set response
+ */
+function ElberosFormSetResponse ( $form, res, settings )
+{
+	if (res.code == 1)
+	{
+		$form.find('.web_form__result').addClass('web_form__result--success');
+		if (settings.success_message == undefined)
+		{
+			$form.find('.web_form__result').html(res.message);
+		}
+		else
+		{
+			$form.find('.web_form__result').html(settings.success_message);
+		}
+	}
+	else
+	{
+		$form.find('.web_form__result').addClass('web_form__result--error');
+		$form.find('.web_form__result').html(res.message);
+		
+		if (res.code == -2)
+		{
+			ElberosFormSetFieldsResult($form, res);
+		}
+	}
+}
 
 
 /**
@@ -166,14 +221,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 	var wp_nonce = $form.find('.web_form__wp_nonce').val();
 	
 	/* Get data */
-	var data = {};
-	var arr = $form.find('.web_form__value');
-	for (var i=0; i<arr.length; i++)
-	{
-		var $item = $(arr[i]);
-		var name = $item.attr('data-name');
-		data[name] = $item.val();
-	}
+	var data = ElberosFormGetData($form);
 	
 	/* Validation */
 	if (typeof validation == "function")
@@ -208,19 +256,10 @@ function ElberosFormSubmit ( $form, settings, callback )
 			var metrika_event = settings.metrika_event;
 			var redirect = settings.redirect;
 			
-			if (callback != undefined && callback != null) callback(res);
+			ElberosFormSetResponse($form, res, settings);
 			
 			if (res.code == 1)
 			{
-				$form.find('.web_form__result').addClass('web_form__result--success');
-				if (settings.success_message == undefined)
-				{
-					$form.find('.web_form__result').html(res.message);
-				}
-				else
-				{
-					$form.find('.web_form__result').html(settings.success_message);
-				}
 				sendSiteEvent('metrika_event', metrika_event);
 				if (redirect != undefined)
 				{
@@ -231,16 +270,8 @@ function ElberosFormSubmit ( $form, settings, callback )
 					);
 				}
 			}
-			else
-			{
-				$form.find('.web_form__result').addClass('web_form__result--error');
-				$form.find('.web_form__result').html(res.message);
-				
-				if (res.code == -2)
-				{
-					ElberosFormSetFieldsResult($form, res);
-				}
-			}
+			
+			if (callback != undefined && callback != null) callback(res);
 			
 		}})($form, settings, callback),
 	);
@@ -288,7 +319,11 @@ function ElberosFormShowDialog($content, settings)
 		{
 			return function(res)
 			{
-				if (res.code == 1)
+				if (typeof settings.onSubmitCallback != "undefined")
+				{
+					settings.onSubmitCallback(dialog, settings, res);
+				}
+				else if (res.code == 1)
 				{
 					if (settings.auto_close == undefined) dialog.close();
 					else if (settings.auto_close == true) dialog.close();
@@ -307,15 +342,29 @@ function ElberosFormShowDialog($content, settings)
 			
 			var $form = dialog.$el.find('form');
 			
-			ElberosFormSubmit
-			(
-				$form,
-				settings,
-				(callback != null) ? callback(dialog, settings) : null
-			);
+			if (settings.onSubmit == undefined)
+			{
+				ElberosFormSubmit
+				(
+					$form,
+					settings,
+					(callback != null) ? callback(dialog, settings) : null
+				);
+			}
+			
+			else
+			{
+				settings.onSubmit(dialog, $form, settings, (callback != null) ? callback(dialog, settings) : null);
+			}
 			
 		}})(dialog, settings)
 	);
+	
+	if (settings.onCreate != undefined)
+	{
+		settings.onCreate(dialog, settings);
+	}
+	
 	return dialog;
 }
 
@@ -351,6 +400,27 @@ function ElberosFormSetFieldsResult($form, data)
 		$item.html(msg);
 	}
 }
+
+
+/**
+ * Show dialog
+ */
+function ElberosShowDialog($content, settings)
+{
+	var class_name = window['ElberosFormDialog'];
+	if (settings.dialog_class_name != undefined && window[settings.dialog_class_name] != undefined)
+	{
+		class_name = window[settings.dialog_class_name];
+	}
+	
+	var dialog = new class_name();
+	dialog.setContent($content.html());
+	dialog.open();
+	if (settings.dialog_title != undefined) dialog.setTitle(settings.dialog_title);
+	
+	return dialog;
+}
+
 
 function ElberosDialog()
 {

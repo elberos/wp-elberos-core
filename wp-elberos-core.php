@@ -69,7 +69,7 @@ class Elberos_Plugin
 		{
 			wp_schedule_event( time() + 60, 'elberos_forms_two_minute', 'elberos_forms_cron_send_mail' );
 		}
-		add_action( 'elberos_forms_cron_send_mail', 'Elberos\Forms\MailSender::cron_send_mail' );
+		add_action( 'elberos_forms_cron_send_mail', 'Elberos\MailSender::cron_send_mail' );
 	}	
 	
 	

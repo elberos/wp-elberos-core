@@ -19,7 +19,7 @@
  */
 
 
-namespace Elberos\Forms;
+namespace Elberos;
 
 
 if ( !class_exists( MailSender::class ) ) 
@@ -27,6 +27,35 @@ if ( !class_exists( MailSender::class ) )
 	
 	class MailSender
 	{
+		
+		/**
+		 * Queue mail delivery
+		 */
+		public static function addMail($plan, $email_to, $title, $message, $params = [])
+		{
+			global $wpdb;
+			$table_forms_delivery = $wpdb->prefix . 'elberos_delivery';
+			
+			$uuid = isset($params['uuid']) ? $params['uuid'] : wp_generate_uuid4();
+			$gmtime_add = gmdate('Y-m-d H:i:s');
+			$gmtime_plan = isset($params['gmtime_plan']) ? $params['gmtime_plan'] : $gmtime_add;
+			
+			// Add email to Queue
+			$q = $wpdb->prepare
+			(
+				"INSERT INTO $table_forms_delivery
+					(
+						worker, plan, dest, title, message, gmtime_add, gmtime_plan, uuid
+					) 
+					VALUES( %s, %s, %s, %s, %s, %s, %s )",
+				[
+					'email', $plan, $email_to, $title, $message, $gmtime_add, $gmtime_plan, $uuid
+				]
+			);
+			$wpdb->query($q);
+		}
+		
+		
 		
 		/**
 		 * Get mail plan
@@ -244,10 +273,10 @@ if ( !class_exists( MailSender::class ) )
 			
 			global $wpdb;
 			
-			// Load Forms Settings
+			// Load forms settings
 			FormsHelper::load_forms_settings();
 			
-			// Load items
+			// Load forms items
 			$table_name = $wpdb->prefix . 'elberos_forms_data';
 			$items = $wpdb->get_results
 			(
@@ -262,6 +291,7 @@ if ( !class_exists( MailSender::class ) )
 				ARRAY_A
 			);
 			
+			// Send forms email
 			foreach ($items as $item)
 			{
 				$send_email_code = -1;
@@ -310,6 +340,8 @@ if ( !class_exists( MailSender::class ) )
 				
 				flush();
 			}
+			
+			// Send delivery email
 		}
 		
 	}
