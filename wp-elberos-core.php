@@ -70,7 +70,25 @@ class Elberos_Plugin
 			wp_schedule_event( time() + 60, 'elberos_forms_two_minute', 'elberos_forms_cron_send_mail' );
 		}
 		add_action( 'elberos_forms_cron_send_mail', 'Elberos\Forms\MailSender::cron_send_mail' );
+		
+		/* Remove plugin updates */
+		add_filter( 'site_transient_update_plugins', 'Elberos_Plugin::filter_plugin_updates' );
 	}	
+	
+	
+	
+	/**
+	 * Remove plugin updates
+	 */
+	public static function filter_plugin_updates($value)
+	{
+		$name = plugin_basename(__FILE__);
+		if (isset($value->response[$name]))
+		{
+			unset($value->response[$name]);
+		}
+		return $value;
+	}
 	
 	
 	
