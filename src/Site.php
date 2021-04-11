@@ -212,7 +212,6 @@ class Site
 	 */
 	function render()
 	{
-		$context = $this->context;
 		$template = $this->index_twig;
 		if ($this->route_info != null)
 		{
@@ -222,7 +221,7 @@ class Site
 		{
 			$this->route_info['params']['render']($this);
 		}
-		return $this->render_page($template, $context);
+		return $this->render_page($template, $this->context);
 	}
 	
 	
@@ -1211,5 +1210,14 @@ class Site
 	function get_cookie($key, $value = "")
 	{
 		return isset($_COOKIE[$key]) ? $_COOKIE[$key] : $value;
+	}
+	
+	
+	/**
+	 * Get url parameters
+	 */
+	function url_get($key, $value = "")
+	{
+		return isset($_GET[$key]) ? $_GET[$key] : $value;
 	}
 }
