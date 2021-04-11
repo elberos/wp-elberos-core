@@ -261,19 +261,26 @@ class Update
 			];
 		}
 		
+		$post = stripslashes_deep($_POST);
 		$item = shortcode_atts($default, $item);
-		$item = shortcode_atts($item, $_REQUEST);
-		$item_valid = $obj->item_validate($item);
-		if ($item_valid !== true)
+		$item = shortcode_atts($item, $post);
+		
+		// Check item
+		if (method_exists($obj, 'item_validate'))
 		{
-			return
-			[
-				"item" => $item,
-				"message" => $message,
-				"notice" => $item_valid,
-			];
+			$item_valid = $obj->item_validate($item);
+			if ($item_valid !== true)
+			{
+				return
+				[
+					"item" => $item,
+					"message" => $message,
+					"notice" => $item_valid,
+				];
+			}
 		}
 		
+		// Process item
 		$process_item = $item;
 		if (method_exists($obj, 'process_item'))
 		{
