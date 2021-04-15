@@ -246,7 +246,8 @@ function tz_date($timestamp = null, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 function tz_timestamp($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
 	$dt = \Elberos\create_date_from_string($date, $format, $tz);
-	return $dt->getTimestamp();
+	if ($dt) return $dt->getTimestamp();
+	return 0;
 }
 
 function get_wp_timezone()
@@ -258,6 +259,21 @@ function get_wp_timezone()
 	$minutes = abs(($offset - (int)$offset) * 60);
 	$offset = sprintf('%+03d:%02d', $hours, $minutes);
 	return "GMT" . $offset;
+}
+
+function wp_create_date_from_string($date)
+{
+	$tz = new \DateTimeZone( get_wp_timezone() );
+	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
+	return $dt;
+}
+
+function wp_date_to_timestamp($date)
+{
+	$tz = new \DateTimeZone( get_wp_timezone() );
+	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
+	if ($dt) return $dt->getTimestamp();
+	return 0;
 }
 
 function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
@@ -366,6 +382,7 @@ function base64_decode_url($s)
  */
 function get_client_ip()
 {
+	return $_SERVER['REMOTE_ADDR'];
 	if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
 	{
 		return $_SERVER['HTTP_X_FORWARDED_FOR'];

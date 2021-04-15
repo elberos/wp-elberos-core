@@ -188,7 +188,7 @@ function ElberosFormSetResponse ( $form, res, settings )
 	if (res.code == 1)
 	{
 		$form.find('.web_form__result').addClass('web_form__result--success');
-		if (settings.success_message == undefined)
+		if (settings == undefined || settings.success_message == undefined)
 		{
 			$form.find('.web_form__result').html(res.message);
 		}
@@ -208,6 +208,76 @@ function ElberosFormSetResponse ( $form, res, settings )
 		}
 	}
 }
+
+
+/**
+ * Set error response
+ */
+function ElberosFormSetErrorResponse ( $form, data, settings )
+{
+	var json = data.responseJSON;
+	if (json == null) json = {};
+	ElberosFormSetResponse($form, {
+		code: -100,
+		message: json.message || "System error",
+		error_code: json.code || -100,
+	});
+}
+
+/**
+ * Clear fields result
+ */
+function ElberosFormClearResult($form)
+{
+	$form.find('.web_form__field_result').html('');
+	$form.find('.web_form__field_result').removeClass('web_form__field_result--error');
+	$form.find('.web_form__result').removeClass('web_form__result--error');
+	$form.find('.web_form__result').removeClass('web_form__result--success');
+}
+
+
+
+/**
+ * Clear fields result
+ */
+function ElberosFormClearFieldsResult($form)
+{
+	$form.find('.web_form__field_result').html('');
+	$form.find('.web_form__field_result').removeClass('web_form__field_result--error');
+}
+
+
+
+/**
+ * Set result message
+ */
+function ElberosFormSetResultMessage ( $form, message )
+{
+	$form.find('.web_form__result').html(message);
+}
+
+
+
+/**
+ * Set fields result
+ */
+function ElberosFormSetFieldsResult($form, data)
+{
+	var arr = $form.find('.web_form__field_result');
+	for (var i=0; i<arr.length; i++)
+	{
+		var $item = $(arr[i]);
+		var name = $item.attr('data-name');
+		var msg = "";
+		if (data.fields != undefined && data.fields[name] != undefined)
+		{
+			msg = data.fields[name].join("<br/>");
+		}
+		$item.addClass('web_form__field_result--error');
+		$item.html(msg);
+	}
+}
+
 
 
 /**
@@ -238,10 +308,8 @@ function ElberosFormSubmit ( $form, settings, callback )
 	}
 	
 	/* Result */
-	$form.find('.web_form__result').removeClass('web_form__result--error');
-	$form.find('.web_form__result').removeClass('web_form__result--success');
 	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
-	ElberosFormClearFieldsResult( $form );
+	ElberosFormClearResult( $form );
 	
 	ElberosFormSendData
 	(
@@ -306,10 +374,8 @@ function ElberosFormShowDialog($content, settings)
 	});
 	
 	/* Result */
-	$el.find('.web_form__result').removeClass('web_form__result--error');
-	$el.find('.web_form__result').removeClass('web_form__result--success');
 	$el.find('.web_form__result').html('');
-	ElberosFormClearFieldsResult( $el );
+	ElberosFormClearResult( $el );
 	
 	var callback = null;
 	if (typeof settings.callback != "undefined") callback = settings.callback;
@@ -368,38 +434,6 @@ function ElberosFormShowDialog($content, settings)
 	return dialog;
 }
 
-
-
-/**
- * Clear fields result
- */
-function ElberosFormClearFieldsResult($form)
-{
-	$form.find('.web_form__field_result').html('');
-	$form.find('.web_form__field_result').removeClass('web_form__field_result--error');
-}
-
-
-
-/**
- * Set fields result
- */
-function ElberosFormSetFieldsResult($form, data)
-{
-	var arr = $form.find('.web_form__field_result');
-	for (var i=0; i<arr.length; i++)
-	{
-		var $item = $(arr[i]);
-		var name = $item.attr('data-name');
-		var msg = "";
-		if (data.fields != undefined && data.fields[name] != undefined)
-		{
-			msg = data.fields[name].join("<br/>");
-		}
-		$item.addClass('web_form__field_result--error');
-		$item.html(msg);
-	}
-}
 
 
 /**
@@ -661,7 +695,7 @@ $(document).on('click', '.elberos_dialog__button_close', function(){
 });
 
 
-$(document).on('click', '.elberos_dialog__box .elberos_dialog__box_table', function(e){
+$(document).on('mousedown', '.elberos_dialog__box .elberos_dialog__box_table', function(e){
 	
 	var $box = $(e.target);
 	if (
