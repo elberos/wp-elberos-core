@@ -66,7 +66,7 @@ class Log_Table extends \WP_List_Table
 			'title' => '',
 			'gmtime_plan' => '',
 			'gmtime_send' => '',
-			'error' => '',
+			'send_email_error' => '',
 		);
 	}
 		
@@ -81,7 +81,7 @@ class Log_Table extends \WP_List_Table
 			'dest' => __('Dest', 'elberos-core'),
 			'title' => __('Title', 'elberos-core'),
 			'date' => __('Дата', 'elberos-core'),
-			'error' => __('Ошибка', 'elberos-core'),
+			'send_email_error' => __('Ошибка', 'elberos-core'),
 			'buttons' => __('', 'elberos-core'),
 		);
 		return $columns;
@@ -134,7 +134,7 @@ class Log_Table extends \WP_List_Table
 		{
 			return implode(", ", $dest);
 		}
-		return "";
+		return $item["dest"];
 	}
 	
 	// Date add
@@ -194,7 +194,7 @@ class Log_Table extends \WP_List_Table
 		$total_items = $wpdb->get_var("SELECT COUNT(id) FROM $table_name");
 		$paged = isset($_REQUEST['paged']) ? max(0, intval($_REQUEST['paged']) - 1) : 0;
 		$orderby = "gmtime_add";
-		$order = "asc";
+		$order = "desc";
 		
 		$sql = $wpdb->prepare
 		(
