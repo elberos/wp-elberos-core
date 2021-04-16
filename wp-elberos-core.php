@@ -65,11 +65,11 @@ class Elberos_Plugin
 		
 		// Add Cron
 		add_filter( 'cron_schedules', 'Elberos_Plugin::cron_schedules' );
-		if ( !wp_next_scheduled( 'elberos_forms_cron_send_mail' ) )
+		if ( !wp_next_scheduled( 'elberos_cron_send_mail' ) )
 		{
-			wp_schedule_event( time() + 60, 'elberos_forms_two_minute', 'elberos_forms_cron_send_mail' );
+			wp_schedule_event( time() + 60, 'elberos_forms_two_minute', 'elberos_cron_send_mail' );
 		}
-		add_action( 'elberos_forms_cron_send_mail', 'Elberos\MailSender::cron_send_mail' );
+		add_action( 'elberos_cron_send_mail', 'Elberos\MailSender::cron_send_mail' );
 		
 		/* Remove plugin updates */
 		add_filter( 'site_transient_update_plugins', 'Elberos_Plugin::filter_plugin_updates' );

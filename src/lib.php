@@ -487,3 +487,62 @@ function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
 	}
 	
 }
+
+/**
+ * Send curl
+ */
+function curl($url, $post = null, $headers = null, $params = null)
+{
+	$post = null;
+	$headers = null;
+	$curl_version = curl_version();
+	$curl_version_text = ($curl_version != false && isset($curl_version['version'])) ? $curl_version['version'] : "0";
+	$user_agent = "curl-client/" . $curl_version_text;
+	
+	if ($params != null)
+	{
+		if (isset($params['post'])) $post = $params['post'];
+		if (isset($params['headers'])) $post = $params['headers'];
+		if (isset($params['user_agent'])) $post = $params['user_agent'];
+	}
+	
+	# Сохраняем дескриптор сеанса cURL
+	$curl = curl_init();
+	
+	# Устанавливаем необходимые опции для сеанса cURL
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_USERAGENT, $user_agent);
+	curl_setopt($curl, CURLOPT_URL, $url);
+	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+	curl_setopt($curl, CURLOPT_HEADER, false);
+	curl_setopt($curl, CURLOPT_COOKIEFILE, $this->cookie_file); # PHP>5.3.6 dirname(__FILE__) -> __DIR__
+	curl_setopt($curl, CURLOPT_COOKIEJAR, $this->cookie_file); # PHP>5.3.6 dirname(__FILE__) -> __DIR__
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+	
+	if ($post !== null)
+	{
+		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($post));
+	}
+	else
+	{
+		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+	}
+	
+	if ($headers != null && count($headers) > 0)
+	{
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+	}
+	
+	# Инициируем запрос к API и сохраняем ответ в переменную
+	$out = curl_exec($curl);
+	
+	# Получим HTTP-код ответа сервера
+	$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+	
+	# Завершаем сеанс cURL
+	curl_close($curl);
+	
+	return [$code, $out];
+}
