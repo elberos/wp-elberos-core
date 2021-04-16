@@ -498,12 +498,14 @@ function curl($url, $post = null, $headers = null, $params = null)
 	$curl_version = curl_version();
 	$curl_version_text = ($curl_version != false && isset($curl_version['version'])) ? $curl_version['version'] : "0";
 	$user_agent = "curl-client/" . $curl_version_text;
+	$cookie_file = null;
 	
 	if ($params != null)
 	{
 		if (isset($params['post'])) $post = $params['post'];
 		if (isset($params['headers'])) $post = $params['headers'];
 		if (isset($params['user_agent'])) $post = $params['user_agent'];
+		if (isset($params['cookie_file'])) $post = $params['cookie_file'];
 	}
 	
 	# Сохраняем дескриптор сеанса cURL
@@ -513,10 +515,12 @@ function curl($url, $post = null, $headers = null, $params = null)
 	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($curl, CURLOPT_USERAGENT, $user_agent);
 	curl_setopt($curl, CURLOPT_URL, $url);
-	curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
 	curl_setopt($curl, CURLOPT_HEADER, false);
-	curl_setopt($curl, CURLOPT_COOKIEFILE, $this->cookie_file); # PHP>5.3.6 dirname(__FILE__) -> __DIR__
-	curl_setopt($curl, CURLOPT_COOKIEJAR, $this->cookie_file); # PHP>5.3.6 dirname(__FILE__) -> __DIR__
+	if ($cookie_file)
+	{
+		curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file);
+		curl_setopt($curl, CURLOPT_COOKIEJAR, $cookie_file);
+	}
 	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
 	
