@@ -353,7 +353,7 @@ if ( !class_exists( MailSender::class ) )
 				(
 					"SELECT t.* FROM `$table_name_delivery` as t
 					WHERE
-						send_email_code=0
+						status=0
 					LIMIT 5",
 					[]
 				),
