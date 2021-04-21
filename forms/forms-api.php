@@ -50,11 +50,13 @@ class Api
 			[
 				'render' => function($site)
 				{
+					header("Content-Type: application/json; charset=UTF-8");
 					if ($_SERVER['REQUEST_METHOD'] != 'POST')
 					{
-						return "{'success': false}";
+						return "{'success': false, 'code': -1}";
 					}
-					return static::submit_form($site);
+					$arr = static::submit_form($site);
+					return json_encode($arr);
 				},
 			]
 		);

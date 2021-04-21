@@ -489,7 +489,6 @@ function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
 }
 
 /**
-<<<<<<< HEAD
  * CIDR Match
  */
 function cidr_match ($IP, $CIDR)
@@ -520,7 +519,10 @@ function check_nonce($text1)
 	$ip = get_client_ip();
 	$text2 = md5($ip . NONCE_KEY);
 	return $text1 == $text2;
-=======
+}
+
+
+/**
  * Send curl
  */
 function curl($url, $post = null, $headers = null, $params = null)
@@ -581,5 +583,4 @@ function curl($url, $post = null, $headers = null, $params = null)
 	curl_close($curl);
 	
 	return [$code, $out];
->>>>>>> 78a3fef1b35157aea6d26010f37743ec8360981a
 }
