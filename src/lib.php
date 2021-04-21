@@ -366,6 +366,7 @@ function base64_decode_url($s)
  */
 function get_client_ip()
 {
+	return $_SERVER['REMOTE_ADDR'];
 	if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
 	{
 		return $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -469,4 +470,37 @@ function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
 		}
 	}
 	
+}
+
+/**
+ * CIDR Match
+ */
+function cidr_match ($IP, $CIDR)
+{
+	list ($net, $mask) = explode ("/", $CIDR);
+
+	$ip_net = ip2long ($net);
+	$ip_mask = ~((1 << (32 - $mask)) - 1);
+
+	$ip_ip = ip2long ($IP);
+
+	$ip_ip_net = $ip_ip & $ip_mask;
+
+	return ($ip_ip_net == $ip_net);
+}
+
+/* Create api */
+function create_nonce()
+{
+	//return 123;
+	$ip = get_client_ip();
+	return md5($ip . NONCE_KEY);
+}
+
+/* Check api */
+function check_nonce($text1)
+{
+	$ip = get_client_ip();
+	$text2 = md5($ip . NONCE_KEY);
+	return $text1 == $text2;
 }

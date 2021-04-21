@@ -33,7 +33,7 @@ class Api
 	 */
 	public static function init()
 	{
-		add_action('rest_api_init', '\\Elberos\\Forms\\Api::register_api');
+		add_action('elberos_register_routes', '\\Elberos\\Forms\\Api::register_routes');
 	}
 	
 	
@@ -41,16 +41,22 @@ class Api
 	/**
 	 * Register API
 	 */
-	public static function register_api()
+	public static function register_routes($site)
 	{
-		register_rest_route
+		$site->add_route
 		(
-			'elberos_forms',
-			'submit_form',
-			array(
-				'methods' => 'POST',
-				'callback' => function ($arr){ return static::submit_form($arr); },
-			)
+			"elberos_forms:submit_form", "/api/elberos_forms/submit_form/",
+			null,
+			[
+				'render' => function($site)
+				{
+					if ($_SERVER['REQUEST_METHOD'] != 'POST')
+					{
+						return "{'success': false}";
+					}
+					return static::submit_form($site);
+				},
+			]
 		);
 	}
 	
@@ -76,7 +82,7 @@ class Api
 	/**
 	 * Api submit form
 	 */
-	public static function submit_form($params)
+	public static function submit_form()
 	{
 		global $wpdb;
 		
@@ -85,7 +91,7 @@ class Api
 		$form_api_name = isset($_POST["form_api_name"]) ? $_POST["form_api_name"] : "";
 		$form_title = isset($_POST["form_title"]) ? $_POST["form_title"] : "";
 		$forms_wp_nonce = isset($_POST["_wpnonce"]) ? $_POST["_wpnonce"] : "";
-		$wp_nonce_res = (int)wp_verify_nonce($forms_wp_nonce, 'wp_rest');
+		$wp_nonce_res = (int)\Elberos\check_nonce($forms_wp_nonce);
 		
 		/* Check wp nonce */
 		if ($wp_nonce_res == 0)
@@ -224,6 +230,7 @@ class Api
 			"code" => 1,
 		];
 	}
+	
 	
 	
 	/**

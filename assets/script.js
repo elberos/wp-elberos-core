@@ -36,7 +36,7 @@ function api_send_form($form, namespace, route, callback)
 	}
 	
 	$.ajax({
-		url: "/wp-json/" + namespace + "/" + route + "/",
+		url: "/api/" + namespace + "/" + route + "/",
 		data: send_data,
 		dataType: 'json',
 		method: 'post',
@@ -45,13 +45,6 @@ function api_send_form($form, namespace, route, callback)
 		contentType: contentType,
 		processData: processData,
 		xhrFields: { withCredentials: true },
-		
-		beforeSend: (function(send_data){ return function(xhr)
-		{
-			// this picks up value set in functions.php to allow authentication
-			// to be passed through with function so WP knows to allow deletion.
-			xhr.setRequestHeader('X-WP-Nonce', send_data['_wpnonce']);
-		}})(send_data),
 		
 		success: (function(callback){
 			return function(data, textStatus, jqXHR)
@@ -113,7 +106,7 @@ function ElberosFormSendData ( form_api_name, send_data, callback )
 	}
 	
 	$.ajax({
-		url: "/wp-json/elberos_forms/submit_form/",
+		url: "/api/elberos_forms/submit_form/",
 		data: send_data,
 		dataType: 'json',
 		method: 'post',
@@ -121,13 +114,6 @@ function ElberosFormSendData ( form_api_name, send_data, callback )
 		cache: false,
         contentType: contentType,
         processData: processData,
-		
-		beforeSend: (function(send_data){ return function(xhr)
-		{
-			// this picks up value set in functions.php to allow authentication
-			// to be passed through with function so WP knows to allow deletion.
-			xhr.setRequestHeader('X-WP-Nonce', send_data['_wpnonce']);
-		}})(send_data),
 		
 		success: (function(callback){
 			return function(data, textStatus, jqXHR)
