@@ -65,11 +65,11 @@ class Elberos_Plugin
 		
 		// Add Cron
 		add_filter( 'cron_schedules', 'Elberos_Plugin::cron_schedules' );
-		if ( !wp_next_scheduled( 'elberos_forms_cron_send_mail' ) )
+		if ( !wp_next_scheduled( 'elberos_cron_send_mail' ) )
 		{
-			wp_schedule_event( time() + 60, 'elberos_forms_two_minute', 'elberos_forms_cron_send_mail' );
+			wp_schedule_event( time() + 60, 'elberos_two_minute', 'elberos_cron_send_mail' );
 		}
-		add_action( 'elberos_forms_cron_send_mail', 'Elberos\Forms\MailSender::cron_send_mail' );
+		add_action( 'elberos_cron_send_mail', 'Elberos\MailSender::cron_send_mail' );
 		
 		/* Remove plugin updates */
 		add_filter( 'site_transient_update_plugins', 'Elberos_Plugin::filter_plugin_updates' );
@@ -95,12 +95,12 @@ class Elberos_Plugin
 	/**
 	 * Cron schedules
 	 */
-	public static function cron_schedules()
+	public static function cron_schedules($schedules)
 	{
-		$schedules['elberos_forms_two_minute'] = array
+		$schedules['elberos_two_minute'] = array
 		(
 			'interval' => 120, // Каждые 2 минуты
-			'display'  => __( 'Once Two Minute', 'elberos-forms' ),
+			'display'  => __( 'Once Two Minute', 'elberos-core' ),
 		);
 		return $schedules;
 	}

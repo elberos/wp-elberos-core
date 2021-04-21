@@ -21,6 +21,8 @@
 
 namespace Elberos;
 
+use Elberos\Forms\FormsHelper;
+
 
 if ( !class_exists( MailSender::class ) ) 
 {
@@ -47,7 +49,7 @@ if ( !class_exists( MailSender::class ) )
 					(
 						worker, plan, dest, title, message, gmtime_add, gmtime_plan, uuid
 					) 
-					VALUES( %s, %s, %s, %s, %s, %s, %s )",
+					VALUES( %s, %s, %s, %s, %s, %s, %s, %s )",
 				[
 					'email', $plan, $email_to, $title, $message, $gmtime_add, $gmtime_plan, $uuid
 				]
@@ -101,8 +103,11 @@ if ( !class_exists( MailSender::class ) )
 			{
 				return [-2, 'Mail is Disable'];
 			}
-			
-			if ($email_to == null || count($email_to) == 0)
+			if ($email_to == null)
+			{
+				return [-3, 'email_to is empty'];
+			}
+			if (gettype($email_to) == 'array' and count($email_to) == 0)
 			{
 				return [-3, 'email_to is empty'];
 			}
@@ -270,7 +275,6 @@ if ( !class_exists( MailSender::class ) )
 		 */
 		public static function cron_send_mail()
 		{
-			
 			global $wpdb;
 			
 			// Load forms settings
@@ -302,7 +306,7 @@ if ( !class_exists( MailSender::class ) )
 				
 				if ($item["spam"] == 0)
 				{
-					list ($send_email_code, $send_email_error) = 
+					list ($send_email_code, $send_email_error) =
 						static::sendMail
 						(
 							"forms",
@@ -342,6 +346,63 @@ if ( !class_exists( MailSender::class ) )
 			}
 			
 			// Send delivery email
+			$table_name_delivery = $wpdb->prefix . 'elberos_delivery';
+			$items = $wpdb->get_results
+			(
+				$wpdb->prepare
+				(
+					"SELECT t.* FROM `$table_name_delivery` as t
+					WHERE
+						status=0
+					LIMIT 5",
+					[]
+				),
+				ARRAY_A
+			);
+			
+			// Send forms email
+			foreach ($items as $item)
+			{
+				$send_email_code = -1;
+				$send_email_error = "Unknown error";
+				list ($send_email_code, $send_email_error) =
+					static::sendMail
+					(
+						$item['plan'],
+						$item['dest'],
+						$item['title'],
+						$item['message'],
+						[
+							'uuid'=>$item['uuid']
+						]
+					);
+				
+				$status = -1;
+				if ($send_email_code == 1) $status = 1;
+				$gmtime_send = gmdate('Y-m-d H:i:s', time());
+				
+				$wpdb->query
+				(
+					$wpdb->prepare
+					(
+						"UPDATE `$table_name_delivery` SET
+							status=%d,
+							send_email_code=%d,
+							send_email_error=%s,
+							gmtime_send=%s
+						WHERE id = %d",
+						[
+							$status,
+							$send_email_code,
+							$send_email_error,
+							$gmtime_send,
+							$item['id'],
+						]
+					)
+				);
+				
+				flush();
+			}
 		}
 		
 	}

@@ -246,7 +246,8 @@ function tz_date($timestamp = null, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 function tz_timestamp($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 {
 	$dt = \Elberos\create_date_from_string($date, $format, $tz);
-	return $dt->getTimestamp();
+	if ($dt) return $dt->getTimestamp();
+	return 0;
 }
 
 function get_wp_timezone()
@@ -258,6 +259,21 @@ function get_wp_timezone()
 	$minutes = abs(($offset - (int)$offset) * 60);
 	$offset = sprintf('%+03d:%02d', $hours, $minutes);
 	return "GMT" . $offset;
+}
+
+function wp_create_date_from_string($date)
+{
+	$tz = new \DateTimeZone( get_wp_timezone() );
+	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
+	return $dt;
+}
+
+function wp_date_to_timestamp($date)
+{
+	$tz = new \DateTimeZone( get_wp_timezone() );
+	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
+	if ($dt) return $dt->getTimestamp();
+	return 0;
 }
 
 function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
@@ -473,6 +489,7 @@ function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
 }
 
 /**
+<<<<<<< HEAD
  * CIDR Match
  */
 function cidr_match ($IP, $CIDR)
@@ -503,4 +520,66 @@ function check_nonce($text1)
 	$ip = get_client_ip();
 	$text2 = md5($ip . NONCE_KEY);
 	return $text1 == $text2;
+=======
+ * Send curl
+ */
+function curl($url, $post = null, $headers = null, $params = null)
+{
+	$post = null;
+	$headers = null;
+	$curl_version = curl_version();
+	$curl_version_text = ($curl_version != false && isset($curl_version['version'])) ? $curl_version['version'] : "0";
+	$user_agent = "curl-client/" . $curl_version_text;
+	$cookie_file = null;
+	
+	if ($params != null)
+	{
+		if (isset($params['post'])) $post = $params['post'];
+		if (isset($params['headers'])) $post = $params['headers'];
+		if (isset($params['user_agent'])) $post = $params['user_agent'];
+		if (isset($params['cookie_file'])) $post = $params['cookie_file'];
+	}
+	
+	# Сохраняем дескриптор сеанса cURL
+	$curl = curl_init();
+	
+	# Устанавливаем необходимые опции для сеанса cURL
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_USERAGENT, $user_agent);
+	curl_setopt($curl, CURLOPT_URL, $url);
+	curl_setopt($curl, CURLOPT_HEADER, false);
+	if ($cookie_file)
+	{
+		curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file);
+		curl_setopt($curl, CURLOPT_COOKIEJAR, $cookie_file);
+	}
+	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+	
+	if ($post !== null)
+	{
+		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+		curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($post));
+	}
+	else
+	{
+		curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+	}
+	
+	if ($headers != null && count($headers) > 0)
+	{
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+	}
+	
+	# Инициируем запрос к API и сохраняем ответ в переменную
+	$out = curl_exec($curl);
+	
+	# Получим HTTP-код ответа сервера
+	$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+	
+	# Завершаем сеанс cURL
+	curl_close($curl);
+	
+	return [$code, $out];
+>>>>>>> 78a3fef1b35157aea6d26010f37743ec8360981a
 }

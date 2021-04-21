@@ -212,6 +212,7 @@ class Site
 	 */
 	function render()
 	{
+		$render = null;
 		$template = $this->index_twig;
 		if ($this->route_info != null)
 		{
@@ -219,9 +220,17 @@ class Site
 		}
 		if (isset($this->route_info['params']['render']))
 		{
-			$this->route_info['params']['render']($this);
+			$render = $this->route_info['params']['render']($this);
 		}
-		return $this->render_page($template, $this->context);
+		if ($render != null)
+		{
+			return $render;
+		}
+		if ($template != null)
+		{
+			return $this->render_page($template, $this->context);
+		}
+		return "";
 	}
 	
 	

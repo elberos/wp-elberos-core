@@ -138,11 +138,11 @@ class Data_Table extends \WP_List_Table
 			if ($value == "") continue;
 			$title = FormsHelper::get_field_title($item['form_id'], $key);
 			if ($title == "") continue;
-			$res[] = $title . ": ". mb_substr($value, 0, 30);
+			$value = esc_html($value);
+			$res[] = esc_html($title) . ": ". mb_substr($value, 0, 30);
 		}
 		return implode("<br/>\n", $res);
 	}
-	
 	
 	// Колонка UTM
 	function column_utm($item)
@@ -155,7 +155,8 @@ class Data_Table extends \WP_List_Table
 			if ($value == "") continue;
 			$key = FormsHelper::decode_utm_key($key);
 			if ($key == "") continue;
-			$res[] = $key . ": ". mb_substr($value, 0, 30);
+			$value = esc_html($value);
+			$res[] = esc_html($key) . ": ". mb_substr($value, 0, 30);
 		}
 		return implode("<br/>\n", $res);
 	}
