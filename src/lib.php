@@ -488,6 +488,7 @@ function update_post_meta_arr($post_id, $meta_key, $arr, $item_key_id = "")
 	
 }
 
+
 /**
  * CIDR Match
  */
@@ -505,20 +506,41 @@ function cidr_match ($IP, $CIDR)
 	return ($ip_ip_net == $ip_net);
 }
 
-/* Create api */
+
+/**
+ * Create api
+ */
 function create_nonce()
 {
-	//return 123;
 	$ip = get_client_ip();
 	return md5($ip . NONCE_KEY);
 }
 
-/* Check api */
+
+/**
+ * Check api 
+ */
 function check_nonce($text1)
 {
 	$ip = get_client_ip();
 	$text2 = md5($ip . NONCE_KEY);
 	return $text1 == $text2;
+}
+
+
+/**
+ * Returns image url
+ */
+function get_image_url($post_id, $size)
+{
+	$img = wp_get_attachment_image_src($post_id, $size);
+	if ($img)
+	{
+		$post = get_post( $post_id );
+		$url = $img[0] . "?_=" . strtotime($post->post_modified_gmt);
+		return $url;
+	}
+	return "";
 }
 
 

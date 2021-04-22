@@ -44,23 +44,27 @@
 	}
 	
 	&__arrow--left{
-		background-image: url(/wp-content/plugins/wp-elberos-slider/assets/arrow-left-b.png);
+		background-image: url(/wp-content/plugins/wp-elberos-core/assets/arrow-left-b.png);
 		top: calc(50% - 25px);
+		left: 0;
 	}
 	
 	&__arrow--right{
-		background-image: url(/wp-content/plugins/wp-elberos-slider/assets/arrow-right-b.png);
+		background-image: url(/wp-content/plugins/wp-elberos-core/assets/arrow-right-b.png);
 		top: calc(50% - 25px);
+		right: 0;
 	}
 	
 	&__arrow--top{
-		background-image: url(/wp-content/plugins/wp-elberos-slider/assets/arrow-top-b.png);
+		background-image: url(/wp-content/plugins/wp-elberos-core/assets/arrow-top-b.png);
 		left: calc(50% - 32px);
+		top: 0;
 	}
 	
 	&__arrow--bottom{
-		background-image: url(/wp-content/plugins/wp-elberos-slider/assets/arrow-bottom-b.png);
+		background-image: url(/wp-content/plugins/wp-elberos-core/assets/arrow-bottom-b.png);
 		left: calc(50% - 32px);
+		bottom: 0;
 	}
 	
 }
