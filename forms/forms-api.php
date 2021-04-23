@@ -96,6 +96,7 @@ class Api
 		$wp_nonce_res = (int)\Elberos\check_nonce($forms_wp_nonce);
 		
 		/* Check wp nonce */
+		/*
 		if ($wp_nonce_res == 0)
 		{
 			return 
@@ -106,6 +107,7 @@ class Api
 				"code" => -1,
 			];
 		}
+		*/
 		
 		/* Find form */
 		$forms = $wpdb->get_results
@@ -184,7 +186,7 @@ class Api
 			return 
 			[
 				"success" => false,
-				"message" => __("Ошибка. Проверьте корректность введенных данных", "elberos-forms"),
+				"message" => __("Ошибка. Проверьте корректность данных", "elberos-forms"),
 				"fields" => $fields,
 				"code" => -2,
 			];

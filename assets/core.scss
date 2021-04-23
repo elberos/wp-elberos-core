@@ -794,6 +794,7 @@ ol, ul {
 	}
 	&__input--text, &__input--textarea{
 		border: 1px #B3B3B3 solid;
+		border-radius: 0;
 		background-color: white;
 		
 		&:focus, &:active {
@@ -806,6 +807,12 @@ ol, ul {
 	}
 	&__input--textarea{
 		resize: vertical;
+	}
+	select.web_form__input{
+		-moz-appearance: none; /* Firefox */
+		-webkit-appearance: none; /* Safari and Chrome */
+		appearance: none;
+		cursor: pointer;
 	}
 }
 
