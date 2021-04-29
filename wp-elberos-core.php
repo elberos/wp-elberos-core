@@ -207,8 +207,17 @@ require_once __DIR__ . "/forms/forms.php";
 require_once __DIR__ . "/forms/forms-api.php";
 require_once __DIR__ . "/forms/forms-helper.php";
 require_once __DIR__ . "/vendor/autoload.php";
+require_once __DIR__ . "/loginlockdown/loginlockdown.php";
 
 Elberos_Plugin::init();
 \Elberos\Forms\Api::init();
+
+function wp_swiftmailer_load()
+{
+	if (!class_exists(Swift_Message::class))
+	{
+		require_once __DIR__ . "/vendor/autoload.php";
+	}
+}
 
 }

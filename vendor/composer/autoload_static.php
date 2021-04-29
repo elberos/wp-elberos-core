@@ -9,6 +9,7 @@ class ComposerStaticInitbb3afd188872de9ae46d865b002fa0dc
     public static $files = array (
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
+        '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
         '1c199a166feaa97c832d4ea812b507ea' => __DIR__ . '/../..' . '/wp-elberos-core.php',
     );
 
