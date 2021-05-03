@@ -1049,9 +1049,38 @@ class Site
 		return false;
 	}
 
-	function isUrlsEquals()
+	function isUrlBegins($url)
 	{
-		return false;
+		$langs = \Elberos\wp_langs();
+		$hide_default_lang = \Elberos\wp_hide_default_lang();
+		if ($langs != null && count($langs) > 0)
+		{
+			$langs = array_map(function($item){ return $item['slug']; }, $langs);
+		}
+		$request_uri = $this->request["path"];
+		
+		$flag = false;
+		$match = "";
+		
+		// Match with lang
+		if ($langs != null && count($langs) > 0)
+		{
+			$match = "/(" . implode("|", $langs) . ")" . $url;
+		}
+		$match = str_replace("/", "\\/", $match);
+		$match = "/^" . $match . ".*/i";
+		$flag = preg_match_all($match, $request_uri, $matches);
+		if ($flag) return true;
+		
+		// Default lang
+		if ($hide_default_lang)
+		{
+			$match = str_replace("/", "\\/", $url);
+			$match = "/^" . $match . ".*/i";
+			$flag = preg_match_all($match, $request_uri, $matches);
+		}
+		
+		return $flag;
 	}
 	
 	function post_preview($content, $count = 150)
