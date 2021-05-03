@@ -43,8 +43,8 @@ class Settings_Table extends \WP_List_Table
 		global $status, $page;
 
 		parent::__construct(array(
-			'singular' => 'elberos-forms',
-			'plural' => 'elberos-forms',
+			'singular' => 'elberos-forms-settings',
+			'plural' => 'elberos-forms-settings',
 		));
 	}
 	
@@ -135,15 +135,15 @@ class Settings_Table extends \WP_List_Table
 	{
 		$actions = array(
 			'edit' => sprintf(
-				'<a href="?page=elberos-forms&action=edit&id=%s">%s</a>',
+				'<a href="?page=elberos-forms-settings&action=edit&id=%s">%s</a>',
 				$item['id'], 
-				__('Edit', 'elberos-forms')
+				__('Edit', 'elberos-forms-settings')
 			),
 			/*
 			'delete' => sprintf(
-				'<a href="?page=elberos-forms&action=show_delete&id=%s">%s</a>',
+				'<a href="?page=elberos-forms-settings&action=show_delete&id=%s">%s</a>',
 				$item['id'],
-				__('Delete', 'elberos-forms')
+				__('Delete', 'elberos-forms-settings')
 			),*/
 		);
 		
@@ -276,7 +276,7 @@ class Settings_Table extends \WP_List_Table
 				<div id="message" class="updated"><p><?php echo $message ?></p></div>
 			<?php endif;?>
 			
-			<a type="button" class='button-primary' href='?page=elberos-forms'> Back </a>
+			<a type="button" class='button-primary' href='?page=elberos-forms-settings'> Back </a>
 			
 			<form id="form" method="POST">
 				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
@@ -337,7 +337,7 @@ class Settings_Table extends \WP_List_Table
 			<h1 class="wp-heading-inline">
 				<?php echo get_admin_page_title() ?>
 			</h1>
-			<a href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=elberos-forms&action=add');?>"
+			<a href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=elberos-forms-settings&action=add');?>"
 				class="page-title-action"
 			>
 				<?php _e('Add new', 'template')?>
@@ -349,11 +349,11 @@ class Settings_Table extends \WP_List_Table
 			
 			<ul class="subsubsub">
 				<li>
-					<a href="admin.php?page=elberos-forms"
+					<a href="admin.php?page=elberos-forms-settings"
 						class="<?= ($is_deleted != "true" ? "current" : "")?>"  >Все</a> |
 				</li>
 				<li>
-					<a href="admin.php?page=elberos-forms&is_deleted=true"
+					<a href="admin.php?page=elberos-forms-settings&is_deleted=true"
 						class="<?= ($is_deleted == "true" ? "current" : "")?>" >Корзина</a>
 				</li>
 			</ul>

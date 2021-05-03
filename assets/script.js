@@ -18,6 +18,39 @@
  *  limitations under the License.
  */
 
+/**
+ * Functions
+ */
+function getCookie(name)
+{
+	var matches = document.cookie.match
+	(
+		new RegExp("(?:^|; )" +
+		name.replace(/([\.$?*|{}\(\)\[\]\\/\+^])/g, "\$1") + "=([^;]*)"	)
+	);
+	return matches ? decodeURIComponent(matches[1]) : null;
+}
+function addGet(s, key, value)
+{
+	key = encodeURI(key); value = encodeURI(value);
+	var kvp = s.substr(1).split('&');
+	kvp = kvp.filter(function (s){return s!="";});
+	var i=kvp.length-1; var x;
+	while (i>=0)
+	{
+		x = kvp[i].split('=');
+		if (x[0]==key)
+		{
+			x[1] = value;
+			kvp[i] = x.join('=');
+			break;
+		}
+		i--;
+	}
+	if (i<0) { kvp[kvp.length] = [key, value].join('='); }
+	return kvp.join('&'); 
+}
+
 
 /**
  * Send api request
@@ -33,6 +66,8 @@ function elberos_api_send(namespace, route, callback, send_data)
 		processData = false;
 	}
 	
+	// send_data['_wpnonce'] = 
+	
 	$.ajax({
 		url: url,
 		data: send_data,
@@ -47,9 +82,12 @@ function elberos_api_send(namespace, route, callback, send_data)
 		success: (function(callback){
 			return function(data, textStatus, jqXHR)
 			{
-				if (data.success)
+				if (data == null)
 				{
-					callback(data);
+					callback({
+						code: -100,
+						message: "Result is null",
+					});
 				}
 				else
 				{
@@ -62,7 +100,14 @@ function elberos_api_send(namespace, route, callback, send_data)
 			return function(data, textStatus, jqXHR){
 				
 				var json = data.responseJSON;
-				if (json == null) json = {};
+				if (json == null)
+				{
+					json =
+					{
+						"code": -data.status,
+						"message": data.status + " (" + data.statusText + ")",
+					};
+				}
 				
 				callback({
 					code: -100,
@@ -113,7 +158,7 @@ function ElberosFormGetData ( $form )
 {
 	/* Get data */
 	var data = {};
-	var arr = $form.find('.web_form__value');
+	var arr = $form.find('.web_form__value, .web_form_value');
 	for (var i=0; i<arr.length; i++)
 	{
 		var $item = $(arr[i]);
@@ -129,22 +174,28 @@ function ElberosFormGetData ( $form )
  */
 function ElberosFormSetResponse ( $form, res, settings )
 {
+	ElberosFormClearResult($form);
 	if (res.code == 1)
 	{
 		$form.find('.web_form__result').addClass('web_form__result--success');
+		$form.find('.web_form_result').addClass('web_form__result--success');
 		if (settings == undefined || settings.success_message == undefined)
 		{
 			$form.find('.web_form__result').html(res.message);
+			$form.find('.web_form_result').html(res.message);
 		}
 		else
 		{
 			$form.find('.web_form__result').html(settings.success_message);
+			$form.find('.web_form_result').html(settings.success_message);
 		}
 	}
 	else
 	{
 		$form.find('.web_form__result').addClass('web_form__result--error');
 		$form.find('.web_form__result').html(res.message);
+		$form.find('.web_form_result').addClass('web_form__result--error');
+		$form.find('.web_form_result').html(res.message);
 		
 		if (res.code == -2)
 		{
@@ -176,7 +227,7 @@ function ElberosFormSetErrorResponse ( $form, data, settings )
  */
 function ElberosFormClearResult($form)
 {
-	$form.find('.web_form__field_result').each(function(){
+	$form.find('.web_form__field_result, .web_form_field_result').each(function(){
 		var def_value = $(this).attr("data-default");
 		if (def_value == undefined)
 		{
@@ -190,6 +241,9 @@ function ElberosFormClearResult($form)
 	$form.find('.web_form__field_result').removeClass('web_form__field_result--error');
 	$form.find('.web_form__result').removeClass('web_form__result--error');
 	$form.find('.web_form__result').removeClass('web_form__result--success');
+	$form.find('.web_form_field_result').removeClass('web_form_field_result--error');
+	$form.find('.web_form_result').removeClass('web_form_result--error');
+	$form.find('.web_form_result').removeClass('web_form_result--success');
 }
 
 
@@ -230,7 +284,7 @@ function ElberosFormSetResultMessage ( $form, message )
  */
 function ElberosFormSetFieldsResult($form, data)
 {
-	var arr = $form.find('.web_form__field_result');
+	var arr = $form.find('.web_form__field_result, .web_form_field_result');
 	for (var i=0; i<arr.length; i++)
 	{
 		var $item = $(arr[i]);
@@ -241,7 +295,8 @@ function ElberosFormSetFieldsResult($form, data)
 		{
 			msg = data.fields[name].join("<br/>");
 		}
-		$item.addClass('web_form__field_result--error');
+		if ($item.hasClass('web_form__field_result')) $item.addClass('web_form__field_result--error');
+		if ($item.hasClass('web_form_field_result')) $item.addClass('web_form_field_result--error');
 		$item.html(msg);
 	}
 }

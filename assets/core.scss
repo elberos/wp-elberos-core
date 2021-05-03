@@ -740,15 +740,15 @@ ol, ul {
 
 /* Forms */
 .web_form{
-	&__title, &__subtitle{
+	&__title, &__subtitle, &_title, &_subtitle{
 		text-align: center;
 		margin-bottom: 10px;
 	}
-	&__title{
+	&__title, &_title{
 		font-weight: bold;
 		font-size: 150%;
 	}
-	&__result{
+	&__result, &_result{
 		text-align: center;
 		margin-top: 5px;
 		margin-bottom: 10px;
@@ -760,39 +760,39 @@ ol, ul {
 			color: red;
 		}
 	}
-	&__row{
+	&__row, &_row{
 		margin-bottom: 10px;
 	}
-	&__field_result{
+	&__field_result, &_field_result{
 		color: red;
 		font-size: 12px;
 	}
-	&__buttons{
+	&__buttons, &_buttons{
 		text-align: center;
 	}
-	&__field--checkbox{
+	&__field--checkbox, &_field--checkbox{
 		margin-left: 5px;
 		vertical-align: sub;
 	}
-	&__row--checkbox &__field, &__row--checkbox &__label{
+	&__row--checkbox &__field, &__row--checkbox &__label, &_row--checkbox &_field, &_row--checkbox &_label{
 		cursor: pointer;
 	}
-	&__textarea{
+	&__textarea, &_textarea{
 		min-height: 300px;
 	}
-	&__textarea.ckeditor{
+	&__textarea.ckeditor, &_textarea.ckeditor{
 		min-height: 450px;
 	}
-	&__field_image_preview{
+	&__field_image_preview, &_field_image_preview{
 		display: block;
 		margin-bottom: 5px;
 	}
-	&__label{
+	&__label, &_label{
 		display: block;
 		margin-bottom: 5px;
 		font-weight: bold;
 	}
-	&__input--text, &__input--textarea{
+	&__input--text, &__input--textarea, &_input--text, &_input--textarea{
 		border: 1px #B3B3B3 solid;
 		border-radius: 0;
 		background-color: white;
@@ -801,11 +801,11 @@ ol, ul {
 			outline: 0;
 		}
 	}
-	&__input--text, &__input--textarea{
+	&__input--text, &__input--textarea, &_input--text, &_input--textarea{
 		width: 100%;
 		padding: 10px;
 	}
-	&__input--textarea{
+	&__input--textarea, &_input--textarea{
 		resize: vertical;
 	}
 	select.web_form__input{

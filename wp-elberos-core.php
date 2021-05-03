@@ -117,19 +117,19 @@ class Elberos_Plugin
 			'manage_options', 'elberos-forms',
 			function ()
 			{
-				\Elberos\Forms\Settings::show();
+				\Elberos\Forms\Data::show();
 			},
-			null,
+			'/wp-content/plugins/wp-elberos-core/images/form.png',
 			35
 		);
 		
 		add_submenu_page(
 			'elberos-forms',
-			'Данные форм', 'Данные форм',
-			'manage_options', 'elberos-forms-data',
+			'Настройки форм', 'Настройки форм',
+			'manage_options', 'elberos-forms-settings',
 			function()
 			{
-				\Elberos\Forms\Data::show();
+				\Elberos\Forms\Settings::show();
 			}
 		);
 		

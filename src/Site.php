@@ -572,6 +572,37 @@ class Site
 		];
 	}
 	
+	/**
+	 * Add api
+	 */
+	public function add_api($api_space, $api_name, $callback)
+	{
+		$route_name = $api_space . ":" . $api_name;
+		$match = "/api/" . $api_space . "/" . $api_name . "/";
+		$this->routes[$route_name] = 
+		[
+			'route_name' => $route_name,
+			'template' => null,
+			'params' =>
+			[
+				'callback' => $callback,
+				'render' => function($site)
+				{
+					header("Content-Type: application/json; charset=UTF-8");
+					if ($_SERVER['REQUEST_METHOD'] != 'POST')
+					{
+						return "{'success': false, 'code': -1, 'message': 'Request must be POST'}";
+					}
+					$callback = $site->route_info['params']['callback'];
+					$res = call_user_func_array($callback, [$site]);
+					if ($res['code'] > 0) $res['success'] = true;
+					return json_encode($res);
+				},
+			],
+			'match' => $match,
+		];
+	}
+	
 	function get_route_params()
 	{
 		if ($this->route_info == null) return null;
@@ -1228,5 +1259,16 @@ class Site
 	function url_get($key, $value = "")
 	{
 		return isset($_GET[$key]) ? $_GET[$key] : $value;
+	}
+	
+	
+	/**
+	 * Index of
+	 */
+	function indexOf($text, $s)
+	{
+		$res = strpos($text, $s);
+		if ($res === false) return -1;
+		return $res;
 	}
 }

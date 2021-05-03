@@ -53,7 +53,7 @@ class Api
 					header("Content-Type: application/json; charset=UTF-8");
 					if ($_SERVER['REQUEST_METHOD'] != 'POST')
 					{
-						return "{'success': false, 'code': -1}";
+						return "{'success': false, 'code': -1, 'message': 'Request must be POST'}";
 					}
 					$arr = static::submit_form($site);
 					return json_encode($arr);

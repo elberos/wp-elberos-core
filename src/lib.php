@@ -219,6 +219,11 @@ function split_number($number, $split_length, $count=-1, $cut_end = true){
 	return $res;
 }
 
+function dbtime($time = -1)
+{
+	if ($time == -1) $time = time();
+	return gmdate('Y-m-d H:i:s', $time);
+}
 
 function create_date_from_timestamp($timestamp, $tz)
 {
