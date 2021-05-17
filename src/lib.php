@@ -298,7 +298,7 @@ function wp_langs()
 	if ( defined( 'POLYLANG_VERSION' ) )
 	{
 		$links = PLL()->links;
-		$langs = $links->model->get_languages_list( array( 'hide_empty' => 1 ));
+		$langs = $links->model->get_languages_list();
 		foreach ($langs as $lang)
 		{
 			$res[] =
