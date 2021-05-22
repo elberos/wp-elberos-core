@@ -50,6 +50,27 @@ function addGet(s, key, value)
 	if (i<0) { kvp[kvp.length] = [key, value].join('='); }
 	return kvp.join('&'); 
 }
+function formatMoney(num)
+{
+	var r = "";
+	var num = num.toString();
+	var p = num.indexOf(".");
+	if (p != -1)
+	{
+		r = num.substring(p);
+		r = r.substring(1, 3);
+		if (r.length == 0) r = r + "0";
+		if (r.length == 1) r = r + "0";
+		num = num.substring(0, p);
+	}
+	else
+	{
+		r = "00";
+	}
+	num = num.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1 ');
+	if (r != "") num = num + "." + r;
+	return num;
+}
 
 
 /**
@@ -489,6 +510,7 @@ function ElberosDialog()
 	this.content = '';
 	this.buttons = [];
 	this.events = {};
+	this.has_scroll_lock = true;
 }
 
 
@@ -561,12 +583,12 @@ Object.assign( ElberosDialog.prototype, {
 		$box.find('td').append(this.getDialogHtml());
 		
 		this.$shadow = $('<div class="elberos_dialog__shadow"></div>');
+		this.setElem($box);
 		$('body').append(this.$shadow);
 		$('body').append($box);
-		this.setElem($box);
 		
 		// Scroll lock
-		$('body').addClass('scroll-lock');
+		if (this.has_scroll_lock) $('body').addClass('scroll-lock');
 		this.sendEvent('open');
 	},
 	

@@ -222,7 +222,7 @@ class Site
 		{
 			$render = $this->route_info['params']['render']($this);
 		}
-		if ($render != null)
+		if ($render !== null)
 		{
 			return $render;
 		}

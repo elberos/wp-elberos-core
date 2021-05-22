@@ -104,6 +104,10 @@ function to_money($value, $decimals=2)
 {
 	return number_format($value, $decimals, ".", " ");
 }
+function formatMoney($value, $decimals=2)
+{
+	return number_format($value, $decimals, ".", " ");
+}
 
 
 
@@ -148,6 +152,87 @@ function index($arr, $index, $value, $default = null)
 }
 
 
+
+/**
+ * Find item by field_name
+ *
+ * @param array $arr
+ * @param string $field_name
+ * @param string $value
+ * @return row
+ */
+function find_item($arr, $field_name, $value)
+{
+	foreach ($arr as $val){
+		if (!isset($val[$field_name]))
+			continue;
+		if ($val[$field_name] == $value)
+			return $val;
+	}
+	return null;
+}
+
+
+
+/**
+ * Find items by field_name
+ *
+ * @param array $arr
+ * @param string $field_name
+ * @param string $value
+ * @return row
+ */
+function find_items($arr, $field_name, $value)
+{
+	$row = [];
+	foreach ($arr as $val){
+		if (!isset($val[$field_name]))
+			continue;
+		if ($val[$field_name] == $value)
+			$row[] = $val;
+	}
+	return $row;
+}
+
+
+
+/**
+ * Contains fields
+ *
+ * @param array $item
+ * @param array $fields
+ * @return bool
+ */
+function containsFields($item, $fields)
+{
+	if (!is_array($fields)) return false;
+	foreach ($fields as $key => $value)
+	{
+		if (!isset($item[$key])) return false;
+		if ($item[$key] != $value) return false;
+	}
+	return true;
+}
+
+
+
+/**
+ * Equal arr
+ *
+ * @param array $item
+ * @param array $fields
+ * @return bool
+ */
+function equalArr($item1, $item2)
+{
+	return containsFields($item1, $item2) && containsFields($item2, $item1);
+}
+
+
+
+/**
+ * Split
+ */
 function str_split2($str, $split_length)
 {
 	$str = (string) $str;
