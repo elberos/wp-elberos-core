@@ -73,6 +73,9 @@ class Elberos_Plugin
 		
 		/* Remove plugin updates */
 		add_filter( 'site_transient_update_plugins', 'Elberos_Plugin::filter_plugin_updates' );
+		
+		/* UTM form filter */
+		add_filter( 'elberos_form_utm', 'Elberos_Plugin::elberos_form_utm' );
 	}	
 	
 	
@@ -190,6 +193,26 @@ class Elberos_Plugin
 			
 			setcookie( "f_utm", json_encode($utm), time() + 7*24*60*60, "/" );
 		}
+	}
+	
+	
+	
+	/**
+	 * Elberos form utm
+	 */
+	public static function elberos_form_utm($utm)
+	{
+		$f_utm = isset($_COOKIE['f_utm']) ? $_COOKIE['f_utm'] : null;
+		if ($f_utm) $f_utm = @json_decode( stripslashes($f_utm), true );
+		if ($f_utm)
+		{
+			$utm['utm_source'] = isset($f_utm['s']) ? $f_utm['s'] : null;
+			$utm['utm_medium'] = isset($f_utm['m']) ? $f_utm['m'] : null;
+			$utm['utm_campaign'] = isset($f_utm['cmp']) ? $f_utm['cmp'] : null;
+			$utm['utm_content'] = isset($f_utm['cnt']) ? $f_utm['cnt'] : null;
+			$utm['utm_term'] = isset($f_utm['t']) ? $f_utm['t'] : null;
+		}
+		return $utm;
 	}
 	
 }

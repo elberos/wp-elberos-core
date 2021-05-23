@@ -136,7 +136,10 @@ class Api
 		$form_settings_fields = isset($form_settings['fields']) ? $form_settings['fields'] : [];
 		$form_data = [];
 		$data = isset($_POST["data"]) ? $_POST["data"] : [];
+		
+		/* Add UTM */
 		$utm = isset($_POST["utm"]) ? $_POST["utm"] : [];
+		$utm = apply_filters( 'elberos_form_utm', $utm );
 		
 		/* Validate fields */
 		$fields = [];
@@ -190,18 +193,6 @@ class Api
 				"fields" => $fields,
 				"code" => -2,
 			];
-		}
-		
-		/* Add UTM */
-		$f_utm = isset($_COOKIE['f_utm']) ? $_COOKIE['f_utm'] : null;
-		if ($f_utm) $f_utm = @json_decode( stripslashes($f_utm), true);
-		if ($f_utm)
-		{
-			$utm['utm_source'] = isset($f_utm['s']) ? $f_utm['s'] : null;
-			$utm['utm_medium'] = isset($f_utm['m']) ? $f_utm['m'] : null;
-			$utm['utm_campaign'] = isset($f_utm['cmp']) ? $f_utm['cmp'] : null;
-			$utm['utm_content'] = isset($f_utm['cnt']) ? $f_utm['cnt'] : null;
-			$utm['utm_term'] = isset($f_utm['t']) ? $f_utm['t'] : null;
 		}
 		
 		/* Insert data */

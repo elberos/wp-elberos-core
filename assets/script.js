@@ -73,6 +73,7 @@ function formatMoney(num)
 }
 
 
+
 /**
  * Send api request
  */
@@ -141,12 +142,13 @@ function elberos_api_send(namespace, route, callback, send_data)
 	});
 }
 
+
+
 /**
  * Send data
  */
-function ElberosFormSendData ( form_api_name, send_data, callback )
+function elberos_send_data ( namespace, route, callback, send_data )
 {
-	send_data['form_api_name'] = form_api_name;
 	if (send_data['data'] == undefined) send_data['data'] = {};
 	if (send_data['utm'] == undefined) send_data['utm'] = {};
 	
@@ -164,12 +166,13 @@ function ElberosFormSendData ( form_api_name, send_data, callback )
 	/* Send api */
 	elberos_api_send
 	(
-		"elberos_forms",
-		"submit_form",
+		namespace,
+		route,
 		callback,
 		send_data
 	);
 }
+
 
 
 /**
@@ -355,14 +358,17 @@ function ElberosFormSubmit ( $form, settings, callback )
 	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
 	ElberosFormClearResult( $form );
 	
-	ElberosFormSendData
+	var send_data =
+	{
+		'_wpnonce': wp_nonce,
+		'form_api_name': form_api_name,
+		'form_title': form_title,
+		'data': data
+	};
+	
+	elberos_send_data
 	(
 		form_api_name,
-		{
-			'_wpnonce': wp_nonce,
-			'form_title': form_title,
-			'data': data
-		},
 		(function($form, settings, callback){ return function (res)
 		{
 			var metrika_event = settings.metrika_event;
@@ -386,6 +392,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 			if (callback != undefined && callback != null) callback(res);
 			
 		}})($form, settings, callback),
+		send_data
 	);
 }
 
