@@ -297,8 +297,7 @@ class Site
 		{
 			$this->locale_prefix = "/" . $this->language_code;
 		}
-		$this->title = $this->get_page_title();
-		$this->full_title = $this->get_page_full_title($this->title);
+		$this->setTitle( $this->get_page_title() );
 		$this->description = $this->get_page_description();
 		$this->robots = $this->get_page_robots();
 		$this->page = max( 1, (int) get_query_var( 'paged' ) );
@@ -563,6 +562,21 @@ class Site
 	 */
 	public function add_route($route_name, $match, $template = null, $params=[])
 	{
+		$arr = [];
+		$f = preg_match_all("/{(.*?)}/i", $match, $arr);
+		if ($f)
+		{
+			foreach ($arr[1] as $name)
+			{
+				$match = preg_replace
+				(
+					"/{" . $name . "}/i",
+					"(?<" . $name . ">[^/]*)" ,
+					$match
+				);
+			}
+		}
+		
 		$this->routes[$route_name] = 
 		[
 			'route_name' => $route_name,
@@ -744,10 +758,6 @@ class Site
 		{
 			$title = $this->get_site_name();
 		}
-		else if (class_exists(\RankMath\Paper\Paper::class))
-		{
-			$title = \RankMath\Paper\Paper::get()->get_title();
-		}
 		else
 		{
 			$title = $this->get_term_title();
@@ -783,7 +793,17 @@ class Site
 		{
 			return $this->route_info['params']['full_title'];
 		}
+		if ((is_single() or is_page()) and class_exists(\RankMath\Paper\Paper::class))
+		{
+			return \RankMath\Paper\Paper::get()->get_title();
+		}
 		return $title . $this->title_suffix . $this->site_name;
+	}
+	
+	public function setTitle($title, $is_full_title = true)
+	{
+		$this->title = $title;
+		$this->full_title = $this->get_page_full_title($title);
 	}
 	
 	public function get_current_description()
@@ -948,6 +968,7 @@ class Site
 				}
 				$match = str_replace("/", "\\/", $match);
 				$match = "/^" . $match . "$/i";
+				//var_dump($match);
 				$flag = preg_match_all($match, $request_uri, $matches);
 				if ($flag)
 				{
