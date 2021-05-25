@@ -222,6 +222,7 @@ require_once __DIR__ . "/src/Html.php";
 require_once __DIR__ . "/src/RawString.php";
 require_once __DIR__ . "/src/Site.php";
 require_once __DIR__ . "/src/Slider.php";
+require_once __DIR__ . "/src/StructBuilder.php";
 require_once __DIR__ . "/src/Image.php";
 require_once __DIR__ . "/src/Update.php";
 require_once __DIR__ . "/src/Dialog.php";
