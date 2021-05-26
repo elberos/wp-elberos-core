@@ -241,7 +241,8 @@ function get_loginlockdownOptions() {
 		'lockout_length' => 60,
 		'lockout_invalid_usernames' => 'yes',
 		'mask_login_errors' => 'yes',
-		'show_credit_link' => 'no'
+		'show_credit_link' => 'no',
+		'login_with_email' => 'yes',
 	);
 	$loginlockdownOptions = get_option("loginlockdownAdminOptions");
 	if ( !empty($loginlockdownOptions) ) {
@@ -303,6 +304,9 @@ function print_loginlockdownAdminPage() {
 		}
 		if (isset($_POST['ll_show_credit_link'])) {
 			$loginlockdownAdminOptions['show_credit_link'] = $_POST['ll_show_credit_link'];
+		}
+		if (isset($_POST['ll_login_with_email'])) {
+			$loginlockdownAdminOptions['login_with_email'] = $_POST['ll_login_with_email'];
 		}
 		update_option("loginlockdownAdminOptions", $loginlockdownAdminOptions);
 		?>
@@ -372,6 +376,8 @@ if ( function_exists('wp_nonce_field') )
 <h3><?php _e('Lockout Length (minutes)', 'loginlockdown') ?></h3>
 <p><?php _e('How long a particular IP block will be locked out for once a LockDown has been triggered.', 'loginlockdown') ?></p>
 <p><input type="text" name="ll_lockout_length" size="8" value="<?php echo esc_attr($loginlockdownAdminOptions['lockout_length']); ?>"></p>
+<h3><?php _e('Login with email?', 'loginlockdown') ?></h3>
+<p><input type="radio" name="ll_login_with_email" value="yes" <?php if( $loginlockdownAdminOptions['login_with_email'] == "yes" ) echo "checked"; ?>>&nbsp;<?php _e('Yes', 'loginlockdown') ?>&nbsp;&nbsp;&nbsp;<input type="radio" name="ll_login_with_email" value="no" <?php if( $loginlockdownAdminOptions['login_with_email'] == "no" ) echo "checked"; ?>>&nbsp;<?php _e('No', 'loginlockdown') ?></p>
 <h3><?php _e('Lockout Invalid Usernames?', 'loginlockdown') ?></h3>
 <p><?php _e('By default Login LockDown will not trigger if an attempt is made to log in using a username that does not exist. You can override this behavior here.', 'loginlockdown') ?></p>
 <p><input type="radio" name="ll_lockout_invalid_usernames" value="yes" <?php if( $loginlockdownAdminOptions['lockout_invalid_usernames'] == "yes" ) echo "checked"; ?>>&nbsp;<?php _e('Yes', 'loginlockdown') ?>&nbsp;&nbsp;&nbsp;<input type="radio" name="ll_lockout_invalid_usernames" value="no" <?php if( $loginlockdownAdminOptions['lockout_invalid_usernames'] == "no" ) echo "checked"; ?>>&nbsp;<?php _e('No', 'loginlockdown') ?></p>
@@ -432,7 +438,11 @@ if ( isset($loginlockdown_db_version) ) {
 	add_action($activatestr, 'loginLockdown_install');
 
 	// authenticate filter
-	remove_filter('authenticate', 'wp_authenticate_email_password', 20, 3);
+	$login_with_email = $loginlockdownOptions['login_with_email'];
+	if ( $login_with_email == 'no')
+	{
+		remove_filter('authenticate', 'wp_authenticate_email_password', 20, 3);
+	}
 	add_filter('authenticate', 'll_wp_authenticate_username_password', 99999, 3);
 	add_filter('lostpassword_errors', 'll_lostpassword_errors', 99999, 2);
 	function ll_wp_authenticate_username_password($user, $username, $password)
@@ -448,6 +458,17 @@ if ( isset($loginlockdown_db_version) ) {
 			return new WP_Error('authentication_failed', __("<strong>ERROR</strong>: We're sorry, but this IP range has been blocked due to too many recent failed login attempts.<br /><br />Please try again later.", 'loginlockdown'));
 		}
 		
+		// Check login
+		$login_with_email = $loginlockdownOptions['login_with_email'];
+		if ( $login_with_email == 'no' && is_a($user_data, 'WP_User') )
+		{
+			if ($username != $user_data->user_login)
+			{
+				$user = null;
+			}
+		}
+		
+		// if auth
 		if ( is_a($user, 'WP_User') )
 		{
 			return $user;
@@ -458,7 +479,7 @@ if ( isset($loginlockdown_db_version) ) {
 		$count_fails = countFails($username);
 		$attempts_left = $max_login_retries - $count_fails - 1;
 		
-		if (is_wp_error($user) && !in_array($user->get_error_code(), $ignore_codes))
+		if ($user == null or (is_wp_error($user) && !in_array($user->get_error_code(), $ignore_codes)))
 		{
 			incrementFails($username);
 			if ( $attempts_left == 0 )
@@ -488,7 +509,8 @@ if ( isset($loginlockdown_db_version) ) {
 		}
 		
 		// Check login
-		if ( is_a($user_data, 'WP_User') )
+		$login_with_email = $loginlockdownOptions['login_with_email'];
+		if ( $login_with_email == 'no' && is_a($user_data, 'WP_User') )
 		{
 			if ($username != $user_data->user_login)
 			{

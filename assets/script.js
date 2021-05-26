@@ -88,8 +88,6 @@ function elberos_api_send(namespace, route, callback, send_data)
 		processData = false;
 	}
 	
-	// send_data['_wpnonce'] = 
-	
 	$.ajax({
 		url: url,
 		data: send_data,
@@ -186,8 +184,20 @@ function ElberosFormGetData ( $form )
 	for (var i=0; i<arr.length; i++)
 	{
 		var $item = $(arr[i]);
+		var item = $item.get(0);
 		var name = $item.attr('data-name');
-		data[name] = $item.val();
+		var type = $item.attr('type');
+		if (type=='radio')
+		{
+			if (item.checked)
+			{
+				data[name] = $item.val();
+			}
+		}
+		else
+		{
+			data[name] = $item.val();
+		}
 	}
 	return data;
 }

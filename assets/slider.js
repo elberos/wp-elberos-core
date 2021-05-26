@@ -132,7 +132,6 @@ Object.assign( ElberosSlider.prototype, {
 			(function(obj){
 				return function()
 				{
-					
 					obj.real_count++;
 					
 					if ($(this).hasClass('nofake'))

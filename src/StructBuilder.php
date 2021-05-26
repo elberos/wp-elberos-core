@@ -94,9 +94,12 @@ class StructBuilder
 			
 			$value = isset($item[$api_name]) ? $item[$api_name] : "";
 			
+			$default = isset($field["default"]) ? $field["default"] : "";
 			$options = isset($field["options"]) ? $field["options"] : [];
 			$placeholder = isset($field["placeholder"]) ? $field["placeholder"] : "";
 			$show_select_value = isset($field["show_select_value"]) ? $field["show_select_value"] : true;
+			
+			if ($value === "") $value = $default;
 			
 			?>
 			<div class="web_form__row" data-name="<?= esc_attr($api_name) ?>">
