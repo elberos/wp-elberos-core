@@ -88,8 +88,6 @@ class Site
 	public $context = [];
 	public $twig = null;
 	public $twig_loader = null;
-	public $twig_cache = true;
-	public $twig_templates = ["templates"];
 	public $posts = null;
 	public $charset = "UTF-8";
 	public $pingback_url = "";
@@ -173,7 +171,6 @@ class Site
 	 */
 	function setup_after()
 	{
-		
 	}
 	
 	
@@ -481,6 +478,7 @@ class Site
 	}
 	
 	
+	
 	/**
 	 * Create context
 	 */
@@ -501,45 +499,14 @@ class Site
 	}
 	
 	
+	
 	/**
 	 * Create twig
 	 */
 	public function create_twig()
 	{
-		$twig_opt = array
-		(
-			'autoescape'=>true,
-			'charset'=>'utf-8',
-			'optimizations'=>-1,
-		);
-
-		/* Enable cache */
-		if ($this->twig_cache)
-		{
-			$twig_opt['cache'] = ABSPATH.'wp-content/cache/twig';
-			$twig_opt['auto_reload'] = true;
-		}
-		
-		/* Create twig loader */
-		$this->twig_loader = new \Twig\Loader\FilesystemLoader();
-		foreach ($this->twig_templates as $template)
-		{
-			$this->twig_loader->addPath(get_template_directory() . '/' . $template);
-		}
-		do_action('elberos_twig_loader', [$this->twig_loader]);
-		
-		/* Create twig instance */
-		$this->twig = new \Twig\Environment
-		(
-			$this->twig_loader,
-			$twig_opt
-		);
-		
-		/* Set strategy */
-		$this->twig->getExtension(\Twig\Extension\EscaperExtension::class)->setDefaultStrategy('html');
-		
-		/* Do action */
-		do_action('elberos_twig', [$this->twig]);
+		$this->twig = \Elberos\create_twig();
+		$this->twig_loader = $this->twig->getLoader();
 	}
 	
 	

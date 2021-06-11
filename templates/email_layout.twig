@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name='Content-Type' content='text/html; charset=utf-8'/>
+<title>{{ title }}</title>
+<style>body{font-family: Verdana;font-size: 16px;}</style>
+</head>
+<body>
+{% block header %}{% include "@core/email_header.twig" %}{% endblock %}
+{% block content %}{% endblock %}
+{% block footer %}{% include "@core/email_footer.twig" %}{% endblock %}
+</body>
+</html>

@@ -22,6 +22,30 @@ namespace Elberos;
 
 
 /**
+ * Returns site url
+ */
+function get_url($url)
+{
+	return \site_url($url);
+}
+
+
+
+/**
+ * Returns site name
+ */
+function get_site_name()
+{
+	if ( ! is_multisite() )
+	{
+		return get_option( 'blogname' );
+	}
+	return get_blog_option( 1, 'blogname' );
+}
+
+
+
+/**
  * Remove last slash
  */
 function remove_last_slash($path)
@@ -382,18 +406,21 @@ function wp_langs()
 	$res = [];
 	if ( defined( 'POLYLANG_VERSION' ) )
 	{
-		$links = PLL()->links;
-		$langs = $links->model->get_languages_list();
-		foreach ($langs as $lang)
+		$links = \PLL()->links;
+		if ($links)
 		{
-			$res[] =
-			[
-				"name" => $lang->name,
-				"locale" => $lang->locale,
-				"code" => $lang->slug,
-				"slug" => $lang->slug,
-				"item" => $lang,
-			];
+			$langs = $links->model->get_languages_list();
+			foreach ($langs as $lang)
+			{
+				$res[] =
+				[
+					"name" => $lang->name,
+					"locale" => $lang->locale,
+					"code" => $lang->slug,
+					"slug" => $lang->slug,
+					"item" => $lang,
+				];
+			}
 		}
 	}
 	return $res;
@@ -695,4 +722,121 @@ function curl($url, $post = null, $headers = null, $params = null)
 	curl_close($curl);
 	
 	return [$code, $out];
+}
+
+
+global $elberos_twig;
+$elberos_twig = null;
+
+
+/**
+ * Create twig
+ */
+function create_twig()
+{
+	global $elberos_twig;
+	
+	/* Restore twig */
+	if ($elberos_twig != null)
+	{
+		return $elberos_twig;
+	}
+	
+	$twig_opt = array
+	(
+		'autoescape'=>true,
+		'charset'=>'utf-8',
+		'optimizations'=>-1,
+	);
+	
+	/* Twig cache */
+	$twig_cache = true;
+	if (defined("TWIG_CACHE"))
+	{
+		$twig_cache = TWIG_CACHE;
+	}
+	
+	/* Enable cache */
+	if ($twig_cache)
+	{
+		$twig_opt['cache'] = ABSPATH . 'wp-content/cache/twig';
+		$twig_opt['auto_reload'] = true;
+	}
+	
+	/* Create twig loader */
+	$twig_loader = new \Twig\Loader\FilesystemLoader();
+	$twig_loader->addPath(get_template_directory() . '/templates');
+	do_action('elberos_twig_loader', [$twig_loader]);
+	
+	/* Create twig instance */
+	$twig = new \Twig\Environment
+	(
+		$twig_loader,
+		$twig_opt
+	);
+	
+	/* Set strategy */
+	$twig->getExtension(\Twig\Extension\EscaperExtension::class)->setDefaultStrategy('html');
+	
+	/* Do action */
+	do_action('elberos_twig', [$twig]);
+	
+	/* Save twig */
+	$elberos_twig = $twig;
+	
+	return $twig;
+}
+
+
+
+/**
+ * Twig render
+ */
+function twig_render($twig, $template, $context)
+{
+	if (gettype($template) == 'array')
+	{
+		foreach ($template as $t)
+		{
+			try
+			{
+				$res = $twig->render($t, $context);
+				return $res;
+			}
+			catch (\Twig\Error\LoaderError $err)
+			{
+			}
+		}
+	}
+	else
+	{
+		return $twig->render($template, $context);
+	}
+	return "";
+}
+
+
+
+/**
+ * Add email
+ */
+function add_email($plan, $email_to, $title, $message, $params = [])
+{
+	\Elberos\MailSender::addMail($plan, $email_to, $title, $message, $params);
+}
+
+
+
+/**
+ * Send email
+ */
+function send_email($plan, $email_to, $template, $context, $params = [])
+{
+	$twig = \Elberos\create_twig();
+	
+	if (!isset($context['site_name'])) $context['site_name'] = \Elberos\get_site_name();
+	$title = isset($context['title']) ? $context['title'] : '';
+	$message = \Elberos\twig_render($twig, $template, $context);
+	
+	\Elberos\MailSender::addMail($plan, $email_to, $title, $message, $params);
 }

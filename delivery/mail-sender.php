@@ -36,7 +36,7 @@ if ( !class_exists( MailSender::class ) )
 		public static function addMail($plan, $email_to, $title, $message, $params = [])
 		{
 			global $wpdb;
-			$table_forms_delivery = $wpdb->prefix . 'elberos_delivery';
+			$table_forms_delivery = $wpdb->base_prefix . 'elberos_delivery';
 			
 			$uuid = isset($params['uuid']) ? $params['uuid'] : wp_generate_uuid4();
 			$gmtime_add = gmdate('Y-m-d H:i:s');
@@ -65,7 +65,7 @@ if ( !class_exists( MailSender::class ) )
 		public static function getPlan($plan)
 		{
 			global $wpdb;
-			$table_clients = $wpdb->prefix . 'elberos_mail_settings';
+			$table_clients = $wpdb->base_prefix . 'elberos_mail_settings';
 			$sql = $wpdb->prepare
 			(
 				"SELECT * FROM $table_clients WHERE plan=%s and enable=1 and is_deleted=0", $plan
@@ -281,7 +281,7 @@ if ( !class_exists( MailSender::class ) )
 			FormsHelper::load_forms_settings();
 			
 			// Load forms items
-			$table_name = $wpdb->prefix . 'elberos_forms_data';
+			$table_name = $wpdb->base_prefix . 'elberos_forms_data';
 			$items = $wpdb->get_results
 			(
 				$wpdb->prepare
@@ -346,7 +346,7 @@ if ( !class_exists( MailSender::class ) )
 			}
 			
 			// Send delivery email
-			$table_name_delivery = $wpdb->prefix . 'elberos_delivery';
+			$table_name_delivery = $wpdb->base_prefix . 'elberos_delivery';
 			$items = $wpdb->get_results
 			(
 				$wpdb->prepare

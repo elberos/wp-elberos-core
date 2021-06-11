@@ -33,14 +33,14 @@ class FormsHelper
 	public static function get_forms_table_name()
 	{
 		global $wpdb;
-		return $wpdb->prefix . 'elberos_forms';
+		return $wpdb->base_prefix . 'elberos_forms';
 	}
 
 	
 	public static function get_forms_data_table_name()
 	{
 		global $wpdb;
-		return $wpdb->prefix . 'elberos_forms_data';
+		return $wpdb->base_prefix . 'elberos_forms_data';
 	}
 	
 	

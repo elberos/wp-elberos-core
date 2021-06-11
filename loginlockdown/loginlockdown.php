@@ -109,7 +109,7 @@ $loginlockdownOptions = get_loginlockdownOptions();
 function loginLockdown_install() {
 	global $wpdb;
 	global $loginlockdown_db_version;
-	$table_name = $wpdb->prefix . "login_fails";
+	$table_name = $wpdb->base_prefix . "login_fails";
 
 	if( $wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name ) {
 		$sql = "CREATE TABLE " . $table_name . " (
@@ -126,7 +126,7 @@ function loginLockdown_install() {
 		dbDelta($sql);
 	}
 
-	$table_name = $wpdb->prefix . "lockdowns";
+	$table_name = $wpdb->base_prefix . "lockdowns";
 
 	if( $wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name ) {
 		$sql = "CREATE TABLE " . $table_name . " (
@@ -153,7 +153,7 @@ function loginLockdown_install() {
 function countFails($username = "") {
 	global $wpdb;
 	global $loginlockdownOptions;
-	$table_name = $wpdb->prefix . "login_fails";
+	$table_name = $wpdb->base_prefix . "login_fails";
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
 	$numFailsquery = "SELECT COUNT(login_attempt_ID) FROM $table_name " . 
@@ -169,7 +169,7 @@ function countFails($username = "") {
 function incrementFails($username = "") {
 	global $wpdb;
 	global $loginlockdownOptions;
-	$table_name = $wpdb->prefix . "login_fails";
+	$table_name = $wpdb->base_prefix . "login_fails";
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
 	$username = sanitize_user($username);
@@ -190,7 +190,7 @@ function incrementFails($username = "") {
 function lockDown($username = "") {
 	global $wpdb;
 	global $loginlockdownOptions;
-	$table_name = $wpdb->prefix . "lockdowns";
+	$table_name = $wpdb->base_prefix . "lockdowns";
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
 	$username = sanitize_user($username);
@@ -211,7 +211,7 @@ function lockDown($username = "") {
 
 function isLockedDown() {
 	global $wpdb;
-	$table_name = $wpdb->prefix . "lockdowns";
+	$table_name = $wpdb->base_prefix . "lockdowns";
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
 	$stillLockedquery = "SELECT user_id FROM $table_name " . 
@@ -226,7 +226,7 @@ function isLockedDown() {
 
 function listLockedDown() {
 	global $wpdb;
-	$table_name = $wpdb->prefix . "lockdowns";
+	$table_name = $wpdb->base_prefix . "lockdowns";
 
 	$listLocked = $wpdb->get_results("SELECT lockdown_ID, floor((UNIX_TIMESTAMP(release_date)-UNIX_TIMESTAMP(now()))/60) AS minutes_left, ".
 					"lockdown_IP FROM $table_name WHERE release_date > now()", ARRAY_A);
@@ -277,9 +277,9 @@ function expandipv6($ip){
 
 function print_loginlockdownAdminPage() {
 	global $wpdb;
-	$table_name = $wpdb->prefix . "lockdowns";
-	$table_name_lockdowns = $wpdb->prefix . "lockdowns";
-	$table_name_login_fails = $wpdb->prefix . "login_fails";
+	$table_name = $wpdb->base_prefix . "lockdowns";
+	$table_name_lockdowns = $wpdb->base_prefix . "lockdowns";
+	$table_name_login_fails = $wpdb->base_prefix . "login_fails";
 	$loginlockdownAdminOptions = get_loginlockdownOptions();
 
 	if (isset($_POST['update_loginlockdownSettings'])) {
@@ -616,9 +616,9 @@ if ( isset($loginlockdown_db_version) ) {
 	function loginlockdown_release()
 	{
 		global $wpdb;
-		$table_name = $wpdb->prefix . "lockdowns";
-		$table_name_lockdowns = $wpdb->prefix . "lockdowns";
-		$table_name_login_fails = $wpdb->prefix . "login_fails";
+		$table_name = $wpdb->base_prefix . "lockdowns";
+		$table_name_lockdowns = $wpdb->base_prefix . "lockdowns";
+		$table_name_login_fails = $wpdb->base_prefix . "login_fails";
 		$loginlockdownAdminOptions = get_loginlockdownOptions();
 		
 		// Log month's records

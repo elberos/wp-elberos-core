@@ -51,7 +51,7 @@ class MailSettings_Table extends \WP_List_Table
 	function get_table_name()
 	{
 		global $wpdb;
-		return $wpdb->prefix . 'elberos_mail_settings';
+		return $wpdb->base_prefix . 'elberos_mail_settings';
 	}
 	
 	// Вывод значений по умолчанию

@@ -46,6 +46,7 @@ class Elberos_Plugin
 		);
 		add_action('admin_menu', 'Elberos_Plugin::register_admin_menu');
 		add_action('send_headers', 'Elberos_Plugin::send_headers');
+		add_action('elberos_twig', 'Elberos_Plugin::elberos_twig');
 		
 		/* Disable Rank Math Seo Output */
 		add_action
@@ -213,6 +214,16 @@ class Elberos_Plugin
 			$utm['utm_term'] = isset($f_utm['t']) ? $f_utm['t'] : null;
 		}
 		return $utm;
+	}
+	
+	
+	
+	/**
+	 * Twig
+	 */
+	public static function elberos_twig($twig)
+	{
+		$twig->getLoader()->addPath(__DIR__ . "/templates", "core");
 	}
 	
 }

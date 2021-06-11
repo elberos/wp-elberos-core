@@ -51,7 +51,7 @@ class Log_Table extends \WP_List_Table
 	function get_table_name()
 	{
 		global $wpdb;
-		return $wpdb->prefix . 'elberos_delivery';
+		return $wpdb->base_prefix . 'elberos_delivery';
 	}
 	
 	// Вывод значений по умолчанию

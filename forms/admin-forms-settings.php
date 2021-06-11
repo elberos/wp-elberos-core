@@ -51,7 +51,7 @@ class Settings_Table extends \WP_List_Table
 	function get_table_name()
 	{
 		global $wpdb;
-		return $wpdb->prefix . 'elberos_forms';
+		return $wpdb->base_prefix . 'elberos_forms';
 	}
 	
 	// Вывод значений по умолчанию

@@ -52,14 +52,14 @@ class Data_Table extends \WP_List_Table
 	function get_forms_settings_table_name()
 	{
 		global $wpdb;
-		return $wpdb->prefix . 'elberos_forms';
+		return $wpdb->base_prefix . 'elberos_forms';
 	}
 
 	
 	function get_table_name()
 	{
 		global $wpdb;
-		return $wpdb->prefix . 'elberos_forms_data';
+		return $wpdb->base_prefix . 'elberos_forms_data';
 	}
 		
 	// Вывод значений по умолчанию

@@ -88,8 +88,8 @@ class Api
 	{
 		global $wpdb;
 		
-		$table_forms_name = $wpdb->prefix . 'elberos_forms';
-		$table_forms_data_name = $wpdb->prefix . 'elberos_forms_data';
+		$table_forms_name = $wpdb->base_prefix . 'elberos_forms';
+		$table_forms_data_name = $wpdb->base_prefix . 'elberos_forms_data';
 		$form_api_name = isset($_POST["form_api_name"]) ? $_POST["form_api_name"] : "";
 		$form_title = isset($_POST["form_title"]) ? $_POST["form_title"] : "";
 		$forms_wp_nonce = isset($_POST["_wpnonce"]) ? $_POST["_wpnonce"] : "";
@@ -238,7 +238,7 @@ class Api
 		$time = time();
 		$spam_result = 0;
 		
-		$table_name = $wpdb->prefix . 'elberos_forms_ip';
+		$table_name = $wpdb->base_prefix . 'elberos_forms_ip';
 		$sql = $wpdb->prepare
 		(
 			"SELECT * FROM $table_name WHERE ip=%s", $ip
