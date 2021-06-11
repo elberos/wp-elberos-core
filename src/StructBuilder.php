@@ -75,6 +75,22 @@ class StructBuilder
 	
 	
 	/**
+	 * Edit field
+	 */
+	public function editField($field_name, $arr)
+	{
+		if (isset($this->fields[$field_name]))
+		{
+			foreach ($arr as $key => $value)
+			{
+				$this->fields[$field_name][$key] = $value;
+			}
+		}
+	}
+	
+	
+	
+	/**
 	 * Remove field
 	 */
 	public function removeField($field_name)
@@ -134,6 +150,23 @@ class StructBuilder
 	
 	
 	/**
+	 * Update data
+	 */
+	public function update($data)
+	{
+		foreach ($this->show_fields as $field_name)
+		{
+			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
+			if (!$field) continue;
+			
+			$this->item[$field_name] = $data[$field_name];
+		}
+		return $this;
+	}
+	
+	
+	
+	/**
 	 * Process item
 	 */
 	public function processItem()
@@ -141,25 +174,32 @@ class StructBuilder
 		$item = [];
 		
 		/* Get value */
-		foreach ($this->fields as $field)
+		foreach ($this->show_fields as $field_name)
 		{
-			$api_name = $field["api_name"];
+			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
+			if (!$field) continue;
 			
 			/* Skip virtual */
 			$virtual = isset($field["virtual"]) ? $field["virtual"] : false;
 			if ($virtual) continue;
 			
-			$item[ $api_name ] = $this->getValue($api_name);
+			$item[ $field_name ] = $this->getValue($field_name);
 		}
 		
 		/* Process item */
-		foreach ($this->fields as $field)
+		foreach ($this->show_fields as $field_name)
 		{
-			$api_name = $field["api_name"];
+			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
+			if (!$field) continue;
+			
+			/* Skip virtual */
+			$virtual = isset($field["virtual"]) ? $field["virtual"] : false;
+			if ($virtual) continue;
+			
 			$process_item = isset($field["process_item"]) ? $field["process_item"] : null;
-			if ($process_item)
+			if ($process_item != null)
 			{
-				$item = $process_item($this, $item);
+				$item = call_user_func_array($process_item, [$this, $item]);
 			}
 		}
 		
@@ -201,9 +241,9 @@ class StructBuilder
 			$style_row = "";
 			$php_style_res = [];
 			$php_style = isset($field["php_style"]) ? $field["php_style"] : null;
-			if (is_callable($php_style))
+			if ($php_style != null)
 			{
-				$php_style_res = $php_style($this, $field);
+				$php_style_res = call_user_func_array($php_style, [$this, $field]);
 			}
 			
 			if (isset($php_style_res["row"]))
@@ -286,9 +326,9 @@ class StructBuilder
 				$field = isset($this->fields[$api_name]) ? $this->fields[$api_name] : null;
 				if ($field == null) continue;
 				
-				if (isset($field["js_change"]) and is_callable($field["js_change"]))
+				if (isset($field["js_change"]))
 				{
-					echo $field["js_change"]($this) . "\n";
+					echo call_user_func_array($field["js_change"], [$this]) . "\n";
 				}
 			}
 			?>
