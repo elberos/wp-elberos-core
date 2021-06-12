@@ -645,7 +645,6 @@ class Site
 			$url = $this->url_concat($site_url, $uri);
 		}
 		
-		if (substr($url, -1) == "/") $url = substr($url, 0, -1);
 		if ((is_home() && $this->route_info == null && $paged == 1) || $uri == false) $url .= "/";
 		
 		return $url;
@@ -770,7 +769,7 @@ class Site
 	public function setTitle($title, $is_full_title = true)
 	{
 		$this->title = $title;
-		$this->full_title = $this->get_page_full_title($title);
+		if ($is_full_title) $this->full_title = $this->get_page_full_title($title);
 	}
 	
 	public function get_current_description()

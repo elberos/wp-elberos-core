@@ -185,13 +185,34 @@ function index($arr, $index, $value, $default = null)
  * @param string $value
  * @return row
  */
+function find_key($arr, $field_name, $value)
+{
+	foreach ($arr as $key => $row){
+		if (!isset($row[$field_name]))
+			continue;
+		if ($row[$field_name] == $value)
+			return $key;
+	}
+	return -1;
+}
+
+
+
+/**
+ * Find item by field_name
+ *
+ * @param array $arr
+ * @param string $field_name
+ * @param string $value
+ * @return row
+ */
 function find_item($arr, $field_name, $value)
 {
-	foreach ($arr as $val){
-		if (!isset($val[$field_name]))
+	foreach ($arr as $row){
+		if (!isset($row[$field_name]))
 			continue;
-		if ($val[$field_name] == $value)
-			return $val;
+		if ($row[$field_name] == $value)
+			return $row;
 	}
 	return null;
 }
@@ -839,4 +860,78 @@ function send_email($plan, $email_to, $template, $context, $params = [])
 	$message = \Elberos\twig_render($twig, $template, $context);
 	
 	\Elberos\MailSender::addMail($plan, $email_to, $title, $message, $params);
+}
+
+
+/**
+ * Get arguments
+ */
+function wpdb_query_args($where, $args, &$sql_arr)
+{
+	while (true)
+	{
+		$pos = 0;
+		$sz = mb_strlen($where);
+		
+		while ($pos < $sz and mb_substr($where, $pos, 1) != ":") $pos++;
+		if ($pos >= $sz)
+		{
+			break;
+		}
+		
+		$pos2 = $pos;
+		while ($pos2 < $sz and mb_substr($where, $pos2, 1) != " ") $pos2++;
+		
+		$row_name = substr($where, $pos + 1, $pos2 - $pos - 1);
+		$where = substr($where, 0, $pos) . "%s" . substr($where, $pos2);
+		
+		$sql_arr[] = isset($args[$row_name]) ? $args[$row_name] : "";
+	}
+	return $where;
+}
+
+
+/**
+ * wpdb Query
+ */
+function wpdb_query($params)
+{
+	global $wpdb;
+	
+	$table_name = isset($params["table_name"]) ? $params["table_name"] : "";
+	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
+	$per_page = isset($params["per_page"]) ? $params["per_page"] : 10;
+	$orderby = isset($params["orderby"]) ? $params["orderby"] : "id desc";
+	$page = isset($_GET['page']) ? max(0, intval($_GET['page']) - 1) : 0;
+	
+	$sql_arr = [];
+	$args = isset($params["args"]) ? $params["args"] : [];
+	$where = isset($params["where"]) ? $params["where"] : "";
+	if ($where != "") $where = "where " . $where;
+	
+	/* Table prefix */
+	$table_name = str_replace("\${prefix}", $wpdb->prefix, $table_name);
+	$table_name = str_replace("\${base_prefix}", $wpdb->base_prefix, $table_name);
+	
+	/* where */
+	$where = wpdb_query_args($where, $args, $sql_arr);
+	
+	/* Order by */
+	if ($orderby) $orderby = "ORDER BY " . $orderby;
+	
+	$sql_arr[] = $per_page;
+	$sql_arr[] = $page * $per_page;
+	
+	$sql = $wpdb->prepare
+	(
+		"SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${where}
+		${orderby} LIMIT %d OFFSET %d",
+		$sql_arr
+	);
+	
+	$items = $wpdb->get_results($sql, ARRAY_A);
+	$count = $wpdb->get_var('SELECT FOUND_ROWS()');
+	$pages = ceil($count / $per_page);
+	
+	return [$items, $count, $pages, $page];
 }
