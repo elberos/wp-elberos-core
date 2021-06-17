@@ -558,7 +558,7 @@ class Site
 	 */
 	public function add_api($api_space, $api_name, $callback)
 	{
-		$route_name = $api_space . ":" . $api_name;
+		$route_name = "api:" . $api_space . ":" . $api_name;
 		$match = "/api/" . $api_space . "/" . $api_name . "/";
 		$this->routes[$route_name] = 
 		[

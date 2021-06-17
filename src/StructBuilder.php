@@ -24,23 +24,22 @@ namespace Elberos;
 class StructBuilder
 {
 	public $action = "";
-	public $item = null;
 	public $form_name = "";
 	public $fields = [];
 	public $show_fields = [];
+	public $table_fields = [];
 	
 	
 	
 	/**
 	 * Create instance
 	 */
-	public static function create($form_name, $action, $item)
+	public static function create($form_name, $action)
 	{
 		/* Create struct */
 		$struct = new self();
 		$struct->setFormName($form_name);
 		$struct->action = $action;
-		$struct->item = $item;
 		
 		/* Apply filter */
 		$struct = apply_filters("elberos_struct_builder", $struct);
@@ -57,6 +56,16 @@ class StructBuilder
 	{
 		$this->form_name = $form_name;
 		return $this;
+	}
+	
+	
+	
+	/**
+	 * Get field
+	 */
+	public function getField($field_name)
+	{
+		return isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
 	}
 	
 	
@@ -133,13 +142,13 @@ class StructBuilder
 	/**
 	 * Get value
 	 */
-	public function getValue($field_name)
+	public function getValue($item, $field_name)
 	{
 		$action = $this->action;
 		if (isset($this->fields[$field_name]))
 		{
 			$field = $this->fields[$field_name];
-			$value = ($this->item != null) ? (isset($this->item[$field_name]) ? $this->item[$field_name] : "") : "";
+			$value = ($item != null) ? (isset($item[$field_name]) ? $item[$field_name] : "") : "";
 			$default = isset($field["default"]) ? $field["default"] : "";
 			if ($value === "") $value = $default;
 			return $value;
@@ -152,16 +161,16 @@ class StructBuilder
 	/**
 	 * Update data
 	 */
-	public function update($data)
+	public function update($item, $data)
 	{
 		foreach ($this->show_fields as $field_name)
 		{
 			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
 			if (!$field) continue;
 			
-			$this->item[$field_name] = $data[$field_name];
+			$item[$field_name] = $data[$field_name];
 		}
-		return $this;
+		return $item;
 	}
 	
 	
@@ -169,9 +178,9 @@ class StructBuilder
 	/**
 	 * Process item
 	 */
-	public function processItem()
+	public function processItem($item)
 	{
-		$item = [];
+		$res = [];
 		
 		/* Get value */
 		foreach ($this->show_fields as $field_name)
@@ -183,7 +192,7 @@ class StructBuilder
 			$virtual = isset($field["virtual"]) ? $field["virtual"] : false;
 			if ($virtual) continue;
 			
-			$item[ $field_name ] = $this->getValue($field_name);
+			$res[ $field_name ] = $this->getValue($item, $field_name);
 		}
 		
 		/* Process item */
@@ -199,11 +208,11 @@ class StructBuilder
 			$process_item = isset($field["process_item"]) ? $field["process_item"] : null;
 			if ($process_item != null)
 			{
-				$item = call_user_func_array($process_item, [$this, $item]);
+				$res = call_user_func_array($process_item, [$this, $item, $res]);
 			}
 		}
 		
-		return $item;
+		return $res;
 	}
 	
 	
@@ -211,9 +220,8 @@ class StructBuilder
 	/**
 	 * Render fields
 	 */
-	public function renderForm()
+	public function renderForm($item = [])
 	{
-		$item = $this->item;
 		$action = $this->action;
 		foreach ($this->show_fields as $api_name)
 		{
@@ -243,7 +251,7 @@ class StructBuilder
 			$php_style = isset($field["php_style"]) ? $field["php_style"] : null;
 			if ($php_style != null)
 			{
-				$php_style_res = call_user_func_array($php_style, [$this, $field]);
+				$php_style_res = call_user_func_array($php_style, [$this, $field, $item]);
 			}
 			
 			if (isset($php_style_res["row"]))
@@ -313,7 +321,7 @@ class StructBuilder
 	/**
 	 * Render js
 	 */
-	public function renderJS()
+	public function renderJS($item = [])
 	{
 		?>
 		<script>
@@ -328,7 +336,7 @@ class StructBuilder
 				
 				if (isset($field["js_change"]))
 				{
-					echo call_user_func_array($field["js_change"], [$this]) . "\n";
+					echo call_user_func_array($field["js_change"], [$this, $item]) . "\n";
 				}
 			}
 			?>

@@ -75,9 +75,76 @@ function formatMoney(num)
 
 
 /**
+ * Send ajax
+ */
+function elberos_post_send(url, send_data, callback)
+{
+	var contentType = 'application/x-www-form-urlencoded; charset=UTF-8';
+	var processData = true;
+	if (send_data instanceof FormData)
+	{
+		contentType = false;
+		processData = false;
+	}
+	
+	$.ajax({
+		url: url,
+		data: send_data,
+		dataType: 'json',
+		method: 'post',
+		
+		cache: false,
+		contentType: contentType,
+		processData: processData,
+		xhrFields: { withCredentials: true },
+		
+		success: (function(callback){
+			return function(data, textStatus, jqXHR)
+			{
+				if (data == null)
+				{
+					callback({
+						code: -100,
+						message: "Result is null",
+					});
+				}
+				else
+				{
+					callback(data);
+				}
+			}
+		})(callback),
+		
+		error: (function(callback){
+			return function(data, textStatus, jqXHR){
+				
+				var json = data.responseJSON;
+				if (json == null)
+				{
+					json =
+					{
+						"code": -data.status,
+						"message": data.status + " (" + data.statusText + ")",
+					};
+				}
+				
+				callback({
+					code: -100,
+					message: json.message || "System error",
+					error_code: json.code || -100,
+				});
+				
+			}
+		})(callback),
+	});
+}
+
+
+
+/**
  * Send api request
  */
-function elberos_api_send(namespace, route, callback, send_data)
+function elberos_api_send(namespace, route, send_data, callback)
 {
 	var url = "/api/" + namespace + "/" + route + "/?_=" + Date.now();
 	var contentType = 'application/x-www-form-urlencoded; charset=UTF-8';
@@ -145,7 +212,7 @@ function elberos_api_send(namespace, route, callback, send_data)
 /**
  * Send data
  */
-function elberos_send_data ( namespace, route, callback, send_data )
+function elberos_send_data ( namespace, route, send_data, callback )
 {
 	if (send_data['data'] == undefined) send_data['data'] = {};
 	if (send_data['utm'] == undefined) send_data['utm'] = {};
@@ -166,8 +233,8 @@ function elberos_send_data ( namespace, route, callback, send_data )
 	(
 		namespace,
 		route,
-		callback,
-		send_data
+		send_data,
+		callback
 	);
 }
 
@@ -201,6 +268,17 @@ function ElberosFormGetData ( $form )
 	}
 	return data;
 }
+
+
+
+/**
+ * Set response
+ */
+function ElberosFormSetWaitMessage ( $form )
+{
+	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
+}
+
 
 
 /**
@@ -378,7 +456,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 	
 	elberos_send_data
 	(
-		form_api_name,
+		"elberos_forms", "submit_form", send_data,
 		(function($form, settings, callback){ return function (res)
 		{
 			var metrika_event = settings.metrika_event;
@@ -401,9 +479,24 @@ function ElberosFormSubmit ( $form, settings, callback )
 			
 			if (callback != undefined && callback != null) callback(res);
 			
-		}})($form, settings, callback),
-		send_data
+		}})($form, settings, callback)
 	);
+}
+
+
+
+/**
+ * Rename id
+ */
+function ElberosFormRenameID($el)
+{
+	var gen_id = Math.random();
+	$el.find(".web_form__input").each(function(){
+		var id = $(this).attr("id");
+		var new_id = id + "_" + gen_id;
+		$el.find("label[for=" + id + "]").attr("for", new_id);
+		$(this).attr("id", new_id)
+	});
 }
 
 
@@ -420,19 +513,15 @@ function ElberosFormShowDialog($content, settings)
 	}
 	
 	var dialog = new class_name();
+	dialog.setSettings(settings.dialog);
 	dialog.setContent($content.html());
 	dialog.open();
 	if (settings.dialog_title != undefined) dialog.setTitle(settings.dialog_title);
 	
-	/* Rename id */
-	var gen_id = Math.random();
 	var $el = dialog.$el;
-	$el.find(".web_form__input").each(function(){
-		var id = $(this).attr("id");
-		var new_id = id + "_" + gen_id;
-		$el.find("label[for=" + id + "]").attr("for", new_id);
-		$(this).attr("id", new_id)
-	});
+	
+	/* Rename id */
+	ElberosFormRenameID($el);
 	
 	/* Result */
 	$el.find('.web_form__result').html('');
@@ -503,12 +592,14 @@ function ElberosFormShowDialog($content, settings)
 function ElberosShowDialog($content, settings)
 {
 	var class_name = window['ElberosFormDialog'];
+	if (settings == undefined) settings = {};
 	if (settings.dialog_class_name != undefined && window[settings.dialog_class_name] != undefined)
 	{
 		class_name = window[settings.dialog_class_name];
 	}
 	
 	var dialog = new class_name();
+	dialog.setSettings(settings);
 	dialog.setContent($content.html());
 	dialog.open();
 	if (settings.dialog_title != undefined) dialog.setTitle(settings.dialog_title);
@@ -532,6 +623,11 @@ function ElberosDialog()
 
 
 Object.assign( ElberosDialog.prototype, {
+	
+	setSettings: function(settings)
+	{
+		if (settings == undefined) return;
+	},
 	
 	setElem: function($el)
 	{

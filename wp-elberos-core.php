@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Elberos Core
  * Description: Core plugin for WordPress
- * Version:     0.1.0
+ * Version:     0.2.0
  * Author:      Elberos team <support@elberos.org>
  * License:     Apache License 2.0
  *
@@ -228,6 +228,7 @@ class Elberos_Plugin
 	
 }
 
+require_once __DIR__ . "/src/class-wp-list-table.php";
 require_once __DIR__ . "/src/lib.php";
 require_once __DIR__ . "/src/Html.php";
 require_once __DIR__ . "/src/RawString.php";
@@ -235,6 +236,7 @@ require_once __DIR__ . "/src/Site.php";
 require_once __DIR__ . "/src/Slider.php";
 require_once __DIR__ . "/src/StructBuilder.php";
 require_once __DIR__ . "/src/Image.php";
+require_once __DIR__ . "/src/Table.php";
 require_once __DIR__ . "/src/Update.php";
 require_once __DIR__ . "/src/Dialog.php";
 require_once __DIR__ . "/delivery/mail-sender.php";

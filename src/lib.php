@@ -891,6 +891,26 @@ function wpdb_query_args($where, $args, &$sql_arr)
 }
 
 
+
+/**
+ * Prepare query
+ */
+function wpdb_prepare($sql, $args)
+{
+	global $wpdb;
+	$sql_arr = [];
+	$sql = wpdb_query_args($sql, $args, $sql_arr);
+	$sql = $wpdb->prepare($sql, $sql_arr);
+	
+	/* Table prefix */
+	$sql = str_replace("\${prefix}", $wpdb->prefix, $sql);
+	$sql = str_replace("\${base_prefix}", $wpdb->base_prefix, $sql);
+	
+	return $sql;
+}
+
+
+
 /**
  * wpdb Query
  */
@@ -919,19 +939,25 @@ function wpdb_query($params)
 	/* Order by */
 	if ($orderby) $orderby = "ORDER BY " . $orderby;
 	
-	$sql_arr[] = $per_page;
-	$sql_arr[] = $page * $per_page;
+	$limit = "";
+	if ($per_page > 0)
+	{
+		$sql_arr[] = $per_page;
+		$sql_arr[] = $page * $per_page;
+		$limit = "LIMIT %d OFFSET %d";
+	}
 	
 	$sql = $wpdb->prepare
 	(
 		"SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${where}
-		${orderby} LIMIT %d OFFSET %d",
+		${orderby} ${limit}",
 		$sql_arr
 	);
 	
 	$items = $wpdb->get_results($sql, ARRAY_A);
 	$count = $wpdb->get_var('SELECT FOUND_ROWS()');
-	$pages = ceil($count / $per_page);
+	if ($per_page > 0) $pages = ceil($count / $per_page);
+	else $pages = 0;
 	
 	return [$items, $count, $pages, $page];
 }
