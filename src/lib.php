@@ -22,6 +22,16 @@ namespace Elberos;
 
 
 /**
+ * Get url parameters
+ */
+function url_get($key, $value = "")
+{
+	return isset($_GET[$key]) ? $_GET[$key] : $value;
+}
+
+
+
+/**
  * Returns site url
  */
 function get_url($url)
@@ -41,6 +51,19 @@ function get_site_name()
 		return get_option( 'blogname' );
 	}
 	return get_blog_option( 1, 'blogname' );
+}
+
+
+
+/**
+ * Is get cheched
+ */
+function is_get_checked($key, $value, $default = false)
+{
+	$get_value = isset($_GET[$key]) ? $_GET[$key] : "";
+	if ($get_value == $value) return "checked='checked'";
+	if ($get_value == "" and $default) return "checked='checked'";
+	return "";
 }
 
 
@@ -521,9 +544,9 @@ function base64_decode_url($s)
 function get_client_ip()
 {
 	return $_SERVER['REMOTE_ADDR'];
-	if (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+	if (!empty($_SERVER['HTTP_X_REAL_IP']))
 	{
-		return $_SERVER['HTTP_X_FORWARDED_FOR'];
+		return $_SERVER['HTTP_X_REAL_IP'];
 	}
 	else
 	{
@@ -864,30 +887,45 @@ function send_email($plan, $email_to, $template, $context, $params = [])
 
 
 /**
+ * Is alfa num
+ */
+function is_alfa_num($ch)
+{
+	if ($ch == " ") return false;
+	if ($ch == "_") return true;
+	$code = mb_ord($ch);
+	if ($code >= 97 and $code <= 122) return true;
+	if ($code >= 65 and $code <= 90) return true;
+	if ($code >= 48 and $code <= 57) return true;
+	return false;
+}
+
+
+/**
  * Get arguments
  */
-function wpdb_query_args($where, $args, &$sql_arr)
+function wpdb_query_args($sql, $args, &$sql_arr)
 {
 	while (true)
 	{
 		$pos = 0;
-		$sz = mb_strlen($where);
+		$sz = mb_strlen($sql);
 		
-		while ($pos < $sz and mb_substr($where, $pos, 1) != ":") $pos++;
+		while ($pos < $sz and mb_substr($sql, $pos, 1) != ":") $pos++;
 		if ($pos >= $sz)
 		{
 			break;
 		}
 		
-		$pos2 = $pos;
-		while ($pos2 < $sz and mb_substr($where, $pos2, 1) != " ") $pos2++;
+		$pos2 = $pos + 1;
+		while ($pos2 < $sz and is_alfa_num(mb_substr($sql, $pos2, 1))) $pos2++;
 		
-		$row_name = substr($where, $pos + 1, $pos2 - $pos - 1);
-		$where = substr($where, 0, $pos) . "%s" . substr($where, $pos2);
+		$row_name = substr($sql, $pos + 1, $pos2 - $pos - 1);
+		$sql = substr($sql, 0, $pos) . "%s" . substr($sql, $pos2);
 		
 		$sql_arr[] = isset($args[$row_name]) ? $args[$row_name] : "";
 	}
-	return $where;
+	return $sql;
 }
 
 
@@ -921,8 +959,10 @@ function wpdb_query($params)
 	$table_name = isset($params["table_name"]) ? $params["table_name"] : "";
 	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
 	$per_page = isset($params["per_page"]) ? $params["per_page"] : 10;
-	$orderby = isset($params["orderby"]) ? $params["orderby"] : "id desc";
-	$page = isset($_GET['page']) ? max(0, intval($_GET['page']) - 1) : 0;
+	$order_by = isset($params["order_by"]) ? $params["order_by"] : "id desc";
+	
+	if (isset($params["page"])) $page = $params["page"];
+	else $page = isset($_GET['page']) ? max(0, intval($_GET['page']) - 1) : 0;
 	
 	$sql_arr = [];
 	$args = isset($params["args"]) ? $params["args"] : [];
@@ -937,7 +977,7 @@ function wpdb_query($params)
 	$where = wpdb_query_args($where, $args, $sql_arr);
 	
 	/* Order by */
-	if ($orderby) $orderby = "ORDER BY " . $orderby;
+	if ($order_by) $order_by = "ORDER BY " . $order_by;
 	
 	$limit = "";
 	if ($per_page > 0)
@@ -950,7 +990,7 @@ function wpdb_query($params)
 	$sql = $wpdb->prepare
 	(
 		"SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${where}
-		${orderby} ${limit}",
+		${order_by} ${limit}",
 		$sql_arr
 	);
 	

@@ -103,14 +103,14 @@ function elberos_post_send(url, send_data, callback)
 			{
 				if (data == null)
 				{
-					callback({
+					if (callback) callback({
 						code: -100,
 						message: "Result is null",
 					});
 				}
 				else
 				{
-					callback(data);
+					if (callback) callback(data);
 				}
 			}
 		})(callback),
@@ -128,7 +128,7 @@ function elberos_post_send(url, send_data, callback)
 					};
 				}
 				
-				callback({
+				if (callback) callback({
 					code: -100,
 					message: json.message || "System error",
 					error_code: json.code || -100,
@@ -171,14 +171,14 @@ function elberos_api_send(namespace, route, send_data, callback)
 			{
 				if (data == null)
 				{
-					callback({
+					if (callback) callback({
 						code: -100,
 						message: "Result is null",
 					});
 				}
 				else
 				{
-					callback(data);
+					if (callback) callback(data);
 				}
 			}
 		})(callback),
@@ -196,7 +196,7 @@ function elberos_api_send(namespace, route, send_data, callback)
 					};
 				}
 				
-				callback({
+				if (callback) callback({
 					code: -100,
 					message: json.message || "System error",
 					error_code: json.code || -100,
@@ -217,6 +217,7 @@ function elberos_send_data ( namespace, route, send_data, callback )
 	if (send_data['data'] == undefined) send_data['data'] = {};
 	if (send_data['utm'] == undefined) send_data['utm'] = {};
 	
+	/* Google client id */
 	var gclid = null;
 	try{
 		gclid = ga.getAll()[0].get('clientId');
@@ -226,6 +227,12 @@ function elberos_send_data ( namespace, route, send_data, callback )
 	if (gclid)
 	{
 		send_data['utm']['gclid'] = gclid;
+	}
+	
+	/* Yandex client id */
+	if (yaClientID != null)
+	{
+		send_data['utm']['yclid'] = yaClientID;
 	}
 	
 	/* Send api */

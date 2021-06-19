@@ -103,6 +103,9 @@ class Site
 		// Register routes
 		do_action('elberos_register_routes', $this);
 		$this->register_routes();
+		
+		// Create
+		do_action('elberos_site_constructor', $this);
 	}
 	
 	

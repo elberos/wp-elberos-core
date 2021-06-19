@@ -167,7 +167,9 @@ class StructBuilder
 		{
 			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
 			if (!$field) continue;
-			
+			if (!isset($data[$field_name])) continue;
+			$virtual = isset($field["virtual"]) ? $field["virtual"] : false;
+			if ($virtual) continue;
 			$item[$field_name] = $data[$field_name];
 		}
 		return $item;
@@ -178,9 +180,9 @@ class StructBuilder
 	/**
 	 * Process item
 	 */
-	public function processItem($item)
+	public function processItem($item, $flag = false)
 	{
-		$res = [];
+		$res = ($flag) ? $item : [];
 		
 		/* Get value */
 		foreach ($this->show_fields as $field_name)
@@ -220,9 +222,8 @@ class StructBuilder
 	/**
 	 * Render fields
 	 */
-	public function renderForm($item = [])
+	public function renderForm($item = [], $action = "")
 	{
-		$action = $this->action;
 		foreach ($this->show_fields as $api_name)
 		{
 			$field = isset($this->fields[$api_name]) ? $this->fields[$api_name] : null;
@@ -321,7 +322,7 @@ class StructBuilder
 	/**
 	 * Render js
 	 */
-	public function renderJS($item = [])
+	public function renderJS($item = [], $action = "")
 	{
 		?>
 		<script>
@@ -341,12 +342,12 @@ class StructBuilder
 			}
 			?>
 		}
-		onJQueryLoaded(function(){
+		<?php if (!is_admin()){ echo "onJQueryLoaded(function(){"; } ?>
 			change_form_<?= $this->form_name ?>();
 			jQuery("document").on("change", ".web_form_<?= $this->form_name ?> .web_form_value", function(){
 				change_form_<?= $this->form_name ?>();
 			});
-		});
+		<?php if (!is_admin()){ echo "});"; } ?>
 		</script>
 		<?php
 	}

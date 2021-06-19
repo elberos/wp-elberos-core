@@ -1,0 +1,48 @@
+{% if pages > 1 %}
+    <nav class="pagination-block">
+        <ul class="pagination">
+            
+			<!--
+			<li class="first btn" data-page="1">
+				<a href="{{ admin_url ~ (admin_url ? '&' : '?') ~ 'p=1' }}">Первая</a>
+			</li>
+			-->
+			
+            {% if page - 1 >= 1 %}
+                <!--
+				<li class="prev btn" data-page="{{ page - 1 }}">
+                    <a href="{{ admin_url ~ (admin_url ? '&' : '?') ~ 'p=' ~ (page - 1) }}">Предыдущая</a>
+                </li>
+				-->
+            {% endif %}
+			
+            {% for p in 1 .. pages %}
+				{% if p == page %}
+				<li class="current" data-page="{{ p }}">
+					<span class="current">{{ p }}</span>
+				</li>
+				{% else %}
+				<li class="btn" data-page="{{ p }}">
+					<a class="nolink" href="{{ admin_url ~ (admin_url ? '&' : '?') ~ 'p=' ~ p }}">{{ p }}</a>
+				</li>
+				{% endif %}
+            {% endfor %}
+			
+			{% if page + 1 < pages %}
+                <!--
+				<li class="next btn" data-page="{{ page + 1 }}">
+                    <a href="{{ admin_url ~ (admin_url ? '&' : '?') ~ 'p=' ~ (page + 1) }}">
+                        Следующая
+                    </a>
+                </li>
+				-->
+            {% endif %}
+			
+			<!--
+			<li class="last btn" data-page="{{ pages }}">
+				<a href="{{ admin_url ~ (admin_url ? '&' : '?') ~ 'p=' ~ pages }}">Последняя</a>
+			</li>
+			-->
+        </ul>
+    </nav>
+{% endif %}
