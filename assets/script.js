@@ -230,7 +230,7 @@ function elberos_send_data ( namespace, route, send_data, callback )
 	}
 	
 	/* Yandex client id */
-	if (yaClientID != null)
+	if (typeof yaClientID != "undefined" && yaClientID != null)
 	{
 		send_data['utm']['yclid'] = yaClientID;
 	}

@@ -150,27 +150,7 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function column_default($item, $column_name)
 	{
-		$field = $this->struct->getField($column_name);
-		$value = isset($item[$column_name]) ? $item[$column_name] : '';
-		
-		if ($field)
-		{
-			if (isset($field['column_value']))
-			{
-				return call_user_func_array($field['column_value'], [$this->struct, $item]);
-			}
-			if ($field['type'] == 'select')
-			{
-				$options = isset( $field['options'] ) ? $field['options'] : [];
-				$option = \Elberos\find_item($options, "id", $value);
-				if ($option)
-				{
-					$value = $option['value'];
-				}
-			}
-		}
-		
-		return esc_html( $value );
+		return $this->struct->getColumnValue($item, $column_name);
 	}
 	
 	
@@ -192,23 +172,12 @@ class Table extends \Elberos_WP_List_Table
 	function column_buttons($item)
 	{
 		$page_name = $this->get_page_name();
-		
-		$actions = array
+		return sprintf
 		(
-			'edit' => sprintf(
-				'<a href="?page=' . $page_name . '&action=edit&id=%s">%s</a>',
-				$item['id'], 
-				__('Edit', 'elberos-core')
-			),
-			/*
-			'delete' => sprintf(
-				'<a href="?page=' . $page_name . '&action=show_delete&id=%s">%s</a>',
-				$item['id'],
-				__('Delete', 'elberos-core')
-			),*/
+			'<a href="?page=' . $page_name . '&action=edit&id=%s">%s</a>',
+			$item['id'], 
+			__('Редактировать', 'elberos-core')
 		);
-		
-		return $this->row_actions($actions, true);
 	}
 	
 	
@@ -294,7 +263,7 @@ class Table extends \Elberos_WP_List_Table
 	/**
 	 * Process item after
 	 */
-	function process_item_after($item, $old_item, $action)
+	function process_item_after($item, $old_item, $action, $success)
 	{
 	}
 	
@@ -315,6 +284,8 @@ class Table extends \Elberos_WP_List_Table
 		if ($this->form_item_id == 0)
 		{		
 			$this->form_item = $this->struct->getDefault();
+			$this->form_item['id'] = 0;
+			$this->form_item_id = 0;
 		}
 		
 		/* Update */
@@ -324,10 +295,6 @@ class Table extends \Elberos_WP_List_Table
 			{
 				$sql = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %d limit 1", $this->form_item_id);
 				$this->form_item = $wpdb->get_row($sql, ARRAY_A);
-			}
-			if ($this->form_item == null)
-			{
-				$this->form_notice = __('Элемент не найден', 'elberos-core');
 			}
 		}
 	}
@@ -365,53 +332,73 @@ class Table extends \Elberos_WP_List_Table
 		$old_item = $this->form_item;
 		$item_id = $this->form_item_id;
 		
-		/* Process item */
-		$process_item = $this->struct->update($old_item, $_POST);
-		$process_item = $this->struct->processItem($process_item);
-		$process_item = $this->process_item($process_item, $old_item);
-		
 		/* Item validation */
-		$notice = $this->item_validate($process_item);
+		$notice = $this->item_validate($old_item);
 		if ($notice)
 		{
 			$this->form_notice = $notice;
 			return;
 		}
 		
+		/* Process item */
+		$process_item = $this->struct->update($old_item, $_POST);
+		$process_item = $this->struct->processItem($process_item);
+		$process_item = $this->process_item($process_item, $old_item);
+		
+		$action = "";
+		
 		/* Create */
 		if ($item_id == 0)
 		{
+			$action = "create";
+			
 			/* Before */
 			$this->process_item_before($process_item, $old_item, 'create');
 			do_action("elberos_wp_list_table_process_item_before", [$this, $process_item, $old_item, 'create']);
 			
 			/* Request */
-			$wpdb->insert($table_name, $process_item);
+			$result = $wpdb->insert($table_name, $process_item);
 			$item_id = $wpdb->insert_id;
 			
 			$process_item['id'] = $item_id;
 			$this->form_item_id = $item_id;
-			$this->form_message = __('Успешно обновлено', 'elberos-core');
+			$success = false;
 			
-			/* After */
-			$this->process_item_after($process_item, $old_item, 'create');
-			do_action("elberos_wp_list_table_process_item_after", [$this, $process_item, $old_item, 'create']);
+			/* Result */
+			if ($wpdb->last_error != "")
+			{
+				$this->form_notice = __('Ошибка базы данных', 'elberos-core');
+			}
+			else
+			{
+				$success = true;
+				$this->form_message = __('Успешно обновлено', 'elberos-core');
+			}
 		}
 		
 		/* Update */
 		else
 		{
+			$action = "update";
+			
 			/* Before */
 			$this->process_item_before($process_item, $old_item, 'update');
 			do_action("elberos_wp_list_table_process_item_before", [$this, $process_item, $old_item, 'update']);
 			
 			/* Request */
-			$wpdb->update($table_name, $process_item, array('id' => $item_id));
-			$this->form_message = __('Успешно обновлено', 'elberos-core');
+			$result = $wpdb->update($table_name, $process_item, array('id' => $item_id));
+			$success = false;
 			
-			/* After */
-			$this->process_item_after($process_item, $old_item, 'update');
-			do_action("elberos_wp_list_table_process_item_after", [$this, $process_item, $old_item, 'update']);
+			/* Result */
+			if ($wpdb->last_error != "")
+			{
+				$this->form_notice = __('Ошибка базы данных', 'elberos-core');
+			}
+			else
+			{
+				$success = true;
+				$this->form_message = __('Успешно обновлено', 'elberos-core');
+			}
 		}
 		
 		/* Get new value */
@@ -420,6 +407,10 @@ class Table extends \Elberos_WP_List_Table
 			$sql = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %d limit 1", $item_id);
 			$this->form_item = $wpdb->get_row($sql, ARRAY_A);
 		}
+		
+		/* After */
+		$this->process_item_after($process_item, $old_item, 'create', $success);
+		do_action("elberos_wp_list_table_process_item_after", [$this, $process_item, $old_item, $action, $success]);
 	}
 	
 	
@@ -461,8 +452,11 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function display_form_sub()
 	{
+		$page_name = $this->get_page_name();
 		?>
+		<br/>
 		<a type="button" class='button-primary' href='?page=<?= $page_name ?>'> Back </a>
+		<br/>
 		<?php
 	}
 	
@@ -475,6 +469,12 @@ class Table extends \Elberos_WP_List_Table
 	{
 		?>
 		<style>
+		.add_or_edit_form{
+			margin-top: 20px;
+		}
+		.add_or_edit_form .web_form__label{
+			margin-bottom: 5px;
+		}
 		.add_or_edit_form .web_form_input{
 			width: 100%;
 			max-width: 100%;
@@ -549,6 +549,17 @@ class Table extends \Elberos_WP_List_Table
 		$message = $this->form_message;
 		$page_name = $this->get_page_name();
 		
+		/* Item not found */
+		if ($item == null)
+		{
+			if (empty($notice))
+			{
+				$notice = __('Элемент не найден', 'elberos-core');
+			}
+			?><div class="wrap"><div id="notice" class="error"><p><?php echo $notice ?></p></div></div><?php
+			return;
+		}
+		
 		?>
 		<div class="wrap">
 			<div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
@@ -561,18 +572,12 @@ class Table extends \Elberos_WP_List_Table
 				<div id="message" class="updated"><p><?php echo $message ?></p></div>
 			<?php endif;?>
 			
-			<form id="form" method="POST">
+			<form id="elberos_form" method="POST">
 				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
 				<input type="hidden" name="id" value="<?php echo $item_id ?>"/>
-				<div class="metabox-holder" id="poststuff">
-					<div id="post-body">
-						<div id="post-body-content">
-							<div class="add_or_edit_form" style="width: 60%">
-								<? $this->display_form($item) ?>
-							</div>
-							<input type="submit" class="button-primary" value="<?php _e('Save', 'elberos-user-cabinet')?>" >
-						</div>
-					</div>
+				<div class="add_or_edit_form" style="width: 60%">
+					<? $this->display_form($item) ?>
+					<? $this->display_form_buttons($item) ?>
 				</div>
 			</form>
 		</div>
@@ -589,6 +594,20 @@ class Table extends \Elberos_WP_List_Table
 	{
 		echo $this->struct->renderForm($item, $item['id'] > 0 ? "edit" : "add");
 		echo $this->struct->renderJS($item, $item['id'] > 0 ? "edit" : "add");
+	}
+	
+	
+	
+	/**
+	 * Display form buttons
+	 */
+	function display_form_buttons($item)
+	{
+		?>
+		<center>
+			<input type="submit" class="button-primary" value="<?= esc_attr('Сохранить', 'elberos-core')?>" >
+		</center>
+		<?php
 	}
 	
 	

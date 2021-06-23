@@ -34,12 +34,18 @@ class StructBuilder
 	/**
 	 * Create instance
 	 */
-	public static function create($form_name, $action)
+	public static function create($form_name, $action, $init)
 	{
 		/* Create struct */
 		$struct = new self();
 		$struct->setFormName($form_name);
 		$struct->action = $action;
+		
+		/* Init */
+		if ($init && is_callable($init))
+		{
+			$struct = $init($struct);
+		}
 		
 		/* Apply filter */
 		$struct = apply_filters("elberos_struct_builder", $struct);
@@ -159,6 +165,36 @@ class StructBuilder
 	
 	
 	/**
+	 * Get column value
+	 */
+	public function getColumnValue($item, $field_name)
+	{
+		$field = $this->getField($field_name);
+		$value = $this->getValue($item, $field_name);
+		
+		if ($field)
+		{
+			if (isset($field['column_value']))
+			{
+				return call_user_func_array($field['column_value'], [$this, $item]);
+			}
+			if ($field['type'] == 'select')
+			{
+				$options = isset( $field['options'] ) ? $field['options'] : [];
+				$option = \Elberos\find_item($options, "id", $value);
+				if ($option)
+				{
+					$value = $option['value'];
+				}
+			}
+		}
+		
+		return esc_html( $value );
+	}
+	
+	
+	
+	/**
 	 * Update data
 	 */
 	public function update($item, $data)
@@ -229,6 +265,7 @@ class StructBuilder
 			$field = isset($this->fields[$api_name]) ? $this->fields[$api_name] : null;
 			if ($field == null) continue;
 			
+			$readonly = "";
 			$show = isset($field["show"]) ? $field["show"] : true;
 			$show_add = isset($field["show_add"]) ? $field["show_add"] : true;
 			$show_edit = isset($field["show_edit"]) ? $field["show_edit"] : true;
@@ -269,6 +306,11 @@ class StructBuilder
 				$style_row = "style='" . implode(";", $row) . "'";
 			}
 			
+			if (isset($field["readonly"]) and $field["readonly"])
+			{
+				$readonly = "readonly='readonly'";
+			}
+			
 			?>
 			<div class="web_form__row" data-name="<?= esc_attr($api_name) ?>" <?= $style_row ?>>
 				
@@ -276,24 +318,26 @@ class StructBuilder
 				
 				<?php if ($type == "input") { ?>
 				<input type="text" class="web_form_input web_form_value web_form_input--text"
-					placeholder="<?= esc_attr($placeholder) ?>"
+					placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
 				<?php } ?>
 				
 				<?php if ($type == "password") { ?>
 				<input type="password" class="web_form_input web_form_value web_form_input--text"
-					placeholder="<?= esc_attr($placeholder) ?>"
+					placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
 				<?php } ?>
 				
 				<?php if ($type == "textarea") { ?>
-				<textarea type="text" class="web_form_input web_form_value" placeholder="<?= esc_attr($placeholder) ?>"
-					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" ><?= esc_html($value) ?></textarea>
+				<textarea type="text" class="web_form_input web_form_value" style="min-height: 200px;"
+					placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
+					data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
 				<?php } ?>
 				
 				<?php if ($type == "select") { ?>
 				<select type="text" class="web_form_input web_form_value" placeholder="<?= esc_attr($placeholder) ?>"
-					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>">
+					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>"
+					<?= $readonly ?>>
 						
 						<?php if ($show_select_value){ ?>
 						<option>Выберите значение</option>
