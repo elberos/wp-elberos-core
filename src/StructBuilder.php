@@ -23,23 +23,36 @@ namespace Elberos;
 
 class StructBuilder
 {
+	public $entity_name = "";
 	public $action = "";
-	public $form_name = "";
 	public $fields = [];
-	public $show_fields = [];
+	public $form_fields = [];
 	public $table_fields = [];
+	
+	
+	/**
+	 * Get entity name
+	 */
+	public static function getEntityName()
+	{
+		return "";
+	}
 	
 	
 	
 	/**
 	 * Create instance
 	 */
-	public static function create($form_name, $action, $init)
+	public static function create($action, $init = null)
 	{
 		/* Create struct */
-		$struct = new self();
-		$struct->setFormName($form_name);
+		$class_name = get_called_class();
+		$struct = new $class_name();
 		$struct->action = $action;
+		$struct->entity_name = static::getEntityName();
+		
+		/* Init */
+		$struct->init();
 		
 		/* Init */
 		if ($init && is_callable($init))
@@ -56,11 +69,20 @@ class StructBuilder
 	
 	
 	/**
-	 * Set form name
+	 * Init struct
 	 */
-	public function setFormName($form_name)
+	public function init()
 	{
-		$this->form_name = $form_name;
+	}
+	
+	
+	
+	/**
+	 * Set action
+	 */
+	public function setAction($action)
+	{
+		$this->action = $action;
 		return $this;
 	}
 	
@@ -83,7 +105,6 @@ class StructBuilder
 	{
 		$api_name = $field['api_name'];
 		$this->fields[$api_name] = $field;
-		if (!in_array($api_name, $this->show_fields)) $this->show_fields[] = $api_name;
 		return $this;
 	}
 	
@@ -101,6 +122,7 @@ class StructBuilder
 				$this->fields[$field_name][$key] = $value;
 			}
 		}
+		return $this;
 	}
 	
 	
@@ -111,17 +133,75 @@ class StructBuilder
 	public function removeField($field_name)
 	{
 		unset( $this->fields[$field_name] );
+		return $this;
 	}
 	
 	
 	
 	/**
-	 * Remove show field
+	 * Add table field
 	 */
-	public function removeShowField($field_name)
+	public function addTableField($field_name)
 	{
-		$pos = array_search($field_name, $this->show_fields);
-		if ($pos !== false) unset($this->show_fields[$pos]);
+		if (!in_array($field_name, $this->table_fields)) $this->table_fields[] = $field_name;
+		return $this;
+	}
+	
+	
+	
+	/**
+	 * Add table field
+	 */
+	public function addFormField($field_name)
+	{
+		if (!in_array($field_name, $this->form_fields)) $this->form_fields[] = $field_name;
+		return $this;
+	}
+	
+	
+	
+	/**
+	 * Set table fields
+	 */
+	public function setTableFields($fields)
+	{
+		$this->table_fields = $fields;
+		return $this;
+	}
+	
+	
+	
+	/**
+	 * Set table fields
+	 */
+	public function setFormFields($fields)
+	{
+		$this->form_fields = $fields;
+		return $this;
+	}
+	
+	
+	
+	/**
+	 * Remove table field
+	 */
+	public function removeTableField($field_name)
+	{
+		$pos = array_search($field_name, $this->table_fields);
+		if ($pos !== false) unset($this->table_fields[$pos]);
+		return $this;
+	}
+	
+	
+	
+	/**
+	 * Remove form field
+	 */
+	public function removeFormField($field_name)
+	{
+		$pos = array_search($field_name, $this->form_fields);
+		if ($pos !== false) unset($this->form_fields[$pos]);
+		return $this;
 	}
 	
 	
@@ -199,7 +279,7 @@ class StructBuilder
 	 */
 	public function update($item, $data)
 	{
-		foreach ($this->show_fields as $field_name)
+		foreach ($this->form_fields as $field_name)
 		{
 			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
 			if (!$field) continue;
@@ -216,12 +296,12 @@ class StructBuilder
 	/**
 	 * Process item
 	 */
-	public function processItem($item, $flag = false)
+	public function processItem($item)
 	{
-		$res = ($flag) ? $item : [];
+		$res = [];
 		
 		/* Get value */
-		foreach ($this->show_fields as $field_name)
+		foreach ($this->form_fields as $field_name)
 		{
 			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
 			if (!$field) continue;
@@ -234,7 +314,7 @@ class StructBuilder
 		}
 		
 		/* Process item */
-		foreach ($this->show_fields as $field_name)
+		foreach ($this->form_fields as $field_name)
 		{
 			$field = isset($this->fields[$field_name]) ? $this->fields[$field_name] : null;
 			if (!$field) continue;
@@ -243,10 +323,14 @@ class StructBuilder
 			$virtual = isset($field["virtual"]) ? $field["virtual"] : false;
 			if ($virtual) continue;
 			
-			$process_item = isset($field["process_item"]) ? $field["process_item"] : null;
-			if ($process_item != null)
+			/* Process item */
+			if (isset($field["process_item"]))
 			{
-				$res = call_user_func_array($process_item, [$this, $item, $res]);
+				$res = call_user_func_array($field["process_item"], [$this, $item, $res]);
+			}
+			else
+			{
+				$res = $this->processItemField($field, $item, $res);
 			}
 		}
 		
@@ -258,9 +342,9 @@ class StructBuilder
 	/**
 	 * Render fields
 	 */
-	public function renderForm($item = [], $action = "")
+	public function renderForm($item = [])
 	{
-		foreach ($this->show_fields as $api_name)
+		foreach ($this->form_fields as $api_name)
 		{
 			$field = isset($this->fields[$api_name]) ? $this->fields[$api_name] : null;
 			if ($field == null) continue;
@@ -284,12 +368,15 @@ class StructBuilder
 			
 			if ($value === "") $value = $default;
 			
+			/* Row style */
 			$style_row = "";
-			$php_style_res = [];
-			$php_style = isset($field["php_style"]) ? $field["php_style"] : null;
-			if ($php_style != null)
+			if (isset($field["php_style"]))
 			{
-				$php_style_res = call_user_func_array($php_style, [$this, $field, $item]);
+				$php_style_res = call_user_func_array($field["php_style"], [$this, $field, $item]);
+			}
+			else
+			{
+				$php_style_res = $this->phpFormStyleField($field, $item);
 			}
 			
 			if (isset($php_style_res["row"]))
@@ -312,29 +399,26 @@ class StructBuilder
 			}
 			
 			?>
-			<div class="web_form__row" data-name="<?= esc_attr($api_name) ?>" <?= $style_row ?>>
+			<div class="web_form_row" data-name="<?= esc_attr($api_name) ?>" <?= $style_row ?>>
 				
-				<div class="web_form__label"><?= esc_html($label) ?></div>
+				<div class="web_form_label"><?= esc_html($label) ?></div>
 				
 				<?php if ($type == "input") { ?>
 				<input type="text" class="web_form_input web_form_value web_form_input--text"
 					placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
-				<?php } ?>
-				
-				<?php if ($type == "password") { ?>
+					
+				<?php } else if ($type == "password") { ?>
 				<input type="password" class="web_form_input web_form_value web_form_input--text"
 					placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
-				<?php } ?>
 				
-				<?php if ($type == "textarea") { ?>
+				<?php } else if ($type == "textarea") { ?>
 				<textarea type="text" class="web_form_input web_form_value" style="min-height: 200px;"
 					placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
 					data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
-				<?php } ?>
 				
-				<?php if ($type == "select") { ?>
+				<?php } else if ($type == "select") { ?>
 				<select type="text" class="web_form_input web_form_value" placeholder="<?= esc_attr($placeholder) ?>"
 					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>"
 					<?= $readonly ?>>
@@ -353,7 +437,26 @@ class StructBuilder
 						<?php } ?>
 						
 				</select>
-				<?php } ?>
+				
+				<?php } else if ($type == "captcha") { ?>
+				<div class="web_form_captcha">
+					<span class="web_form_captcha_item web_form_captcha_item_img">
+						<img class="elberos_captcha_image" src="/api/captcha/create/?_=<?= time() ?>">
+					</span>
+					<span class="web_form_captcha_item web_form_captcha_item_text">
+						
+						<input type="text" class="web_form_input web_form_value web_form_input--text"
+							placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
+							name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>"
+							value="<?= esc_attr($value) ?>" />
+					</span>
+				</div>
+				
+				<?php
+				} else {
+					do_action('elberos_struct_builder_render_form_field', $this, $field, $item);
+				}
+				?>
 				
 				<div class="web_form_field_result" data-name="<?= esc_attr($api_name) ?>" data-default="&nbsp;">&nbsp;</div>
 			</div>
@@ -366,33 +469,68 @@ class StructBuilder
 	/**
 	 * Render js
 	 */
-	public function renderJS($item = [], $action = "")
+	public function renderJS($item = [])
 	{
 		?>
 		<script>
-		function change_form_<?= $this->form_name ?>()
+		function change_form_<?= $this->entity_name ?>()
 		{
-			var $form = jQuery(".web_form_<?= $this->form_name ?>");
+			var $form = jQuery(".web_form_<?= $this->entity_name ?>");
 			<?php
-			foreach ($this->show_fields as $api_name)
+			foreach ($this->form_fields as $api_name)
 			{
 				$field = isset($this->fields[$api_name]) ? $this->fields[$api_name] : null;
 				if ($field == null) continue;
 				
+				/* js change */
 				if (isset($field["js_change"]))
 				{
-					echo call_user_func_array($field["js_change"], [$this, $item]) . "\n";
+					echo call_user_func_array($field["js_change"], [$this, $field, $item]) . "\n";
+				}
+				else
+				{
+					echo $this->jsFormChange($field, $item);
 				}
 			}
 			?>
 		}
 		<?php if (!is_admin()){ echo "onJQueryLoaded(function(){"; } ?>
-			change_form_<?= $this->form_name ?>();
-			jQuery("document").on("change", ".web_form_<?= $this->form_name ?> .web_form_value", function(){
-				change_form_<?= $this->form_name ?>();
+			change_form_<?= $this->entity_name ?>();
+			jQuery("document").on("change", ".web_form_<?= $this->entity_name ?> .web_form_value", function(){
+				change_form_<?= $this->entity_name ?>();
 			});
 		<?php if (!is_admin()){ echo "});"; } ?>
 		</script>
 		<?php
+	}
+	
+	
+	
+	/**
+	 * Process item field
+	 */
+	public function processItemField($field, $item, $res)
+	{
+		return $res;
+	}
+	
+	
+	
+	/**
+	 * PHP Style
+	 */
+	public function phpFormStyleField($field, $item)
+	{
+		return [];
+	}
+	
+	
+	
+	/**
+	 * JS script
+	 */
+	public function jsFormChange($field, $item)
+	{
+		return "";
 	}
 }

@@ -1001,3 +1001,73 @@ function wpdb_query($params)
 	
 	return [$items, $count, $pages, $page];
 }
+
+/**
+ * Check captch
+ */
+function captcha_validation($value)
+{
+	$jwt_text = isset($_COOKIE['elberos_captcha']) ? $_COOKIE['elberos_captcha'] : "";
+	
+	$jwt_data = decode_jwt($jwt_text, NONCE_KEY);
+	if ($jwt_data == null)
+	{
+		return false;
+	}
+	
+	$cookie_text1 = isset($jwt_data["d"]) ? $jwt_data["d"] : "";
+	$cookie_text2 = md5($value . NONCE_SALT);
+	
+	$jwt_time = (int)(isset($jwt_data["t"]) ? $jwt_data["t"] : 0);
+	if ($jwt_time + 60*60 < time())
+	{
+		return false;
+	}
+	
+	return $cookie_text1 == $cookie_text2;
+}
+
+
+/**
+ * Create JWT
+ */
+function create_jwt($data, $jwt_key)
+{
+	$data_json = json_encode($data);
+	$data_b64 = \Elberos\base64_encode_url($data_json);
+	$head_b64 = \Elberos\base64_encode_url(json_encode(['alg'=>'HS512','typ'=>'JWT']));
+	
+	/* Sign */
+	$text = $head_b64 . '.' . $data_b64;
+	$out = hash_hmac('SHA512', $text, $jwt_key, true);
+	$out = \Elberos\base64_encode_url($out);
+	
+	return $text . '.' . $out;
+}
+
+
+
+/**
+ * Decode JWT
+ */
+function decode_jwt($text, $jwt_key)
+{
+	$arr = explode(".", $text);
+	if (count($arr) != 3) return null;
+	
+	$head_b64 = $arr[0];
+	$data_b64 = $arr[1];
+	$sign_b64 = $arr[2];
+	$data_json = @\Elberos\base64_decode_url($data_b64);
+	$data = @json_decode($data_json, true);
+	if ($data == null) return null;
+	
+	/* Validate sign */
+	$text = $head_b64 . '.' . $data_b64;
+	$hash = hash_hmac('SHA512', $text, $jwt_key, true);
+	$hash = \Elberos\base64_encode_url($hash);
+	$verify = hash_equals($sign_b64, $hash);
+	if (!$verify) return null;
+	
+	return $data;
+}

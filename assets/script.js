@@ -30,6 +30,20 @@ function getCookie(name)
 	);
 	return matches ? decodeURIComponent(matches[1]) : null;
 }
+function setCookie(name, value, options = {})
+{
+  options = { path: '/', ...options };
+  if (options.expires instanceof Date) options.expires = options.expires.toUTCString();
+  let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
+  for (let optionKey in options) {
+    updatedCookie += "; " + optionKey;
+    let optionValue = options[optionKey];
+    if (optionValue !== true) {
+      updatedCookie += "=" + optionValue;
+    }
+  }
+  document.cookie = updatedCookie;
+}
 function addGet(s, key, value)
 {
 	key = encodeURI(key); value = encodeURI(value);
@@ -1053,4 +1067,14 @@ $(document).on('click', '.gallery__item', function(e){
 	
 	dialog.setCurrentImage( $(this).attr('data-image-big') );
 	dialog.open();
+});
+
+function reloadAllCaptcha(){
+	var href = '/api/captcha/create/?_=' + Math.random();
+	$('img.elberos_captcha_image').each(function(){
+		$(this).attr('src', href);
+	});
+}
+$(document).on('click', 'img.elberos_captcha_image', function(){
+	reloadAllCaptcha();
 });

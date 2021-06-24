@@ -814,6 +814,18 @@ ol, ul {
 		appearance: none;
 		cursor: pointer;
 	}
+	&_captcha_item{
+		display: inline-block;
+		width: calc(50% - 5px);
+		vertical-align: middle;
+		img{
+			height: 60px;
+			cursor: pointer;
+		}
+		&_text{
+			padding-left: 10px;
+		}
+	}
 }
 
 .web_form--center{
