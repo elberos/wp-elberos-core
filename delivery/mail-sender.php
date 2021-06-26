@@ -343,6 +343,8 @@ if ( !class_exists( MailSender::class ) )
 				);
 				
 				flush();
+				
+				sleep( mt_rand(1,5) );
 			}
 			
 			// Send delivery email
@@ -402,6 +404,7 @@ if ( !class_exists( MailSender::class ) )
 				);
 				
 				flush();
+				sleep( mt_rand(1,5) );
 			}
 		}
 		

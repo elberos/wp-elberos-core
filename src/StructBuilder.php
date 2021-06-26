@@ -258,7 +258,7 @@ class StructBuilder
 			{
 				return call_user_func_array($field['column_value'], [$this, $item]);
 			}
-			if ($field['type'] == 'select')
+			if (isset($field['type']) && $field['type'] == 'select')
 			{
 				$options = isset( $field['options'] ) ? $field['options'] : [];
 				$option = \Elberos\find_item($options, "id", $value);
@@ -342,7 +342,7 @@ class StructBuilder
 	/**
 	 * Render fields
 	 */
-	public function renderForm($item = [])
+	public function renderForm($item = [], $action = "")
 	{
 		foreach ($this->form_fields as $api_name)
 		{
@@ -350,15 +350,15 @@ class StructBuilder
 			if ($field == null) continue;
 			
 			$readonly = "";
-			$show = isset($field["show"]) ? $field["show"] : true;
-			$show_add = isset($field["show_add"]) ? $field["show_add"] : true;
-			$show_edit = isset($field["show_edit"]) ? $field["show_edit"] : true;
+			$form_show = isset($field["form_show"]) ? $field["form_show"] : true;
+			$form_show_add = isset($field["form_show_add"]) ? $field["form_show_add"] : true;
+			$form_show_edit = isset($field["form_show_edit"]) ? $field["form_show_edit"] : true;
 			$label = isset($field["label"]) ? $field["label"] : "";
 			$type = isset($field["type"]) ? $field["type"] : "";
 			
-			if (!$show) continue;
-			if (!$show_add and $action == "add") continue;
-			if (!$show_edit and $action == "edit") continue;
+			if (!$form_show) continue;
+			if (!$form_show_add and $action == "add") continue;
+			if (!$form_show_edit and $action == "edit") continue;
 			
 			$value = isset($item[$api_name]) ? $item[$api_name] : "";
 			$default = isset($field["default"]) ? $field["default"] : "";

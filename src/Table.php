@@ -49,11 +49,21 @@ class Table extends \Elberos_WP_List_Table
 	
 	
 	/**
+	 * Create struct
+	 */
+	static function createStruct()
+	{
+		return null;
+	}
+	
+	
+	
+	/**
 	 * Init struct
 	 */
 	function initStruct()
 	{
-		$this->struct = $this->createStruct();
+		$this->struct = static::createStruct();
 		do_action("elberos_wp_list_table_struct", [$this]);
 	}
 	
