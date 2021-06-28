@@ -960,9 +960,10 @@ function wpdb_query($params)
 	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
 	$per_page = isset($params["per_page"]) ? $params["per_page"] : 10;
 	$order_by = isset($params["order_by"]) ? $params["order_by"] : "id desc";
+	$log = isset($params["log"]) ? $params["log"] : false;
 	
+	$page = 0;
 	if (isset($params["page"])) $page = $params["page"];
-	else $page = isset($_GET['page']) ? max(0, intval($_GET['page']) - 1) : 0;
 	
 	$sql_arr = [];
 	$args = isset($params["args"]) ? $params["args"] : [];
@@ -993,6 +994,11 @@ function wpdb_query($params)
 		${order_by} ${limit}",
 		$sql_arr
 	);
+	
+	if ($log)
+	{
+		echo $sql . "\n";
+	}
 	
 	$items = $wpdb->get_results($sql, ARRAY_A);
 	$count = $wpdb->get_var('SELECT FOUND_ROWS()');
