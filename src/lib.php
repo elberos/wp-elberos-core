@@ -69,6 +69,19 @@ function is_get_checked($key, $value, $default = false)
 
 
 /**
+ * Is get selected
+ */
+function is_get_selected($key, $value, $default = false)
+{
+	$get_value = isset($_GET[$key]) ? $_GET[$key] : "";
+	if ($get_value == $value) return "selected='selected'";
+	if ($get_value == "" and $default) return "selected='selected'";
+	return "";
+}
+
+
+
+/**
  * Remove last slash
  */
 function remove_last_slash($path)
@@ -938,7 +951,10 @@ function wpdb_prepare($sql, $args)
 	global $wpdb;
 	$sql_arr = [];
 	$sql = wpdb_query_args($sql, $args, $sql_arr);
-	$sql = $wpdb->prepare($sql, $sql_arr);
+	if (count($sql_arr) > 0)
+	{
+		$sql = $wpdb->prepare($sql, $sql_arr);
+	}
 	
 	/* Table prefix */
 	$sql = str_replace("\${prefix}", $wpdb->prefix, $sql);
@@ -958,6 +974,7 @@ function wpdb_query($params)
 	
 	$table_name = isset($params["table_name"]) ? $params["table_name"] : "";
 	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
+	$join = isset($params["join"]) ? $params["join"] : "";
 	$per_page = isset($params["per_page"]) ? $params["per_page"] : 10;
 	$order_by = isset($params["order_by"]) ? $params["order_by"] : "id desc";
 	$log = isset($params["log"]) ? $params["log"] : false;
@@ -990,7 +1007,7 @@ function wpdb_query($params)
 	
 	$sql = $wpdb->prepare
 	(
-		"SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${where}
+		"SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${join} ${where}
 		${order_by} ${limit}",
 		$sql_arr
 	);
@@ -1007,6 +1024,151 @@ function wpdb_query($params)
 	
 	return [$items, $count, $pages, $page];
 }
+
+
+
+/**
+ * wpdb Get by id
+ */
+function wpdb_get_by_id($table_name, $id)
+{
+	global $wpdb;
+	$sql = \Elberos\wpdb_prepare
+	(
+		"select * from $table_name " .
+		"where id = :id limit 1",
+		[
+			'id' => $id,
+		]
+	);
+	$item = $wpdb->get_row($sql, ARRAY_A);
+	return $item;
+}
+
+
+
+/**
+ * Insert
+ **/
+function wpdb_insert($table_name, $insert)
+{
+}
+
+
+
+/**
+ * Update
+ **/
+function wpdb_update($table_name, $update, $where)
+{
+	global $wpdb;
+	
+	$args = [];
+	
+	/* Build update */
+	$update_arr = [];
+	$update_keys = array_keys($update);
+	foreach ($update_keys as $key)
+	{
+		$update_arr[] = "`" . $key . "` = :_update_" . $key;
+		$args["_update_" . $key] = $update[$key];
+	}
+	$update_str = implode(", ", $update_arr);
+	
+	/* Build where */
+	$where_arr = [];
+	$where_keys = array_keys($where);
+	foreach ($where_keys as $key)
+	{
+		$where_arr[] = "`" . $key . "` = :_where_" . $key;
+		$args["_where_" . $key] = $where[$key];
+	}
+	$where_str = implode(" and ", $where_arr);
+	
+	$sql = \Elberos\wpdb_prepare
+	(
+		"update $table_name set $update_str where $where_str",
+		$args
+	);
+	$wpdb->query($sql);
+}
+
+
+
+/**
+ * Insert or update
+ **/
+function wpdb_insert_or_update($table_name, $search, $insert, $update = null)
+{
+	global $wpdb;
+	
+	if ($update == null) $update = $insert;
+	
+	$keys = array_keys($search);
+	$where = array_map
+	(
+		function ($item)
+		{
+			return "`" . $item . "` = :" . $item;
+		},
+		$keys
+	);
+	$where_str = implode(" and ", $where);
+	
+	/* Find item */
+	$sql = \Elberos\wpdb_prepare
+	(
+		"select * from $table_name where $where_str limit 1",
+		$search
+	);
+	$item = $wpdb->get_row($sql, ARRAY_A);
+	$item_id = 0;
+	
+	/* Insert item */
+	if (!$item)
+	{
+		$wpdb->insert($table_name, $insert);
+		$item_id = $wpdb->insert_id;
+	}
+	
+	/* Update item */
+	else
+	{
+		$keys = array_keys($update);
+		$update_arr = array_map
+		(
+			function ($item)
+			{
+				return "`" . $item . "` = :" . $item;
+			},
+			$keys
+		);
+		$update_str = implode(", ", $update_arr);
+		$update["id"] = $item["id"];
+		
+		$sql = \Elberos\wpdb_prepare
+		(
+			"update $table_name set $update_str where id = :id",
+			$update
+		);
+		$wpdb->query($sql);
+		$item_id = $item["id"];
+	}
+	
+	/* Find item by id */
+	$sql = \Elberos\wpdb_prepare
+	(
+		"select * from $table_name where id=:id limit 1",
+		[
+			"id" => $item_id,
+		]
+	);
+	$item = $wpdb->get_row($sql, ARRAY_A);
+	
+	return $item;
+}
+
+
 
 /**
  * Check captch

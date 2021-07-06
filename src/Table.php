@@ -193,6 +193,25 @@ class Table extends \Elberos_WP_List_Table
 	
 	
 	/**
+	 * Get form id
+	 */
+	function get_form_id($default = 0)
+	{
+		return (isset($_GET['id']) ? $_GET['id'] : $default);
+	}
+	
+	
+	/**
+	 * Get bulk id
+	 */
+	function get_bulk_id($default = [])
+	{
+		return (isset($_POST['id']) ? $_POST['id'] : $default);
+	}
+	
+	
+	
+	/**
 	 * Process bulk action
 	 */
 	function process_bulk_action()
@@ -204,31 +223,37 @@ class Table extends \Elberos_WP_List_Table
 		
 		if ($action == 'trash')
 		{
-			$ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
+			$ids = $this->get_bulk_id();
 			if (is_array($ids)) $ids = implode(',', $ids);
 
-			if (!empty($ids)) {
-				$wpdb->query("update $table_name set is_deleted=1 WHERE id IN($ids)");
+			if (!empty($ids))
+			{
+				$sql = "update $table_name set is_deleted=1 WHERE id IN($ids)";
+				$wpdb->query($sql);
 			}
 		}
 		
 		if ($action == 'notrash')
 		{
-			$ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
+			$ids = $this->get_bulk_id();
 			if (is_array($ids)) $ids = implode(',', $ids);
 
-			if (!empty($ids)) {
-				$wpdb->query("update $table_name set is_deleted=0 WHERE id IN($ids)");
+			if (!empty($ids))
+			{
+				$sql = "update $table_name set is_deleted=0 WHERE id IN($ids)";
+				$wpdb->query($sql);
 			}
 		}
 		
 		if ($action == 'delete')
 		{
-			$ids = isset($_REQUEST['id']) ? $_REQUEST['id'] : array();
+			$ids = $this->get_bulk_id();
 			if (is_array($ids)) $ids = implode(',', $ids);
 
-			if (!empty($ids)) {
-				$wpdb->query("DELETE FROM $table_name WHERE id IN($ids)");
+			if (!empty($ids))
+			{
+				$sql = "DELETE FROM $table_name WHERE id IN($ids)";
+				$wpdb->query($sql);
 			}
 		}
 		
@@ -286,8 +311,7 @@ class Table extends \Elberos_WP_List_Table
 	{
 		global $wpdb;
 		
-		$table_name = $this->get_table_name();
-		$this->form_item_id = (int) (isset($_REQUEST['id']) ? $_REQUEST['id'] : 0);
+		$this->form_item_id = $this->get_form_id();
 		$this->form_item = null;
 		
 		/* Create */
@@ -303,10 +327,22 @@ class Table extends \Elberos_WP_List_Table
 		{
 			if ($this->form_item_id > 0)
 			{
-				$sql = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %d limit 1", $this->form_item_id);
-				$this->form_item = $wpdb->get_row($sql, ARRAY_A);
+				$this->form_item = $this->do_get_item_query($this->form_item_id);
 			}
 		}
+	}
+	
+	
+	
+	/**
+	 * Get item query
+	 */
+	function do_get_item_query($item_id)
+	{
+		global $wpdb;
+		$table_name = $this->get_table_name();
+		$sql = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %d limit 1", $item_id);
+		return $wpdb->get_row($sql, ARRAY_A);
 	}
 	
 	
@@ -351,7 +387,7 @@ class Table extends \Elberos_WP_List_Table
 		}
 		
 		/* Process item */
-		$process_item = $this->struct->update($old_item, $_POST);
+		$process_item = $this->struct->update($old_item, stripslashes_deep($_POST));
 		$process_item = $this->struct->processItem($process_item);
 		$process_item = $this->process_item($process_item, $old_item);
 		
@@ -414,13 +450,12 @@ class Table extends \Elberos_WP_List_Table
 		/* Get new value */
 		if ($item_id > 0)
 		{
-			$sql = $wpdb->prepare("SELECT * FROM $table_name WHERE id = %d limit 1", $item_id);
-			$this->form_item = $wpdb->get_row($sql, ARRAY_A);
+			$this->form_item = $this->do_get_item_query($item_id);
 		}
 		
 		/* After */
-		$this->process_item_after($process_item, $old_item, 'create', $success);
-		do_action("elberos_wp_list_table_process_item_after", [$this, $process_item, $old_item, $action, $success]);
+		$this->process_item_after($this->form_item, $old_item, 'create', $success);
+		do_action("elberos_wp_list_table_process_item_after", [$this, $this->form_item, $old_item, $action, $success]);
 	}
 	
 	
@@ -480,6 +515,7 @@ class Table extends \Elberos_WP_List_Table
 		?>
 		<style>
 		.add_or_edit_form{
+			width: 60%;
 			margin-top: 20px;
 		}
 		.add_or_edit_form .web_form__label{
@@ -489,7 +525,42 @@ class Table extends \Elberos_WP_List_Table
 			width: 100%;
 			max-width: 100%;
 		}
+		.add_or_edit_form_buttons{
+			width: 60%;
+			text-align: center;
+		}
+		.tablenav .table_filter select, .tablenav .table_filter input{
+			vertical-align: middle;
+			max-width: 150px;
+		}
 		</style>
+		<?php
+	}
+	
+	
+	
+	/**
+	 * Returns table title
+	 */
+	function get_table_title()
+	{
+		return get_admin_page_title();
+	}
+	
+	
+	
+	/**
+	 * Display table add button
+	 */
+	function display_table_add_button()
+	{
+		$page_name = $this->get_page_name();
+		?>
+		<a href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=' . $page_name . '&action=add');?>"
+			class="page-title-action"
+		>
+			<?php _e('Add new', 'elberos-core')?>
+		</a>
 		<?php
 	}
 	
@@ -511,13 +582,9 @@ class Table extends \Elberos_WP_List_Table
 		?>
 		<div class="wrap">
 			<h1 class="wp-heading-inline">
-				<?php echo get_admin_page_title() ?>
+				<?= $this->get_table_title() ?>
 			</h1>
-			<a href="<?php echo get_admin_url(get_current_blog_id(), 'admin.php?page=' . $page_name . '&action=add');?>"
-				class="page-title-action"
-			>
-				<?php _e('Add new', 'elberos-core')?>
-			</a>
+			<?php $this->display_table_add_button() ?>
 			<hr class="wp-header-end">
 			
 			<div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
@@ -584,11 +651,8 @@ class Table extends \Elberos_WP_List_Table
 			
 			<form id="elberos_form" method="POST">
 				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
-				<input type="hidden" name="id" value="<?php echo $item_id ?>"/>
-				<div class="add_or_edit_form" style="width: 60%">
-					<? $this->display_form($item) ?>
-					<? $this->display_form_buttons($item) ?>
-				</div>
+				<?php $this->display_form_content() ?>
+				<?php $this->display_form_buttons() ?>
 			</form>
 		</div>
 		
@@ -598,12 +662,26 @@ class Table extends \Elberos_WP_List_Table
 	
 	
 	/**
+	 * Display form content
+	 */
+	function display_form_content()
+	{
+		?>
+		<div class="add_or_edit_form">
+			<?php $this->display_form() ?>
+		</div>
+		<?php
+	}
+	
+	
+	
+	/**
 	 * Display form
 	 */
-	function display_form($item)
+	function display_form()
 	{
-		echo $this->struct->renderForm($item, $item['id'] > 0 ? "edit" : "add");
-		echo $this->struct->renderJS($item, $item['id'] > 0 ? "edit" : "add");
+		echo $this->struct->renderForm($this->form_item, $this->form_item['id'] > 0 ? "edit" : "add");
+		echo $this->struct->renderJS($this->form_item, $this->form_item['id'] > 0 ? "edit" : "add");
 	}
 	
 	
@@ -611,12 +689,12 @@ class Table extends \Elberos_WP_List_Table
 	/**
 	 * Display form buttons
 	 */
-	function display_form_buttons($item)
+	function display_form_buttons()
 	{
 		?>
-		<center>
+		<div class="add_or_edit_form_buttons">
 			<input type="submit" class="button-primary" value="<?= esc_attr('Сохранить', 'elberos-core')?>" >
-		</center>
+		</div>
 		<?php
 	}
 	

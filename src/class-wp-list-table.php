@@ -448,7 +448,15 @@ class Elberos_WP_List_Table {
 	protected function get_bulk_actions() {
 		return array();
 	}
-
+	
+	/**
+	 * Get bulk action name
+	 */
+	function get_bulk_action_name()
+	{
+		return "action";
+	}
+	
 	/**
 	 * Displays the bulk actions dropdown.
 	 *
@@ -482,9 +490,11 @@ class Elberos_WP_List_Table {
 		if ( empty( $this->_actions ) ) {
 			return;
 		}
-
+		
+		$bulk_action_name = $this->get_bulk_action_name();
+		
 		echo '<label for="bulk-action-selector-' . esc_attr( $which ) . '" class="screen-reader-text">' . __( 'Select bulk action' ) . '</label>';
-		echo '<select name="action' . $two . '" id="bulk-action-selector-' . esc_attr( $which ) . "\">\n";
+		echo '<select name="' . $bulk_action_name . '" id="bulk-action-selector-' . esc_attr( $which ) . "\">\n";
 		echo '<option value="-1">' . __( 'Bulk actions' ) . "</option>\n";
 
 		foreach ( $this->_actions as $key => $value ) {
