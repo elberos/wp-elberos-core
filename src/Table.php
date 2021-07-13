@@ -160,7 +160,7 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function column_default($item, $column_name)
 	{
-		return $this->struct->getColumnValue($item, $column_name);
+		return esc_html($this->struct->getColumnValue($item, $column_name));
 	}
 	
 	
@@ -197,7 +197,7 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function get_form_id($default = 0)
 	{
-		return (isset($_GET['id']) ? $_GET['id'] : $default);
+		return (isset($_REQUEST['id']) ? $_REQUEST['id'] : $default);
 	}
 	
 	
@@ -206,7 +206,7 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function get_bulk_id($default = [])
 	{
-		return (isset($_POST['id']) ? $_POST['id'] : $default);
+		return (isset($_REQUEST['id']) ? $_REQUEST['id'] : $default);
 	}
 	
 	
@@ -666,6 +666,10 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function display_form_content()
 	{
+		if ($this->form_item == null)
+		{
+			return;
+		}
 		?>
 		<div class="add_or_edit_form">
 			<?php $this->display_form() ?>
@@ -680,6 +684,10 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function display_form()
 	{
+		if ($this->form_item == null)
+		{
+			return;
+		}
 		echo $this->struct->renderForm($this->form_item, $this->form_item['id'] > 0 ? "edit" : "add");
 		echo $this->struct->renderJS($this->form_item, $this->form_item['id'] > 0 ? "edit" : "add");
 	}
@@ -691,6 +699,10 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function display_form_buttons()
 	{
+		if ($this->form_item == null)
+		{
+			return;
+		}
 		?>
 		<div class="add_or_edit_form_buttons">
 			<input type="submit" class="button-primary" value="<?= esc_attr('Сохранить', 'elberos-core')?>" >
