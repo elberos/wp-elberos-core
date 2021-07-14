@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Elberos Core
  * Description: Core plugin for WordPress
- * Version:     0.2.0
+ * Version:     0.2.1
  * Author:      Elberos team <support@elberos.org>
  * License:     Apache License 2.0
  *
