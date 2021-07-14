@@ -82,6 +82,30 @@ function is_get_selected($key, $value, $default = false)
 
 
 /**
+ * Is value cheched
+ */
+function is_value_checked($key, $value, $default = false)
+{
+	if ($key == $value) return "checked='checked'";
+	if ($key == "" and $default) return "checked='checked'";
+	return "";
+}
+
+
+
+/**
+ * Is value selected
+ */
+function is_value_selected($key, $value, $default = false)
+{
+	if ($key == $value) return "selected='selected'";
+	if ($key == "" and $default) return "selected='selected'";
+	return "";
+}
+
+
+
+/**
  * Remove last slash
  */
 function remove_last_slash($path)
@@ -1121,11 +1145,12 @@ function wpdb_insert_or_update($table_name, $search, $insert, $update = null)
 		"select * from $table_name where $where_str limit 1",
 		$search
 	);
+	
 	$item = $wpdb->get_row($sql, ARRAY_A);
 	$item_id = 0;
 	
 	/* Insert item */
-	if (!$item)
+	if ($item == null)
 	{
 		$wpdb->insert($table_name, $insert);
 		$item_id = $wpdb->insert_id;
@@ -1134,6 +1159,16 @@ function wpdb_insert_or_update($table_name, $search, $insert, $update = null)
 	/* Update item */
 	else
 	{
+		$wpdb->update
+		(
+			$table_name,
+			$update,
+			[
+				"id" => $item["id"],
+			]
+		);
+		$item_id = $item["id"];
+		/*
 		$keys = array_keys($update);
 		$update_arr = array_map
 		(
@@ -1152,7 +1187,7 @@ function wpdb_insert_or_update($table_name, $search, $insert, $update = null)
 			$update
 		);
 		$wpdb->query($sql);
-		$item_id = $item["id"];
+		$item_id = $item["id"];*/
 	}
 	
 	/* Find item by id */

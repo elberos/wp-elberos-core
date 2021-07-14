@@ -349,24 +349,14 @@ class StructBuilder
 			$field = isset($this->fields[$api_name]) ? $this->fields[$api_name] : null;
 			if ($field == null) continue;
 			
-			$readonly = "";
 			$form_show = isset($field["form_show"]) ? $field["form_show"] : true;
 			$form_show_add = isset($field["form_show_add"]) ? $field["form_show_add"] : true;
 			$form_show_edit = isset($field["form_show_edit"]) ? $field["form_show_edit"] : true;
 			$label = isset($field["label"]) ? $field["label"] : "";
-			$type = isset($field["type"]) ? $field["type"] : "";
 			
 			if (!$form_show) continue;
 			if (!$form_show_add and $action == "add") continue;
 			if (!$form_show_edit and $action == "edit") continue;
-			
-			$value = isset($item[$api_name]) ? $item[$api_name] : "";
-			$default = isset($field["default"]) ? $field["default"] : "";
-			$options = isset($field["options"]) ? $field["options"] : [];
-			$placeholder = isset($field["placeholder"]) ? $field["placeholder"] : "";
-			$show_select_value = isset($field["show_select_value"]) ? $field["show_select_value"] : true;
-			
-			if ($value === "") $value = $default;
 			
 			/* Row style */
 			$style_row = "";
@@ -393,74 +383,101 @@ class StructBuilder
 				$style_row = "style='" . implode(";", $row) . "'";
 			}
 			
-			if (isset($field["readonly"]) and $field["readonly"])
-			{
-				$readonly = "readonly='readonly'";
-			}
-			
 			?>
 			<div class="web_form_row" data-name="<?= esc_attr($api_name) ?>" <?= $style_row ?>>
 				
 				<div class="web_form_label"><?= esc_html($label) ?></div>
 				
-				<?php if ($type == "input") { ?>
-				<input type="text" class="web_form_input web_form_value web_form_input--text"
-					placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
-					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
-					
-				<?php } else if ($type == "password") { ?>
-				<input type="password" class="web_form_input web_form_value web_form_input--text"
-					placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
-					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
-				
-				<?php } else if ($type == "textarea") { ?>
-				<textarea type="text" class="web_form_input web_form_value" style="min-height: 200px;"
-					placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
-					data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
-				
-				<?php } else if ($type == "select") { ?>
-				<select type="text" class="web_form_input web_form_value" placeholder="<?= esc_attr($placeholder) ?>"
-					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>"
-					<?= $readonly ?>>
-						
-						<?php if ($show_select_value){ ?>
-						<option>Выберите значение</option>
-						<?php } ?>
-						
-						<?php foreach ($options as $option){
-							$selected = "";
-							if ($value == $option['id']) $selected = "selected";
-						?>
-						<option <?= $selected ?> value="<?= esc_attr($option['id']) ?>">
-							<?= esc_html($option['value']) ?>
-						</option>
-						<?php } ?>
-						
-				</select>
-				
-				<?php } else if ($type == "captcha") { ?>
-				<div class="web_form_captcha">
-					<span class="web_form_captcha_item web_form_captcha_item_img">
-						<img class="elberos_captcha_image" src="/api/captcha/create/?_=<?= time() ?>">
-					</span>
-					<span class="web_form_captcha_item web_form_captcha_item_text">
-						
-						<input type="text" class="web_form_input web_form_value web_form_input--text"
-							placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
-							name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>"
-							value="<?= esc_attr($value) ?>" />
-					</span>
-				</div>
-				
-				<?php
-				} else {
-					do_action('elberos_struct_builder_render_form_field', $this, $field, $item);
-				}
-				?>
+				<?php $this->renderFormField($field, $item); ?>
 				
 				<div class="web_form_field_result" data-name="<?= esc_attr($api_name) ?>" data-default="&nbsp;">&nbsp;</div>
 			</div>
 			<?php
+		}
+	}
+	
+	
+	
+	/**
+	 * Render js
+	 */
+	public function renderFormField($field, $item)
+	{
+		$readonly = "";
+		$api_name = $field["api_name"];
+		$type = isset($field["type"]) ? $field["type"] : "";
+		$value = isset($item[$api_name]) ? $item[$api_name] : "";
+		$default = isset($field["default"]) ? $field["default"] : "";
+		$options = isset($field["options"]) ? $field["options"] : [];
+		$placeholder = isset($field["placeholder"]) ? $field["placeholder"] : "";
+		$show_select_value = isset($field["show_select_value"]) ? $field["show_select_value"] : true;
+		
+		if ($value === "") $value = $default;
+		
+		if (isset($field["readonly"]) and $field["readonly"])
+		{
+			$readonly = "readonly='readonly'";
+		}
+		
+		$form_render = isset($field["form_render"]) ? $field["form_render"] : null;
+		
+		if ($form_render) { call_user_func_array($form_render, [$this, $field, $item]);
+		?>
+		
+		<?php } else if ($type == "input") { ?>
+		<input type="text" class="web_form_input web_form_value web_form_input--text"
+			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
+			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
+			
+		<?php } else if ($type == "password") { ?>
+		<input type="password" class="web_form_input web_form_value web_form_input--text"
+			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
+			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
+		
+		<?php } else if ($type == "textarea") { ?>
+		<textarea type="text" class="web_form_input web_form_value" style="min-height: 200px;"
+			placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
+			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
+		
+		<?php } else if ($type == "select") { ?>
+		<select type="text" class="web_form_input web_form_value" placeholder="<?= esc_attr($placeholder) ?>"
+			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>"
+			<?= $readonly ?>>
+				
+				<?php if ($show_select_value){ ?>
+				<option>Выберите значение</option>
+				<?php } ?>
+				
+				<?php foreach ($options as $option){
+					$selected = "";
+					if ($value == $option['id']) $selected = "selected";
+				?>
+				<option <?= $selected ?> value="<?= esc_attr($option['id']) ?>">
+					<?= esc_html($option['value']) ?>
+				</option>
+				<?php } ?>
+				
+		</select>
+		
+		<?php } else if ($type == "captcha") { ?>
+		<div class="web_form_captcha">
+			<span class="web_form_captcha_item web_form_captcha_item_img">
+				<img class="elberos_captcha_image" src="/api/captcha/create/?_=<?= time() ?>">
+			</span>
+			<span class="web_form_captcha_item web_form_captcha_item_text">
+				
+				<input type="text" class="web_form_input web_form_value web_form_input--text"
+					placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
+					name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>"
+					value="<?= esc_attr($value) ?>" />
+			</span>
+		</div>
+		
+		<?php
+		}
+		else
+		{
+			do_action('elberos_struct_builder_render_form_field', $this, $field, $item);
 		}
 	}
 	
