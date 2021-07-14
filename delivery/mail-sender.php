@@ -42,6 +42,9 @@ if ( !class_exists( MailSender::class ) )
 			$gmtime_add = gmdate('Y-m-d H:i:s');
 			$gmtime_plan = isset($params['gmtime_plan']) ? $params['gmtime_plan'] : $gmtime_add;
 			
+			// If array
+			if (gettype($email_to) == 'array') $email_to = implode(", ", $email_to);
+			
 			// Add email to Queue
 			$q = $wpdb->prepare
 			(
@@ -127,6 +130,8 @@ if ( !class_exists( MailSender::class ) )
 			$headers->addTextHeader('User-Agent', 'PHP Swiftmail');
 			
 			// Add email to
+			$email_to = explode(",", $email_to);
+			$email_to = array_map( function($item){ return trim($item); }, $email_to );
 			$message->setTo($email_to);
 			
 			// Add uuid
@@ -298,24 +303,35 @@ if ( !class_exists( MailSender::class ) )
 			// Send forms email
 			foreach ($items as $item)
 			{
-				list ($title, $message, $email_to) = static::getFormsMail($item);
-				\Elberos\add_email("forms", $email_to, $title, $message);
+				if ($item["spam"] == 0)
+				{
+					list ($title, $message, $email_to) = static::getFormsMail($item);
+					\Elberos\add_email("forms", $email_to, $title, $message);
+				}
+				$sql = $wpdb->prepare
+				(
+					"UPDATE $table_name SET
+						send_email_uuid=%s,
+						send_email_code=%d,
+						send_email_error=%s
+					WHERE id = %d",
+					[ "", 1, "Ok", $item['id'] ]
+				);
+				$wpdb->query( $sql );
 			}
 			
 			// Send delivery email
 			$table_name_delivery = $wpdb->base_prefix . 'elberos_delivery';
-			$items = $wpdb->get_results
+			$sql = $wpdb->prepare
 			(
-				$wpdb->prepare
-				(
-					"SELECT t.* FROM `$table_name_delivery` as t
-					WHERE
-						status=0
-					LIMIT 5",
-					[]
-				),
-				ARRAY_A
+				"SELECT t.* FROM `$table_name_delivery` as t
+				WHERE
+					status=0
+				LIMIT 5",
+				[]
 			);
+			$items = $wpdb->get_results( $sql, ARRAY_A );
+			//var_dump( $sql );
 			
 			// Send forms email
 			foreach ($items as $item)
@@ -338,25 +354,24 @@ if ( !class_exists( MailSender::class ) )
 				if ($send_email_code == 1) $status = 1;
 				$gmtime_send = gmdate('Y-m-d H:i:s', time());
 				
-				$wpdb->query
+				$sql = $wpdb->prepare
 				(
-					$wpdb->prepare
-					(
-						"UPDATE `$table_name_delivery` SET
-							status=%d,
-							send_email_code=%d,
-							send_email_error=%s,
-							gmtime_send=%s
-						WHERE id = %d",
-						[
-							$status,
-							$send_email_code,
-							$send_email_error,
-							$gmtime_send,
-							$item['id'],
-						]
-					)
+					"UPDATE `$table_name_delivery` SET
+						status=%d,
+						send_email_code=%d,
+						send_email_error=%s,
+						gmtime_send=%s
+					WHERE id = %d",
+					[
+						$status,
+						$send_email_code,
+						$send_email_error,
+						$gmtime_send,
+						$item['id'],
+					]
 				);
+				//var_dump( $sql );
+				$wpdb->query( $sql );
 				
 				flush();
 				sleep( mt_rand(1,5) );
