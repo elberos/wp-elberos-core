@@ -44,8 +44,8 @@ class Data_Table extends \WP_List_Table
         global $status, $page;
 
         parent::__construct(array(
-            'singular' => 'elberos-forms-data',
-            'plural' => 'elberos-forms-data',
+            'singular' => 'elberos-forms',
+            'plural' => 'elberos-forms',
         ));
     }
 	
@@ -171,7 +171,7 @@ class Data_Table extends \WP_List_Table
 	{
 		$actions = array(
 			'show' => sprintf(
-				'<a href="?page=elberos-forms-data&action=show&id=%s">%s</a>',
+				'<a href="?page=elberos-forms&action=show&id=%s">%s</a>',
 				$item['id'], 
 				__('Show item', 'elberos-forms')
 			),

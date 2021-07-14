@@ -108,6 +108,16 @@ class Elberos_Plugin
 			'interval' => 120, // Каждые 2 минуты
 			'display'  => __( 'Once Two Minute', 'elberos-core' ),
 		);
+		$schedules['elberos_five_minute'] = array
+		(
+			'interval' => 300, // Каждые 5 минуты
+			'display'  => __( 'Once 5 Minute', 'elberos-core' ),
+		);
+		$schedules['elberos_ten_minute'] = array
+		(
+			'interval' => 600, // Каждые 10 минуты
+			'display'  => __( 'Once 10 Minute', 'elberos-core' ),
+		);
 		return $schedules;
 	}
 	
