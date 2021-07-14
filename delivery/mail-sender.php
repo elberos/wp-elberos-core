@@ -298,53 +298,8 @@ if ( !class_exists( MailSender::class ) )
 			// Send forms email
 			foreach ($items as $item)
 			{
-				$send_email_code = -1;
-				$send_email_error = "Unknown error";
-				$send_email_uuid = $item['send_email_uuid'];
-				if ($send_email_uuid == "") $send_email_uuid = wp_generate_uuid4();
 				list ($title, $message, $email_to) = static::getFormsMail($item);
-				
-				if ($item["spam"] == 0)
-				{
-					list ($send_email_code, $send_email_error) =
-						static::sendMail
-						(
-							"forms",
-							$email_to,
-							$title,
-							$message,
-							[
-								'uuid'=>$send_email_uuid
-							]
-						);
-				}
-				else
-				{
-					$send_email_code = -4;
-					$send_email_error = "Client spam";
-				}
-				
-				$wpdb->query
-				(
-					$wpdb->prepare
-					(
-						"UPDATE $table_name SET
-							send_email_uuid=%s,
-							send_email_code=%d,
-							send_email_error=%s
-						WHERE id = %d",
-						[
-							$send_email_uuid,
-							$send_email_code,
-							$send_email_error,
-							$item['id'],
-						]
-					)
-				);
-				
-				flush();
-				
-				sleep( mt_rand(1,5) );
+				\Elberos\add_email("forms", $email_to, $title, $message);
 			}
 			
 			// Send delivery email
