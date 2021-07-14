@@ -3,12 +3,12 @@
 	[
 		{
 			"name": "name",
-			"title": "Имя",
+			"title": "РРјСЏ",
 			"required": true
 		},
 		{
 			"name": "phone",
-			"title": "Телефон",
+			"title": "РўРµР»РµС„РѕРЅ",
 			"required": true
 		},
 		{
@@ -18,7 +18,7 @@
 		},
 		{
 			"name": "message",
-			"title": "Сообщение",
+			"title": "РЎРѕРѕР±С‰РµРЅРёРµ",
 			"required": true
 		}
 	]
