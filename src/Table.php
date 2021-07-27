@@ -212,6 +212,16 @@ class Table extends \Elberos_WP_List_Table
 	
 	
 	/**
+	 * Get form id name
+	 */
+	function get_form_id_name()
+	{
+		return "id";
+	}
+	
+	
+	
+	/**
 	 * Process bulk action
 	 */
 	function process_bulk_action()
@@ -688,8 +698,20 @@ class Table extends \Elberos_WP_List_Table
 		{
 			return;
 		}
+		$this->display_form_id();
 		echo $this->struct->renderForm($this->form_item, $this->form_item['id'] > 0 ? "edit" : "add");
 		echo $this->struct->renderJS($this->form_item, $this->form_item['id'] > 0 ? "edit" : "add");
+	}
+	
+	
+	
+	function display_form_id()
+	{
+		$id = $this->form_item_id;
+		$id_name = $this->get_form_id_name();
+		?>
+		<input type='hidden' name='<?= esc_attr($id_name) ?>' value='<?= $id ?>' />
+		<?php
 	}
 	
 	
