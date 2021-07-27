@@ -258,7 +258,7 @@ class StructBuilder
 			{
 				return call_user_func_array($field['column_value'], [$this, $item]);
 			}
-			if (isset($field['type']) && $field['type'] == 'select')
+			if (isset($field['type']) && ($field['type'] == 'select' || $field['type'] == 'select_input_value'))
 			{
 				$options = isset( $field['options'] ) ? $field['options'] : [];
 				$option = \Elberos\find_item($options, "id", $value);
@@ -458,6 +458,14 @@ class StructBuilder
 				<?php } ?>
 				
 		</select>
+		
+		<?php } else if ($type == "select_input_value") { ?>
+		
+		<?php $value_text = $this->getColumnValue($item, $api_name); ?>
+		
+		<input type="text" class="web_form_input web_form_value web_form_input--text"
+			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
+			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value_text) ?>" />
 		
 		<?php } else if ($type == "captcha") { ?>
 		<div class="web_form_captcha">

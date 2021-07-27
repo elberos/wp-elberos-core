@@ -61,7 +61,7 @@ function get_site_name()
 function is_get_checked($key, $value, $default = false)
 {
 	$get_value = isset($_GET[$key]) ? $_GET[$key] : "";
-	if ($get_value == $value) return "checked='checked'";
+	if ($get_value === $value) return "checked='checked'";
 	if ($get_value == "" and $default) return "checked='checked'";
 	return "";
 }
@@ -74,7 +74,7 @@ function is_get_checked($key, $value, $default = false)
 function is_get_selected($key, $value, $default = false)
 {
 	$get_value = isset($_GET[$key]) ? $_GET[$key] : "";
-	if ($get_value == $value) return "selected='selected'";
+	if ($get_value === $value) return "selected='selected'";
 	if ($get_value == "" and $default) return "selected='selected'";
 	return "";
 }
@@ -86,7 +86,7 @@ function is_get_selected($key, $value, $default = false)
  */
 function is_value_checked($key, $value, $default = false)
 {
-	if ($key == $value) return "checked='checked'";
+	if ($key === $value) return "checked='checked'";
 	if ($key == "" and $default) return "checked='checked'";
 	return "";
 }
@@ -98,7 +98,7 @@ function is_value_checked($key, $value, $default = false)
  */
 function is_value_selected($key, $value, $default = false)
 {
-	if ($key == $value) return "selected='selected'";
+	if ($key === $value) return "selected='selected'";
 	if ($key == "" and $default) return "selected='selected'";
 	return "";
 }
