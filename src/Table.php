@@ -197,8 +197,10 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function get_form_id($default = 0)
 	{
-		return (isset($_REQUEST['id']) ? $_REQUEST['id'] : $default);
+		$id_name = $this->get_form_id_name();
+		return (isset($_REQUEST[ $id_name ]) ? $_REQUEST[ $id_name ] : $default);
 	}
+	
 	
 	
 	/**
@@ -206,7 +208,8 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function get_bulk_id($default = [])
 	{
-		return (isset($_REQUEST['id']) ? $_REQUEST['id'] : $default);
+		$id_name = $this->get_form_id_name();
+		return (isset($_REQUEST[ $id_name ]) ? $_REQUEST[ $id_name ] : $default);
 	}
 	
 	

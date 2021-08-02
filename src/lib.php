@@ -135,6 +135,19 @@ function mb_ucfirst($string, $encoding='utf-8')
 
 
 /**
+ * Trim UTF-8 string
+ */
+function mb_trim($name)
+{
+	if ($name == null) return "";
+	$name = preg_replace('/^[\x00-\x1F\x7F\s]+/u', '', $name);
+	$name = preg_replace('/[\x00-\x1F\x7F\s]+$/u', '', $name); 
+	return $name;
+}
+
+
+
+/**
  * Returns information about a file path.
  * From http://php.net/manual/en/function.pathinfo.php#107461
  *
