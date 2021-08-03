@@ -66,6 +66,12 @@ class Elberos_Plugin
 			0
 		);
 		
+		/* Disable Rank Math Notice */
+		if ( get_option( 'rank_math_review_notice_added' ) === false )
+		{
+			update_option( 'rank_math_review_notice_added', 1);
+		}
+		
 		// Add Cron
 		add_filter( 'cron_schedules', 'Elberos_Plugin::cron_schedules' );
 		if ( !wp_next_scheduled( 'elberos_cron_send_mail' ) )

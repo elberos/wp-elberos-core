@@ -445,7 +445,7 @@ class StructBuilder
 			<?= $readonly ?>>
 				
 				<?php if ($show_select_value){ ?>
-				<option>Выберите значение</option>
+				<option value="">Выберите значение</option>
 				<?php } ?>
 				
 				<?php foreach ($options as $option){
