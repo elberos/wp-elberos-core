@@ -257,7 +257,8 @@ class Site
 		$this->wp_query = $wp_query;
 		$this->site_url = get_site_url();
 		$this->site_name = $this->get_site_name();
-		$this->theme_link = get_template_directory_uri();
+		$this->theme_link = parse_url( get_template_directory_uri(), PHP_URL_PATH );
+		//$this->theme_link = get_template_directory_uri();
 		$this->f_inc = $this->get_f_inc();
 		$this->search_text = isset($_GET['s']) ? $_GET['s'] : "";
 		$post = get_queried_object();
