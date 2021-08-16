@@ -47,22 +47,27 @@ function setCookie(name, value, options = {})
 function addGet(s, key, value)
 {
 	key = encodeURI(key); value = encodeURI(value);
-	var kvp = s.substr(1).split('&');
-	kvp = kvp.filter(function (s){return s!="";});
-	var i=kvp.length-1; var x;
+	var arr = s.split("?");
+	var s0 = arr[0] || "";
+	var s1 = arr[1] || "";
+	var arr2 = s1.split('&');
+	arr2 = arr2.filter(function (s){return s!="";});
+	var i=arr2.length-1;
 	while (i>=0)
 	{
-		x = kvp[i].split('=');
+		var x = arr2[i].split('=');
 		if (x[0]==key)
 		{
 			x[1] = value;
-			kvp[i] = x.join('=');
+			arr2[i] = x.join('=');
 			break;
 		}
 		i--;
 	}
-	if (i<0) { kvp[kvp.length] = [key, value].join('='); }
-	return kvp.join('&'); 
+	if (i<0) { arr2.push( [key, value].join('=') ); }
+	var s2 = arr2.join('&');
+	if (s2 == "") return s0;
+	return s0 + "?" + s2;
 }
 function formatMoney(num)
 {
