@@ -260,11 +260,15 @@ function index($arr, $index, $value, $default = null)
  */
 function find_key($arr, $field_name, $value)
 {
-	foreach ($arr as $key => $row){
-		if (!isset($row[$field_name]))
-			continue;
-		if ($row[$field_name] == $value)
-			return $key;
+	if (gettype($arr) == 'array')
+	{
+		foreach ($arr as $key => $row)
+		{
+			if (!isset($row[$field_name]))
+				continue;
+			if ($row[$field_name] == $value)
+				return $key;
+		}
 	}
 	return -1;
 }
@@ -281,11 +285,14 @@ function find_key($arr, $field_name, $value)
  */
 function find_item($arr, $field_name, $value)
 {
-	foreach ($arr as $row){
-		if (!isset($row[$field_name]))
-			continue;
-		if ($row[$field_name] == $value)
-			return $row;
+	if (gettype($arr) == 'array')
+	{
+		foreach ($arr as $row){
+			if (!isset($row[$field_name]))
+				continue;
+			if ($row[$field_name] == $value)
+				return $row;
+		}
 	}
 	return null;
 }
