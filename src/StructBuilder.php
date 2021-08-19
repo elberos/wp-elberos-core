@@ -269,7 +269,7 @@ class StructBuilder
 			}
 		}
 		
-		return esc_html( $value );
+		return $value;
 	}
 	
 	

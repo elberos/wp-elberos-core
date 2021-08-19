@@ -160,7 +160,9 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function column_default($item, $column_name)
 	{
-		return esc_html($this->struct->getColumnValue($item, $column_name));
+		$value = $this->struct->getColumnValue($item, $column_name);
+		if ($value instanceof RawString) return $value;
+		return esc_html( $value );
 	}
 	
 	
