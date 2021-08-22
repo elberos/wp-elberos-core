@@ -1283,6 +1283,16 @@ class Site
 	
 	
 	/**
+	 * Add get parametr
+	 */
+	function url_get_add($key, $value = "")
+	{
+		$url = $_SERVER["REQUEST_URI"];
+		return \Elberos\url_get_add($url, $key, $value);
+	}
+	
+	
+	/**
 	 * Index of
 	 */
 	function indexOf($text, $s)

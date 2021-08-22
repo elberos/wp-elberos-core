@@ -30,6 +30,31 @@ function url_get($key, $value = "")
 }
 
 
+/**
+ * Add get parametr
+ */
+function url_get_add($url, $key, $value = "")
+{
+	$url_parts = parse_url($url);
+	$get_args = [];
+	
+	if (isset($url_parts['query']))
+	{
+		parse_str($url_parts['query'], $get_args);
+	}
+	
+	$get_args[$key] = $value;
+	$url_parts['query'] = http_build_query($get_args);
+	
+	$new_url = "";
+	if (isset($url_parts["scheme"])) $new_url .= $url_parts["scheme"] . "://";
+	if (isset($url_parts["host"])) $new_url .= $url_parts["host"];
+	if (isset($url_parts["path"])) $new_url .= $url_parts["path"];
+	if (isset($url_parts["query"])) $new_url .= "?" . $url_parts["query"];
+	
+	return $new_url;
+}
+
 
 /**
  * Returns site url
@@ -1016,6 +1041,7 @@ function wpdb_query($params)
 {
 	global $wpdb;
 	
+	$sql_arr = [];
 	$table_name = isset($params["table_name"]) ? $params["table_name"] : "";
 	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
 	$join = isset($params["join"]) ? $params["join"] : "";
@@ -1026,7 +1052,6 @@ function wpdb_query($params)
 	$page = 0;
 	if (isset($params["page"])) $page = $params["page"];
 	
-	$sql_arr = [];
 	$args = isset($params["args"]) ? $params["args"] : [];
 	$where = isset($params["where"]) ? $params["where"] : "";
 	if ($where != "") $where = "where " . $where;
@@ -1034,27 +1059,23 @@ function wpdb_query($params)
 	/* Table prefix */
 	$table_name = str_replace("\${prefix}", $wpdb->prefix, $table_name);
 	$table_name = str_replace("\${base_prefix}", $wpdb->base_prefix, $table_name);
-	
-	/* where */
-	$where = wpdb_query_args($where, $args, $sql_arr);
-	
+		
 	/* Order by */
 	if ($order_by) $order_by = "ORDER BY " . $order_by;
+	
+	$sql = "SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
+	$sql = wpdb_query_args($sql, $args, $sql_arr);
 	
 	$limit = "";
 	if ($per_page > 0)
 	{
 		$sql_arr[] = $per_page;
 		$sql_arr[] = $page * $per_page;
-		$limit = "LIMIT %d OFFSET %d";
+		$sql .= " LIMIT %d OFFSET %d";
 	}
 	
-	$sql = $wpdb->prepare
-	(
-		"SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${join} ${where}
-		${order_by} ${limit}",
-		$sql_arr
-	);
+	/* Query */
+	$sql = $wpdb->prepare($sql, $sql_arr);
 	
 	if ($log)
 	{
