@@ -277,6 +277,10 @@ function ElberosFormGetData ( $form )
 	for (var i=0; i<arr.length; i++)
 	{
 		var $item = $(arr[i]);
+		var name = $item.attr('data-name');
+		data[name] = ElberosFormGetFieldValue(arr[i]);
+		/*
+		var $item = $(arr[i]);
 		var item = $item.get(0);
 		var name = $item.attr('data-name');
 		var type = $item.attr('type');
@@ -290,11 +294,64 @@ function ElberosFormGetData ( $form )
 		else
 		{
 			data[name] = $item.val();
-		}
+		}*/
 	}
 	return data;
 }
 
+
+/**
+ * Get forms data
+ */
+function ElberosFormGetFieldValue (elem)
+{
+	var $elem = $(elem);
+	var type = $elem.attr('type');
+	var tag = $elem.prop("tagName").toLowerCase();
+	
+	if (typeof elem.controller != "undefined" && elem.controller != null)
+	{
+		return elem.controller.getData();
+	}
+	else if ($elem.hasClass('ckeditor_type'))
+	{
+		var instance = CKEDITOR.instances[elem.id];
+		if (typeof instance != 'undefined'){
+			var value = instance.getData();
+			return value;
+		}
+	}
+	else if ($elem.hasClass('multiselect'))
+	{
+		var arr = $elem.select2('data');
+		var res = [];
+		for (var i in arr){
+			res.push(arr[i].id);
+		}
+		return res;
+	}
+	else if (tag == 'input' && type == 'checkbox')
+	{
+		if ($elem.prop("checked"))
+			return 1;
+		return 0;
+	}
+	else if (tag == 'input' && type == 'radio')
+	{
+		return null;
+	}
+	
+	else if (tag == 'input' && type == 'file')
+	{
+		var multiple = $elem.attr('multiple');
+		if (typeof multiple != "undefined" && multiple !== false){
+			return $elem.get(0).files;
+		}
+		return $elem.get(0).files[0];
+	}
+	
+	return $elem.val();
+}
 
 
 /**
@@ -302,6 +359,7 @@ function ElberosFormGetData ( $form )
  */
 function ElberosFormSetWaitMessage ( $form )
 {
+	$form.find('.web_form_result').html('Ожидайте идёт отправка запроса');
 	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
 }
 
