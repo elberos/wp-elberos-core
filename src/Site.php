@@ -574,6 +574,7 @@ class Site
 				'render' => function($site)
 				{
 					header("Content-Type: application/json; charset=UTF-8");
+					if (!defined('DOING_AJAX')) define('DOING_AJAX', true);
 					if ($_SERVER['REQUEST_METHOD'] != 'POST')
 					{
 						return "{'success': false, 'code': -1, 'message': 'Request must be POST'}";

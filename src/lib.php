@@ -1315,3 +1315,17 @@ function decode_jwt($text, $jwt_key)
 	
 	return $data;
 }
+
+
+/**
+ * Generate uuid
+ */
+function uid()
+{
+	$bytes = bin2hex(random_bytes(16));
+	return substr($bytes, 0, 8) . "-" .
+		substr($bytes, 8, 4) . "-" .
+		substr($bytes, 12, 4) . "-" .
+		substr($bytes, 16, 4) . "-" .
+		substr($bytes, 20);
+}
