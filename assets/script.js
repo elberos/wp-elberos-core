@@ -90,7 +90,23 @@ function formatMoney(num)
 	if (r != "") num = num + "." + r;
 	return num;
 }
-
+if (typeof isset == "undefined")
+	window["isset"] = function (val)
+	{
+		return (val != null) && ((typeof val) != "undefined");
+	};
+	
+if (typeof htmlEscape == "undefined")
+	window["htmlEscape"] = function htmlEscape(s)
+	{
+		return (new String(s))
+			.replaceAll("&", "&amp;")
+			.replaceAll('"', "&quot;")
+			.replaceAll("'", "&apos;")
+			.replaceAll("<", "&lt;")
+			.replaceAll(">", "&gt;")
+		;
+	};
 
 
 /**
@@ -708,6 +724,8 @@ function ElberosDialog()
 
 Object.assign( ElberosDialog.prototype, {
 	
+	isset: function(val){ return (val != null) && ((typeof val) != "undefined"); },
+	
 	setSettings: function(settings)
 	{
 		if (settings == undefined) return;
@@ -839,7 +857,7 @@ Object.assign( ElberosDialog.prototype, {
 	
 	getButtonCloseHtml: function()
 	{
-		return '<button class="button elberos_dialog__button_close"><div></div></button>';
+		return '<button class="elberos_dialog__button_close"><div></div></button>';
 	},
 	
 	getButtonsHtml: function()
@@ -890,7 +908,7 @@ Object.assign( ElberosDialog.prototype, {
 	subscribe: function(event, callback)
 	{
 		
-		if (!isset(this.events[event]))
+		if (!this.isset(this.events[event]))
 		{
 			this.events[event] = new Array();
 		}
@@ -905,10 +923,10 @@ Object.assign( ElberosDialog.prototype, {
 	 */
 	sendEvent: function(event, data)
 	{
-		if (!isset(data)) data = null;
+		if (!this.isset(data)) data = null;
 		
 		var res = null;
-		if (isset(this.events[event]))
+		if (this.isset(this.events[event]))
 		{
 			var events = this.events[event];
 			for (var i=0; i<events.length; i++)
