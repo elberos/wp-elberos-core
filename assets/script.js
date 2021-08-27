@@ -294,9 +294,6 @@ function ElberosFormGetData ( $form )
 	{
 		var $item = $(arr[i]);
 		var name = $item.attr('data-name');
-		data[name] = ElberosFormGetFieldValue(arr[i]);
-		/*
-		var $item = $(arr[i]);
 		var item = $item.get(0);
 		var name = $item.attr('data-name');
 		var type = $item.attr('type');
@@ -309,8 +306,8 @@ function ElberosFormGetData ( $form )
 		}
 		else
 		{
-			data[name] = $item.val();
-		}*/
+			data[name] = ElberosFormGetFieldValue(arr[i]);
+		}
 	}
 	return data;
 }
@@ -456,6 +453,7 @@ function ElberosFormClearResult($form)
 	$form.find('.web_form_field_result').removeClass('web_form_field_result--error');
 	$form.find('.web_form_result').removeClass('web_form_result--error');
 	$form.find('.web_form_result').removeClass('web_form_result--success');
+	$form.find('.web_form_result').html('');
 }
 
 
