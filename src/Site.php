@@ -53,6 +53,7 @@ class Site
 	public $locale_prefix;
 	public $routes;
 	public $route_info = null;
+	public $render_template = null;
 	public $request = null;
 	public $f_inc = "";
 	public $search_text = "";
@@ -91,6 +92,7 @@ class Site
 	public $posts = null;
 	public $charset = "UTF-8";
 	public $pingback_url = "";
+	public $controllers = [];
 	
 	
 	/** Constructor **/
@@ -170,6 +172,38 @@ class Site
 	
 	
 	/**
+	 * Add controller
+	 */
+	function addController($instance)
+	{
+		if ($instance)
+		{
+			$class_name = get_class($instance);
+			if (!isset($this->controllers[$class_name]))
+			{
+				$this->controllers[$class_name] = $instance;
+				$instance->registerRoutes($this);
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * Returns controller
+	 */
+	function getController($class_name)
+	{
+		if (isset($this->controllers[$class_name]))
+		{
+			return $this->controllers[$class_name];
+		}
+		return null;
+	}
+	
+	
+	
+	/**
 	 * After setup
 	 */
 	function setup_after()
@@ -213,10 +247,10 @@ class Site
 	function render()
 	{
 		$render = null;
-		$template = $this->index_twig;
+		$this->render_template = $this->index_twig;
 		if ($this->route_info != null)
 		{
-			$template = $this->route_info['template'];
+			$this->render_template = $this->route_info['template'];
 		}
 		if (isset($this->route_info['params']['render']))
 		{
@@ -226,9 +260,9 @@ class Site
 		{
 			return $render;
 		}
-		if ($template != null)
+		if ($this->render_template != null)
 		{
-			return $this->render_page($template, $this->context);
+			return $this->render_page($this->render_template, $this->context);
 		}
 		return "";
 	}
@@ -252,6 +286,15 @@ class Site
 		
 		/* Init */
 		$this->setup_init();
+		
+		/* Set up controller */
+		foreach ($this->controllers as $controller)
+		{
+			if (method_exists($controller, "setupController"))
+			{
+				$controller->setupController($this);
+			}
+		}
 		
 		/* Setup base variables */
 		$this->wp_query = $wp_query;
@@ -321,6 +364,15 @@ class Site
 		
 		/* Set initialized */
 		$this->initialized = true;
+		
+		/* Extend context by controller */
+		foreach ($this->controllers as $controller)
+		{
+			if (method_exists($controller, "extendContext"))
+			{
+				$this->context = $controller->extendContext($this, $this->context);
+			}
+		}
 		
 		/* Extend context */
 		$this->context = $this->extend_context($this->context);
