@@ -270,7 +270,6 @@ class Site
 	
 	
 	/** Setup **/
-	
 	public function setup()
 	{
 		global $wp_query;

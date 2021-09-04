@@ -629,8 +629,10 @@ ol, ul {
 	}
 	
 	&__image{
-		position: relative	;
+		position: relative;
 		display: inline-block;
+		text-align: center;
+		width: 100%;
 	}
 	
 	&__image_title{

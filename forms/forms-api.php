@@ -92,6 +92,7 @@ class Api
 		$table_forms_data_name = $wpdb->base_prefix . 'elberos_forms_data';
 		$form_api_name = isset($_POST["form_api_name"]) ? $_POST["form_api_name"] : "";
 		$form_title = isset($_POST["form_title"]) ? $_POST["form_title"] : "";
+		$form_position = isset($_POST["form_position"]) ? $_POST["form_position"] : "";
 		$forms_wp_nonce = isset($_POST["_wpnonce"]) ? $_POST["_wpnonce"] : "";
 		$wp_nonce_res = (int)\Elberos\check_nonce($forms_wp_nonce);
 		
@@ -208,11 +209,11 @@ class Api
 		(
 			"INSERT INTO $table_forms_data_name
 				(
-					form_id, form_title, data, utm, gmtime_add, spam
+					form_id, form_title, form_position, data, utm, gmtime_add, spam
 				) 
 				VALUES( %d, %s, %s, %s, %s, %d )",
 			[
-				$form_id, $form_title, $data_s, $utm_s, $gmtime_add, $spam
+				$form_id, $form_title, $form_position, $data_s, $utm_s, $gmtime_add, $spam
 			]
 		);
 		$wpdb->query($q);

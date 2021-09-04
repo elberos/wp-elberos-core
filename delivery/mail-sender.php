@@ -178,6 +178,7 @@ if ( !class_exists( MailSender::class ) )
 			$site_name = get_bloginfo("", "name");
 			$form_id = $item['form_id'];
 			$item_title = $item['form_title'];
+			$form_position = $item['form_position'];
 			$form_title = FormsHelper::get_form_title($form_id);
 			$title = ($item_title != "" ? $item_title : $form_title) . " с сайта " . $site_name;
 			$email_to = FormsHelper::get_form_email_to($form_id);
@@ -227,6 +228,17 @@ if ( !class_exists( MailSender::class ) )
 					'value'=>$form_title,
 				]
 			);
+			if ($form_position)
+			{
+				array_unshift(
+					$form_data_res,
+					[
+						'key'=>"",
+						'title'=>"Расположение формы",
+						'value'=>$form_position,
+					]
+				);
+			}
 			array_unshift(
 				$form_data_res,
 				[

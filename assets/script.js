@@ -521,6 +521,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 	var validation = settings.validation;
 	var form_api_name = settings.api_name;
 	var form_title = settings.form_title != undefined ? settings.form_title : "";
+	var form_position = settings.form_position != undefined ? settings.form_position : "";
 	var wp_nonce = $form.find('.web_form__wp_nonce').val();
 	
 	/* Get data */
@@ -549,6 +550,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 		'_wpnonce': wp_nonce,
 		'form_api_name': form_api_name,
 		'form_title': form_title,
+		'form_position': form_position,
 		'data': data
 	};
 	
@@ -591,9 +593,12 @@ function ElberosFormRenameID($el)
 	var gen_id = Math.random();
 	$el.find(".web_form__input").each(function(){
 		var id = $(this).attr("id");
-		var new_id = id + "_" + gen_id;
-		$el.find("label[for=" + id + "]").attr("for", new_id);
-		$(this).attr("id", new_id)
+		if (id != undefined)
+		{
+			var new_id = id + "_" + gen_id;
+			$el.find("label[for=" + id + "]").attr("for", new_id);
+			$(this).attr("id", new_id)
+		}
 	});
 }
 
@@ -805,7 +810,7 @@ Object.assign( ElberosDialog.prototype, {
 		this.sendEvent('open');
 	},
 	
-	getDialogBox: function()
+	getDialogStyles: function()
 	{
 		var styles = '';
 		if (this.styles instanceof Array)
@@ -817,6 +822,13 @@ Object.assign( ElberosDialog.prototype, {
 			}
 			styles = styles_arr.join(' ');
 		}
+		return styles;
+	},
+	
+	getDialogBox: function()
+	{
+		var styles = this.getDialogStyles();
+		
 		var $obj = $('<div class="elberos_dialog__box ' + styles + '"><table class="elberos_dialog__box_table"><tr class="elberos_dialog__box_tr"><td class="elberos_dialog__box_td"></td></tr></table></div>');
 		
 		//this.$shadow = $('<div class="elberos_dialog__shadow"></div>');
