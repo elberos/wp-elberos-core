@@ -190,6 +190,11 @@ function elberos_api_send(namespace, route, send_data, callback)
 		processData = false;
 	}
 	
+	if (site_locale_prefix != undefined)
+	{
+		url = site_locale_prefix + url;
+	}
+	
 	$.ajax({
 		url: url,
 		data: send_data,

@@ -211,7 +211,7 @@ class Api
 				(
 					form_id, form_title, form_position, data, utm, gmtime_add, spam
 				) 
-				VALUES( %d, %s, %s, %s, %s, %d )",
+				VALUES( %d, %s, %s, %s, %s, %s, %d )",
 			[
 				$form_id, $form_title, $form_position, $data_s, $utm_s, $gmtime_add, $spam
 			]

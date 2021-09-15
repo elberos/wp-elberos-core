@@ -872,9 +872,27 @@ class Site
 	function get_current_locale_code()
 	{
 		$locale = get_locale();
-		if ($locale == "ru_RU") return "ru";
-		else if ($locale == "en_US") return "en";
-		return "";
+		$locale_code = "";
+		
+		$langs = \Elberos\wp_langs();
+		if ($langs != null && gettype($langs) == 'array' && count($langs) > 0)
+		{
+			foreach ($langs as $lang)
+			{
+				if ($lang["locale"] == $locale)
+				{
+					$locale_code = $lang["slug"];
+				}
+			}
+		}
+		
+		if ($locale_code == "")
+		{
+			if ($locale == "ru_RU") $locale_code = "ru";
+			else if ($locale == "en_US") $locale_code = "en";
+		}
+		
+		return $locale_code;
 	}
 	
 	public function get_the_archive_title() 

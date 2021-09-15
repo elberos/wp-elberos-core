@@ -208,7 +208,17 @@ if ( !class_exists( MailSender::class ) )
 					'value'=>$value,
 				];
 			}
-			
+			if ($form_position)
+			{
+				array_unshift(
+					$form_data_res,
+					[
+						'key'=>"",
+						'title'=>"Расположение формы",
+						'value'=>$form_position,
+					]
+				);
+			}
 			if ($item_title != "")
 			{
 				array_unshift(
@@ -228,17 +238,6 @@ if ( !class_exists( MailSender::class ) )
 					'value'=>$form_title,
 				]
 			);
-			if ($form_position)
-			{
-				array_unshift(
-					$form_data_res,
-					[
-						'key'=>"",
-						'title'=>"Расположение формы",
-						'value'=>$form_position,
-					]
-				);
-			}
 			array_unshift(
 				$form_data_res,
 				[
@@ -273,7 +272,7 @@ if ( !class_exists( MailSender::class ) )
 			<body>
 			<div style="font-family:verdana;font-size:16px">
 			<table class="forms_data_display_item">
-				<?php echo implode($res_data, ""); ?>
+				<?php echo implode("", $res_data); ?>
 			</table>
 			</div>
 			</body>
