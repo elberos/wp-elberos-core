@@ -341,7 +341,7 @@ class Site
 			$this->locale_prefix = "/" . $this->language_code;
 		}
 		$this->setTitle( $this->get_page_title() );
-		$this->description = $this->get_page_description();
+		$this->setDescription( $this->get_page_description() );
 		$this->robots = $this->get_page_robots();
 		$this->page = max( 1, (int) get_query_var( 'paged' ) );
 		$this->max_pages = $this->wp_query->max_num_pages;
@@ -828,6 +828,16 @@ class Site
 		if ($is_full_title) $this->full_title = $this->get_page_full_title($title);
 	}
 	
+	public function setDescription($description)
+	{
+		$this->description = $description;
+	}
+	
+	public function setRenderTemplate($render_template)
+	{
+		$this->render_template = $render_template;
+	}
+	
 	public function get_current_description()
 	{
 		$str = "";
@@ -1187,7 +1197,7 @@ class Site
 	
 	function get_count($x)
 	{
-		return count($x);
+		return gettype($x) == 'array' ? count($x) : 0;
 	}
 	
 	function var_dump($v)
