@@ -46,25 +46,32 @@ function setCookie(name, value, options = {})
 }
 function addGet(s, key, value)
 {
-	key = encodeURI(key); value = encodeURI(value);
+	key = encodeURI(key); value = (value != undefined) ? encodeURI(value) : value;
 	var arr = s.split("?");
 	var s0 = arr[0] || "";
 	var s1 = arr[1] || "";
 	var arr2 = s1.split('&');
-	arr2 = arr2.filter(function (s){return s!="";});
-	var i=arr2.length-1;
-	while (i>=0)
+	var i = arr2.length - 1;
+	while (i >= 0)
 	{
 		var x = arr2[i].split('=');
-		if (x[0]==key)
+		if (x.length == 2 && x[0] == key)
 		{
-			x[1] = value;
-			arr2[i] = x.join('=');
+			if ((value || false) == false)
+			{
+				arr2[i] = "";
+			}
+			else
+			{
+				x[1] = value;
+				arr2[i] = x.join('=');
+			}
 			break;
 		}
 		i--;
 	}
-	if (i<0) { arr2.push( [key, value].join('=') ); }
+	if (i < 0 && (value || false) != false) { arr2.push( [key, value].join('=') ); }
+	arr2 = arr2.filter(function (s){return s!="";});
 	var s2 = arr2.join('&');
 	if (s2 == "") return s0;
 	return s0 + "?" + s2;
