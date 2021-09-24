@@ -1042,6 +1042,7 @@ function wpdb_query($params)
 	global $wpdb;
 	
 	$sql_arr = [];
+	$distinct = (isset($params["distinct"]) && $params["distinct"]) ? "DISTINCT" : "";
 	$table_name = isset($params["table_name"]) ? $params["table_name"] : "";
 	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
 	$join = isset($params["join"]) ? $params["join"] : "";
@@ -1063,7 +1064,7 @@ function wpdb_query($params)
 	/* Order by */
 	if ($order_by) $order_by = "ORDER BY " . $order_by;
 	
-	$sql = "SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
+	$sql = "SELECT SQL_CALC_FOUND_ROWS ${distinct} ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
 	$sql = wpdb_query_args($sql, $args, $sql_arr);
 	
 	$limit = "";
