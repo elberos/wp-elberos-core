@@ -103,7 +103,7 @@ class Api
 			return 
 			[
 				"success" => false,
-				"message" => __("Ошибка формы. Перезагрузите страницу.", "elberos-forms"),
+				"message" => __("Ошибка формы. Перезагрузите страницу.", "elberos"),
 				"fields" => [],
 				"code" => -1,
 			];
@@ -126,7 +126,7 @@ class Api
 			return 
 			[
 				"success" => false,
-				"message" => "Форма не найдена",
+				"message" => __("Форма не найдена", "elberos"),
 				"fields" => [],
 				"code" => -1,
 			];
@@ -156,7 +156,7 @@ class Api
 			$required = isset($field['required']) ? $field['required'] : false;
 			if ($value == "" && $required)
 			{
-				$fields[$key][] = __("Пустое поле '" . $title . "'", "elberos-forms");
+				$fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
 			}
 			
 			$form_data[$key] = $value;
@@ -178,7 +178,7 @@ class Api
 			$required = isset($field['required']) ? $field['required'] : false;
 			if ($required)
 			{
-				$fields[$key][] = __("Пустое поле '" . $title . "'", "elberos-forms");
+				$fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
 			}
 			
 			$form_data[$key] = "";
@@ -190,7 +190,7 @@ class Api
 			return 
 			[
 				"success" => false,
-				"message" => __("Ошибка. Проверьте корректность данных", "elberos-forms"),
+				"message" => __("Ошибка. Проверьте корректность данных", "elberos"),
 				"fields" => $fields,
 				"code" => -2,
 			];
