@@ -91,6 +91,9 @@ class Elberos_Plugin
 		
 		/* UTM form filter */
 		add_filter( 'elberos_form_utm', 'Elberos_Plugin::elberos_form_utm' );
+		
+		/* Load languages */
+		load_theme_textdomain( 'elberos', __DIR__ . '/languages' );
 	}	
 	
 	
