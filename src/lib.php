@@ -530,7 +530,7 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 function wp_langs()
 {
 	$res = [];
-	if ( defined( 'POLYLANG_VERSION' ) )
+	if ( defined( 'POLYLANG_VERSION' ) && function_exists("\\PLL") )
 	{
 		$links = \PLL()->links;
 		if ($links)
@@ -566,9 +566,9 @@ function wp_get_default_lang()
 function wp_hide_default_lang()
 {
 	$res = false;
-	if ( defined( "POLYLANG_VERSION" ) )
+	if ( defined( "POLYLANG_VERSION" ) && function_exists("\\PLL") )
 	{
-		$res = PLL()->options['hide_default'];
+		$res = \PLL()->options['hide_default'];
 	}
 	return $res;
 }
