@@ -418,10 +418,7 @@ function ElberosFormSetResponse ( $form, res, settings )
 		$form.find('.web_form_result').addClass('web_form__result--error');
 		$form.find('.web_form_result').html(res.message);
 		
-		if (res.code == -2)
-		{
-			ElberosFormSetFieldsResult($form, res);
-		}
+		ElberosFormSetFieldsResult($form, res);
 	}
 }
 

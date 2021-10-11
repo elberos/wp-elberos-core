@@ -21,6 +21,43 @@
 namespace Elberos;
 
 
+
+/**
+ * Return site option
+ */
+function get_option($key, $value = "")
+{
+	if ( ! is_multisite() )
+	{
+		return \get_option($key, $value);
+	}
+	return \get_network_option(1, $key, $value);
+}
+
+
+
+/**
+ * Save site option
+ */
+function save_option($key, $value)
+{
+	if ( ! is_multisite() )
+	{
+		if (!add_option($key, $value, "", "no"))
+		{
+			\update_option($key, $value);
+		}
+	}
+	else
+	{
+		if (!add_network_option(1, $key, $value, "", "no"))
+		{
+			\update_network_option(1, $key, $value);
+		}
+	}
+}
+
+
 /**
  * Get url parameters
  */
