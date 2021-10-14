@@ -34,6 +34,7 @@ class Api
 	public static function init()
 	{
 		add_action('elberos_register_routes', '\\Elberos\\Forms\\Api::register_routes');
+		add_action('elberos_form_validate_fields', '\\Elberos\\Forms\\Api::elberos_form_validate_fields');
 	}
 	
 	
@@ -135,7 +136,6 @@ class Api
 		$form_id = $form['id'];
 		$form_settings = @json_decode($form['settings'], true);
 		$form_settings_fields = isset($form_settings['fields']) ? $form_settings['fields'] : [];
-		$form_data = [];
 		$data = isset($_POST["data"]) ? $_POST["data"] : [];
 		
 		/* Add UTM */
@@ -143,55 +143,28 @@ class Api
 		$utm = apply_filters( 'elberos_form_utm', $utm );
 		
 		/* Validate fields */
-		$fields = [];
-		foreach ($data as $key => $value)
-		{
-			$field = static::getFieldByName($form_settings_fields, $key);
-			if ($field == null)
-			{
-				continue;
-			}
-			
-			$title = isset($field['title']) ? $field['title'] : "";
-			$required = isset($field['required']) ? $field['required'] : false;
-			if ($value == "" && $required)
-			{
-				$fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
-			}
-			
-			$form_data[$key] = $value;
-		}
-		
-		/* Add missing fields */
-		foreach ($form_settings_fields as $field)
-		{
-			$title = isset($field['title']) ? $field['title'] : "";
-			$key = isset($field['name']) ? $field['name'] : "";
-			if ($key == null)
-			{
-				continue;
-			}
-			if (isset($data[$key]))
-			{
-				continue;
-			}
-			$required = isset($field['required']) ? $field['required'] : false;
-			if ($required)
-			{
-				$fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
-			}
-			
-			$form_data[$key] = "";
-		}
+		$res = apply_filters
+		(
+			'elberos_form_validate_fields',
+			[
+				"form" => $form,
+				"form_settings" => $form_settings,
+				"validate_fields" => [],
+				"post_data" => $data,
+				"form_data" => [],
+			]
+		);
+		$validate_fields = $res["validate_fields"];
+		$form_data = $res["form_data"];
 		
 		/* If validate fields error */
-		if (count ($fields) > 0)
+		if (count($validate_fields) > 0)
 		{
 			return 
 			[
 				"success" => false,
 				"message" => __("Ошибка. Проверьте корректность данных", "elberos"),
-				"fields" => $fields,
+				"fields" => $validate_fields,
 				"code" => -2,
 			];
 		}
@@ -225,6 +198,65 @@ class Api
 			"fields" => [],
 			"code" => 1,
 		];
+	}
+	
+	
+	
+	/**
+	 * Form validate fields
+	 */
+	static function elberos_form_validate_fields($params)
+	{
+		$post_data = $params["post_data"];
+		$form_data = $params["form_data"];
+		$form_settings = $params["form_settings"];
+		$validate_fields = $params["validate_fields"];
+		$form_settings_fields = isset($form_settings['fields']) ? $form_settings['fields'] : [];
+		
+		foreach ($post_data as $key => $value)
+		{
+			$field = static::getFieldByName($form_settings_fields, $key);
+			if ($field == null)
+			{
+				continue;
+			}
+			
+			$title = isset($field['title']) ? $field['title'] : "";
+			$required = isset($field['required']) ? $field['required'] : false;
+			if ($value == "" && $required)
+			{
+				$validate_fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
+			}
+			
+			$form_data[$key] = $value;
+		}
+		
+		/* Add missing fields */
+		foreach ($form_settings_fields as $field)
+		{
+			$title = isset($field['title']) ? $field['title'] : "";
+			$key = isset($field['name']) ? $field['name'] : "";
+			if ($key == null)
+			{
+				continue;
+			}
+			if (isset($post_data[$key]))
+			{
+				continue;
+			}
+			$required = isset($field['required']) ? $field['required'] : false;
+			if ($required)
+			{
+				$validate_fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
+			}
+			
+			$form_data[$key] = "";
+		}
+		
+		/* Set result */
+		$params["form_data"] = $form_data;
+		$params["validate_fields"] = $validate_fields;
+		return $params;
 	}
 	
 	
