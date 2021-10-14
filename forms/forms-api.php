@@ -149,22 +149,24 @@ class Api
 			[
 				"form" => $form,
 				"form_settings" => $form_settings,
-				"validate_fields" => [],
+				"validation" => [],
 				"post_data" => $data,
 				"form_data" => [],
 			]
 		);
-		$validate_fields = $res["validate_fields"];
+		$validation = $res["validation"];
 		$form_data = $res["form_data"];
 		
 		/* If validate fields error */
-		if (count($validate_fields) > 0)
+		if ($validation != null && count($validation) > 0)
 		{
+			$validation_error = isset($find_client_res['message']) ? $find_client_res['message'] : null;
 			return 
 			[
 				"success" => false,
-				"message" => __("Ошибка. Проверьте корректность данных", "elberos"),
-				"fields" => $validate_fields,
+				"message" => ($validation_error != null) ? $validation_error :
+					__("Ошибка. Проверьте корректность данных", "elberos"),
+				"fields" => isset($validation["fields"]) ? $validation["fields"] : [],
 				"code" => -2,
 			];
 		}
@@ -210,7 +212,7 @@ class Api
 		$post_data = $params["post_data"];
 		$form_data = $params["form_data"];
 		$form_settings = $params["form_settings"];
-		$validate_fields = $params["validate_fields"];
+		$validation = $params["validation"];
 		$form_settings_fields = isset($form_settings['fields']) ? $form_settings['fields'] : [];
 		
 		foreach ($post_data as $key => $value)
@@ -225,7 +227,7 @@ class Api
 			$required = isset($field['required']) ? $field['required'] : false;
 			if ($value == "" && $required)
 			{
-				$validate_fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
+				$validation["fields"][$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
 			}
 			
 			$form_data[$key] = $value;
@@ -247,7 +249,7 @@ class Api
 			$required = isset($field['required']) ? $field['required'] : false;
 			if ($required)
 			{
-				$validate_fields[$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
+				$validation["fields"][$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
 			}
 			
 			$form_data[$key] = "";
@@ -255,7 +257,7 @@ class Api
 		
 		/* Set result */
 		$params["form_data"] = $form_data;
-		$params["validate_fields"] = $validate_fields;
+		$params["validation"] = $validation;
 		return $params;
 	}
 	
