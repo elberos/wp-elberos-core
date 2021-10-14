@@ -21,6 +21,43 @@
 namespace Elberos;
 
 
+
+/**
+ * Return site option
+ */
+function get_option($key, $value = "")
+{
+	if ( ! is_multisite() )
+	{
+		return \get_option($key, $value);
+	}
+	return \get_network_option(1, $key, $value);
+}
+
+
+
+/**
+ * Save site option
+ */
+function save_option($key, $value)
+{
+	if ( ! is_multisite() )
+	{
+		if (!add_option($key, $value, "", "no"))
+		{
+			\update_option($key, $value);
+		}
+	}
+	else
+	{
+		if (!add_network_option(1, $key, $value, "", "no"))
+		{
+			\update_network_option(1, $key, $value);
+		}
+	}
+}
+
+
 /**
  * Get url parameters
  */
@@ -530,7 +567,7 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 function wp_langs()
 {
 	$res = [];
-	if ( defined( 'POLYLANG_VERSION' ) )
+	if ( defined( 'POLYLANG_VERSION' ) && function_exists("\\PLL") )
 	{
 		$links = \PLL()->links;
 		if ($links)
@@ -566,9 +603,9 @@ function wp_get_default_lang()
 function wp_hide_default_lang()
 {
 	$res = false;
-	if ( defined( "POLYLANG_VERSION" ) )
+	if ( defined( "POLYLANG_VERSION" ) && function_exists("\\PLL") )
 	{
-		$res = PLL()->options['hide_default'];
+		$res = \PLL()->options['hide_default'];
 	}
 	return $res;
 }
@@ -1042,6 +1079,7 @@ function wpdb_query($params)
 	global $wpdb;
 	
 	$sql_arr = [];
+	$distinct = (isset($params["distinct"]) && $params["distinct"]) ? "DISTINCT" : "";
 	$table_name = isset($params["table_name"]) ? $params["table_name"] : "";
 	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
 	$join = isset($params["join"]) ? $params["join"] : "";
@@ -1063,7 +1101,7 @@ function wpdb_query($params)
 	/* Order by */
 	if ($order_by) $order_by = "ORDER BY " . $order_by;
 	
-	$sql = "SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
+	$sql = "SELECT SQL_CALC_FOUND_ROWS ${distinct} ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
 	$sql = wpdb_query_args($sql, $args, $sql_arr);
 	
 	$limit = "";
