@@ -334,6 +334,16 @@ class StructBuilder
 			}
 		}
 		
+		$params =
+		[
+			"res" => $res,
+			"item" => $item,
+			"struct" => $this,
+		];
+		
+		$params = apply_filters("elberos_struct_process_item", $params);
+		$res = $params["res"];
+		
 		return $res;
 	}
 	

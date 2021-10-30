@@ -377,10 +377,14 @@ function ElberosFormClearResult($form)
 		}
 	});
 	$form.find('.web_form__field_result').removeClass('web_form__field_result--error');
-	$form.find('.web_form__result').removeClass('web_form__result--error');
-	$form.find('.web_form__result').removeClass('web_form__result--success');
 	$form.find('.web_form_field_result').removeClass('web_form_field_result--error');
+	$form.find('.web_form__result').removeClass('web_form__result--error');
+	$form.find('.web_form__result').removeClass('web_form_result--error');
+	$form.find('.web_form__result').removeClass('web_form__result--success');
+	$form.find('.web_form__result').removeClass('web_form_result--success');
+	$form.find('.web_form_result').removeClass('web_form__result--error');
 	$form.find('.web_form_result').removeClass('web_form_result--error');
+	$form.find('.web_form_result').removeClass('web_form__result--success');
 	$form.find('.web_form_result').removeClass('web_form_result--success');
 }
 
