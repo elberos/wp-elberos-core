@@ -85,6 +85,7 @@ class Data_Table extends \WP_List_Table
         $columns = array(
             'form_name' => __('Form Name', 'elberos-forms'),
             'form_title' => __('Form Title', 'elberos-forms'),
+            'form_position' => __('Form Position', 'elberos-forms'),
             'data' => __('DATA', 'elberos-forms'),
             'utm' => __('UTM', 'elberos-forms'),
             'gmtime_add' => __('Дата', 'elberos-forms'),

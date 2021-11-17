@@ -53,6 +53,7 @@ class Site
 	public $locale_prefix;
 	public $routes;
 	public $route_info = null;
+	public $render_template = null;
 	public $request = null;
 	public $f_inc = "";
 	public $search_text = "";
@@ -91,6 +92,7 @@ class Site
 	public $posts = null;
 	public $charset = "UTF-8";
 	public $pingback_url = "";
+	public $controllers = [];
 	
 	
 	/** Constructor **/
@@ -170,6 +172,38 @@ class Site
 	
 	
 	/**
+	 * Add controller
+	 */
+	function addController($instance)
+	{
+		if ($instance)
+		{
+			$class_name = get_class($instance);
+			if (!isset($this->controllers[$class_name]))
+			{
+				$this->controllers[$class_name] = $instance;
+				$instance->registerRoutes($this);
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * Returns controller
+	 */
+	function getController($class_name)
+	{
+		if (isset($this->controllers[$class_name]))
+		{
+			return $this->controllers[$class_name];
+		}
+		return null;
+	}
+	
+	
+	
+	/**
 	 * After setup
 	 */
 	function setup_after()
@@ -213,10 +247,10 @@ class Site
 	function render()
 	{
 		$render = null;
-		$template = $this->index_twig;
+		$this->render_template = $this->index_twig;
 		if ($this->route_info != null)
 		{
-			$template = $this->route_info['template'];
+			$this->render_template = $this->route_info['template'];
 		}
 		if (isset($this->route_info['params']['render']))
 		{
@@ -226,9 +260,9 @@ class Site
 		{
 			return $render;
 		}
-		if ($template != null)
+		if ($this->render_template != null)
 		{
-			return $this->render_page($template, $this->context);
+			return $this->render_page($this->render_template, $this->context);
 		}
 		return "";
 	}
@@ -236,7 +270,6 @@ class Site
 	
 	
 	/** Setup **/
-	
 	public function setup()
 	{
 		global $wp_query;
@@ -252,6 +285,15 @@ class Site
 		
 		/* Init */
 		$this->setup_init();
+		
+		/* Set up controller */
+		foreach ($this->controllers as $controller)
+		{
+			if (method_exists($controller, "setupController"))
+			{
+				$controller->setupController($this);
+			}
+		}
 		
 		/* Setup base variables */
 		$this->wp_query = $wp_query;
@@ -299,7 +341,7 @@ class Site
 			$this->locale_prefix = "/" . $this->language_code;
 		}
 		$this->setTitle( $this->get_page_title() );
-		$this->description = $this->get_page_description();
+		$this->setDescription( $this->get_page_description() );
 		$this->robots = $this->get_page_robots();
 		$this->page = max( 1, (int) get_query_var( 'paged' ) );
 		$this->max_pages = $this->wp_query->max_num_pages;
@@ -321,6 +363,15 @@ class Site
 		
 		/* Set initialized */
 		$this->initialized = true;
+		
+		/* Extend context by controller */
+		foreach ($this->controllers as $controller)
+		{
+			if (method_exists($controller, "extendContext"))
+			{
+				$this->context = $controller->extendContext($this, $this->context);
+			}
+		}
 		
 		/* Extend context */
 		$this->context = $this->extend_context($this->context);
@@ -574,6 +625,7 @@ class Site
 				'render' => function($site)
 				{
 					header("Content-Type: application/json; charset=UTF-8");
+					if (!defined('DOING_AJAX')) define('DOING_AJAX', true);
 					if ($_SERVER['REQUEST_METHOD'] != 'POST')
 					{
 						return "{'success': false, 'code': -1, 'message': 'Request must be POST'}";
@@ -776,6 +828,16 @@ class Site
 		if ($is_full_title) $this->full_title = $this->get_page_full_title($title);
 	}
 	
+	public function setDescription($description)
+	{
+		$this->description = $description;
+	}
+	
+	public function setRenderTemplate($render_template)
+	{
+		$this->render_template = $render_template;
+	}
+	
 	public function get_current_description()
 	{
 		$str = "";
@@ -820,9 +882,27 @@ class Site
 	function get_current_locale_code()
 	{
 		$locale = get_locale();
-		if ($locale == "ru_RU") return "ru";
-		else if ($locale == "en_US") return "en";
-		return "";
+		$locale_code = "";
+		
+		$langs = \Elberos\wp_langs();
+		if ($langs != null && gettype($langs) == 'array' && count($langs) > 0)
+		{
+			foreach ($langs as $lang)
+			{
+				if ($lang["locale"] == $locale)
+				{
+					$locale_code = $lang["slug"];
+				}
+			}
+		}
+		
+		if ($locale_code == "")
+		{
+			if ($locale == "ru_RU") $locale_code = "ru";
+			else if ($locale == "en_US") $locale_code = "en";
+		}
+		
+		return $locale_code;
 	}
 	
 	public function get_the_archive_title() 
@@ -1117,7 +1197,7 @@ class Site
 	
 	function get_count($x)
 	{
-		return count($x);
+		return gettype($x) == 'array' ? count($x) : 0;
 	}
 	
 	function var_dump($v)
@@ -1279,6 +1359,16 @@ class Site
 	function url_get($key, $value = "")
 	{
 		return isset($_GET[$key]) ? $_GET[$key] : $value;
+	}
+	
+	
+	/**
+	 * Add get parametr
+	 */
+	function url_get_add($key, $value = "")
+	{
+		$url = $_SERVER["REQUEST_URI"];
+		return \Elberos\url_get_add($url, $key, $value);
 	}
 	
 	

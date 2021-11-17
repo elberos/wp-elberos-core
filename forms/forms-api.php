@@ -34,6 +34,7 @@ class Api
 	public static function init()
 	{
 		add_action('elberos_register_routes', '\\Elberos\\Forms\\Api::register_routes');
+		add_action('elberos_form_validate_fields', '\\Elberos\\Forms\\Api::elberos_form_validate_fields');
 	}
 	
 	
@@ -92,6 +93,7 @@ class Api
 		$table_forms_data_name = $wpdb->base_prefix . 'elberos_forms_data';
 		$form_api_name = isset($_POST["form_api_name"]) ? $_POST["form_api_name"] : "";
 		$form_title = isset($_POST["form_title"]) ? $_POST["form_title"] : "";
+		$form_position = isset($_POST["form_position"]) ? $_POST["form_position"] : "";
 		$forms_wp_nonce = isset($_POST["_wpnonce"]) ? $_POST["_wpnonce"] : "";
 		$wp_nonce_res = (int)\Elberos\check_nonce($forms_wp_nonce);
 		
@@ -102,7 +104,7 @@ class Api
 			return 
 			[
 				"success" => false,
-				"message" => __("Ошибка формы. Перезагрузите страницу.", "elberos-forms"),
+				"message" => __("Ошибка формы. Перезагрузите страницу.", "elberos"),
 				"fields" => [],
 				"code" => -1,
 			];
@@ -125,7 +127,7 @@ class Api
 			return 
 			[
 				"success" => false,
-				"message" => "Форма не найдена",
+				"message" => __("Форма не найдена", "elberos"),
 				"fields" => [],
 				"code" => -1,
 			];
@@ -134,7 +136,6 @@ class Api
 		$form_id = $form['id'];
 		$form_settings = @json_decode($form['settings'], true);
 		$form_settings_fields = isset($form_settings['fields']) ? $form_settings['fields'] : [];
-		$form_data = [];
 		$data = isset($_POST["data"]) ? $_POST["data"] : [];
 		
 		/* Add UTM */
@@ -142,55 +143,30 @@ class Api
 		$utm = apply_filters( 'elberos_form_utm', $utm );
 		
 		/* Validate fields */
-		$fields = [];
-		foreach ($data as $key => $value)
-		{
-			$field = static::getFieldByName($form_settings_fields, $key);
-			if ($field == null)
-			{
-				continue;
-			}
-			
-			$title = isset($field['title']) ? $field['title'] : "";
-			$required = isset($field['required']) ? $field['required'] : false;
-			if ($value == "" && $required)
-			{
-				$fields[$key][] = __("Пустое поле '" . $title . "'", "elberos-forms");
-			}
-			
-			$form_data[$key] = $value;
-		}
-		
-		/* Add missing fields */
-		foreach ($form_settings_fields as $field)
-		{
-			$title = isset($field['title']) ? $field['title'] : "";
-			$key = isset($field['name']) ? $field['name'] : "";
-			if ($key == null)
-			{
-				continue;
-			}
-			if (isset($data[$key]))
-			{
-				continue;
-			}
-			$required = isset($field['required']) ? $field['required'] : false;
-			if ($required)
-			{
-				$fields[$key][] = __("Пустое поле '" . $title . "'", "elberos-forms");
-			}
-			
-			$form_data[$key] = "";
-		}
+		$res = apply_filters
+		(
+			'elberos_form_validate_fields',
+			[
+				"form" => $form,
+				"form_settings" => $form_settings,
+				"validation" => [],
+				"post_data" => $data,
+				"form_data" => [],
+			]
+		);
+		$validation = $res["validation"];
+		$form_data = $res["form_data"];
 		
 		/* If validate fields error */
-		if (count ($fields) > 0)
+		if ($validation != null && count($validation) > 0)
 		{
+			$validation_error = isset($find_client_res['message']) ? $find_client_res['message'] : null;
 			return 
 			[
 				"success" => false,
-				"message" => __("Ошибка. Проверьте корректность данных", "elberos-forms"),
-				"fields" => $fields,
+				"message" => ($validation_error != null) ? $validation_error :
+					__("Ошибка. Проверьте корректность данных", "elberos"),
+				"fields" => isset($validation["fields"]) ? $validation["fields"] : [],
 				"code" => -2,
 			];
 		}
@@ -208,11 +184,11 @@ class Api
 		(
 			"INSERT INTO $table_forms_data_name
 				(
-					form_id, form_title, data, utm, gmtime_add, spam
+					form_id, form_title, form_position, data, utm, gmtime_add, spam
 				) 
-				VALUES( %d, %s, %s, %s, %s, %d )",
+				VALUES( %d, %s, %s, %s, %s, %s, %d )",
 			[
-				$form_id, $form_title, $data_s, $utm_s, $gmtime_add, $spam
+				$form_id, $form_title, $form_position, $data_s, $utm_s, $gmtime_add, $spam
 			]
 		);
 		$wpdb->query($q);
@@ -224,6 +200,65 @@ class Api
 			"fields" => [],
 			"code" => 1,
 		];
+	}
+	
+	
+	
+	/**
+	 * Form validate fields
+	 */
+	static function elberos_form_validate_fields($params)
+	{
+		$post_data = $params["post_data"];
+		$form_data = $params["form_data"];
+		$form_settings = $params["form_settings"];
+		$validation = $params["validation"];
+		$form_settings_fields = isset($form_settings['fields']) ? $form_settings['fields'] : [];
+		
+		foreach ($post_data as $key => $value)
+		{
+			$field = static::getFieldByName($form_settings_fields, $key);
+			if ($field == null)
+			{
+				continue;
+			}
+			
+			$title = isset($field['title']) ? $field['title'] : "";
+			$required = isset($field['required']) ? $field['required'] : false;
+			if ($value == "" && $required)
+			{
+				$validation["fields"][$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
+			}
+			
+			$form_data[$key] = $value;
+		}
+		
+		/* Add missing fields */
+		foreach ($form_settings_fields as $field)
+		{
+			$title = isset($field['title']) ? $field['title'] : "";
+			$key = isset($field['name']) ? $field['name'] : "";
+			if ($key == null)
+			{
+				continue;
+			}
+			if (isset($post_data[$key]))
+			{
+				continue;
+			}
+			$required = isset($field['required']) ? $field['required'] : false;
+			if ($required)
+			{
+				$validation["fields"][$key][] = sprintf( __("Пустое поле '%s'", "elberos"), __($title, "elberos"));
+			}
+			
+			$form_data[$key] = "";
+		}
+		
+		/* Set result */
+		$params["form_data"] = $form_data;
+		$params["validation"] = $validation;
+		return $params;
 	}
 	
 	

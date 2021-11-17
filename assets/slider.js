@@ -311,7 +311,7 @@ Object.assign( ElberosSlider.prototype, {
 	 */
 	clickPoint: function(e)
 	{
-		var pos = e.target.getAttribute('data-pos');
+		var pos = e.currentTarget.getAttribute('data-pos');
 		this.setPos(pos, this.animate);
 	},
 	

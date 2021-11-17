@@ -46,25 +46,32 @@ function setCookie(name, value, options = {})
 }
 function addGet(s, key, value)
 {
-	key = encodeURI(key); value = encodeURI(value);
+	key = encodeURI(key); value = (value != undefined) ? encodeURI(value) : value;
 	var arr = s.split("?");
 	var s0 = arr[0] || "";
 	var s1 = arr[1] || "";
 	var arr2 = s1.split('&');
-	arr2 = arr2.filter(function (s){return s!="";});
-	var i=arr2.length-1;
-	while (i>=0)
+	var i = arr2.length - 1;
+	while (i >= 0)
 	{
 		var x = arr2[i].split('=');
-		if (x[0]==key)
+		if (x.length == 2 && x[0] == key)
 		{
-			x[1] = value;
-			arr2[i] = x.join('=');
+			if ((value || false) == false)
+			{
+				arr2[i] = "";
+			}
+			else
+			{
+				x[1] = value;
+				arr2[i] = x.join('=');
+			}
 			break;
 		}
 		i--;
 	}
-	if (i<0) { arr2.push( [key, value].join('=') ); }
+	if (i < 0 && (value || false) != false) { arr2.push( [key, value].join('=') ); }
+	arr2 = arr2.filter(function (s){return s!="";});
 	var s2 = arr2.join('&');
 	if (s2 == "") return s0;
 	return s0 + "?" + s2;
@@ -90,7 +97,23 @@ function formatMoney(num)
 	if (r != "") num = num + "." + r;
 	return num;
 }
-
+if (typeof isset == "undefined")
+	window["isset"] = function (val)
+	{
+		return (val != null) && ((typeof val) != "undefined");
+	};
+	
+if (typeof htmlEscape == "undefined")
+	window["htmlEscape"] = function htmlEscape(s)
+	{
+		return (new String(s))
+			.replaceAll("&", "&amp;")
+			.replaceAll('"', "&quot;")
+			.replaceAll("'", "&apos;")
+			.replaceAll("<", "&lt;")
+			.replaceAll(">", "&gt;")
+		;
+	};
 
 
 /**
@@ -172,6 +195,11 @@ function elberos_api_send(namespace, route, send_data, callback)
 	{
 		contentType = false;
 		processData = false;
+	}
+	
+	if ((typeof site_locale_prefix) != "undefined")
+	{
+		url = site_locale_prefix + url;
 	}
 	
 	$.ajax({
@@ -277,6 +305,7 @@ function ElberosFormGetData ( $form )
 	for (var i=0; i<arr.length; i++)
 	{
 		var $item = $(arr[i]);
+		var name = $item.attr('data-name');
 		var item = $item.get(0);
 		var name = $item.attr('data-name');
 		var type = $item.attr('type');
@@ -289,12 +318,65 @@ function ElberosFormGetData ( $form )
 		}
 		else
 		{
-			data[name] = $item.val();
+			data[name] = ElberosFormGetFieldValue(arr[i]);
 		}
 	}
 	return data;
 }
 
+
+/**
+ * Get forms data
+ */
+function ElberosFormGetFieldValue (elem)
+{
+	var $elem = $(elem);
+	var type = $elem.attr('type');
+	var tag = $elem.prop("tagName").toLowerCase();
+	
+	if (typeof elem.controller != "undefined" && elem.controller != null)
+	{
+		return elem.controller.getData();
+	}
+	else if ($elem.hasClass('ckeditor_type'))
+	{
+		var instance = CKEDITOR.instances[elem.id];
+		if (typeof instance != 'undefined'){
+			var value = instance.getData();
+			return value;
+		}
+	}
+	else if ($elem.hasClass('multiselect'))
+	{
+		var arr = $elem.select2('data');
+		var res = [];
+		for (var i in arr){
+			res.push(arr[i].id);
+		}
+		return res;
+	}
+	else if (tag == 'input' && type == 'checkbox')
+	{
+		if ($elem.prop("checked"))
+			return 1;
+		return 0;
+	}
+	else if (tag == 'input' && type == 'radio')
+	{
+		return null;
+	}
+	
+	else if (tag == 'input' && type == 'file')
+	{
+		var multiple = $elem.attr('multiple');
+		if (typeof multiple != "undefined" && multiple !== false){
+			return $elem.get(0).files;
+		}
+		return $elem.get(0).files[0];
+	}
+	
+	return $elem.val();
+}
 
 
 /**
@@ -302,6 +384,7 @@ function ElberosFormGetData ( $form )
  */
 function ElberosFormSetWaitMessage ( $form )
 {
+	$form.find('.web_form_result').html('Ожидайте идёт отправка запроса');
 	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
 }
 
@@ -335,10 +418,7 @@ function ElberosFormSetResponse ( $form, res, settings )
 		$form.find('.web_form_result').addClass('web_form__result--error');
 		$form.find('.web_form_result').html(res.message);
 		
-		if (res.code == -2)
-		{
-			ElberosFormSetFieldsResult($form, res);
-		}
+		ElberosFormSetFieldsResult($form, res);
 	}
 }
 
@@ -386,6 +466,7 @@ function ElberosFormClearResult($form)
 	$form.find('.web_form_result').removeClass('web_form_result--error');
 	$form.find('.web_form_result').removeClass('web_form__result--success');
 	$form.find('.web_form_result').removeClass('web_form_result--success');
+	$form.find('.web_form_result').html('');
 }
 
 
@@ -453,6 +534,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 	var validation = settings.validation;
 	var form_api_name = settings.api_name;
 	var form_title = settings.form_title != undefined ? settings.form_title : "";
+	var form_position = settings.form_position != undefined ? settings.form_position : "";
 	var wp_nonce = $form.find('.web_form__wp_nonce').val();
 	
 	/* Get data */
@@ -481,6 +563,7 @@ function ElberosFormSubmit ( $form, settings, callback )
 		'_wpnonce': wp_nonce,
 		'form_api_name': form_api_name,
 		'form_title': form_title,
+		'form_position': form_position,
 		'data': data
 	};
 	
@@ -523,9 +606,12 @@ function ElberosFormRenameID($el)
 	var gen_id = Math.random();
 	$el.find(".web_form__input").each(function(){
 		var id = $(this).attr("id");
-		var new_id = id + "_" + gen_id;
-		$el.find("label[for=" + id + "]").attr("for", new_id);
-		$(this).attr("id", new_id)
+		if (id != undefined)
+		{
+			var new_id = id + "_" + gen_id;
+			$el.find("label[for=" + id + "]").attr("for", new_id);
+			$(this).attr("id", new_id)
+		}
 	});
 }
 
@@ -654,6 +740,8 @@ function ElberosDialog()
 
 Object.assign( ElberosDialog.prototype, {
 	
+	isset: function(val){ return (val != null) && ((typeof val) != "undefined"); },
+	
 	setSettings: function(settings)
 	{
 		if (settings == undefined) return;
@@ -735,7 +823,7 @@ Object.assign( ElberosDialog.prototype, {
 		this.sendEvent('open');
 	},
 	
-	getDialogBox: function()
+	getDialogStyles: function()
 	{
 		var styles = '';
 		if (this.styles instanceof Array)
@@ -747,6 +835,13 @@ Object.assign( ElberosDialog.prototype, {
 			}
 			styles = styles_arr.join(' ');
 		}
+		return styles;
+	},
+	
+	getDialogBox: function()
+	{
+		var styles = this.getDialogStyles();
+		
 		var $obj = $('<div class="elberos_dialog__box ' + styles + '"><table class="elberos_dialog__box_table"><tr class="elberos_dialog__box_tr"><td class="elberos_dialog__box_td"></td></tr></table></div>');
 		
 		//this.$shadow = $('<div class="elberos_dialog__shadow"></div>');
@@ -785,7 +880,7 @@ Object.assign( ElberosDialog.prototype, {
 	
 	getButtonCloseHtml: function()
 	{
-		return '<button class="button elberos_dialog__button_close"><div></div></button>';
+		return '<button class="elberos_dialog__button_close"><div></div></button>';
 	},
 	
 	getButtonsHtml: function()
@@ -836,7 +931,7 @@ Object.assign( ElberosDialog.prototype, {
 	subscribe: function(event, callback)
 	{
 		
-		if (!isset(this.events[event]))
+		if (!this.isset(this.events[event]))
 		{
 			this.events[event] = new Array();
 		}
@@ -851,10 +946,10 @@ Object.assign( ElberosDialog.prototype, {
 	 */
 	sendEvent: function(event, data)
 	{
-		if (!isset(data)) data = null;
+		if (!this.isset(data)) data = null;
 		
 		var res = null;
-		if (isset(this.events[event]))
+		if (this.isset(this.events[event]))
 		{
 			var events = this.events[event];
 			for (var i=0; i<events.length; i++)

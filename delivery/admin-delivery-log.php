@@ -281,6 +281,13 @@ class Log_Table extends \WP_List_Table
 				<?= esc_html( $this->column_status($item) ) ?>
 			</p>
 			
+			<!-- Error -->
+			<p>
+				<label for="title"><b><?php _e('Error', 'elberos-core')?>:</b></label>
+			<br>
+				<?= esc_html( $item['send_email_error'] ) ?>
+			</p>
+			
 			<!-- Dest -->
 			<p>
 				<label for="title"><b><?php _e('Dest', 'elberos-core')?>:</b></label>

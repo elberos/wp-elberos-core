@@ -96,8 +96,6 @@ class Elberos_C4WP_Create_Image_Captcha {
 		header( 'Cache-Control: post-check=0, pre-check=0', false );
 		header( 'Pragma: no-cache' );
 		header( 'Content-Type: image/jpeg' );
-		imagejpeg($c4wp_image,NULL,90);
-        imagedestroy($c4wp_image);
 		
 		if ($this->c4wp_key != "")
 		{
@@ -112,6 +110,10 @@ class Elberos_C4WP_Create_Image_Captcha {
 			);
 			setcookie($this->c4wp_key, $cookie_jwt, time() + 24*60*60, '/');
 		}
+		
+		/* Show captcha */
+		imagejpeg($c4wp_image,NULL,90);
+        imagedestroy($c4wp_image);
     }
 	
 	/**

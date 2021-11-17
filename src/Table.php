@@ -788,7 +788,7 @@ class Table extends \Elberos_WP_List_Table
 				<div id="message" class="updated"><p><?php echo $message ?></p></div>
 			<?php endif;?>
 			
-			<form id="elberos_form" method="POST">
+			<form id="elberos_form" class="<?= esc_attr("web_form_" . $this->struct->entity_name) ?>" method="POST">
 				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
 				<?php $this->display_form_content() ?>
 				<?php $this->display_form_buttons() ?>

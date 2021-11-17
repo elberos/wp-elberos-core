@@ -529,9 +529,9 @@ class StructBuilder
 			}
 			?>
 		}
-		<?php if (!is_admin()){ echo "onJQueryLoaded(function(){"; } ?>
+		<?php if (!is_admin()){ echo "onJQueryLoaded(function(){\n"; } ?>
 			change_form_<?= $this->entity_name ?>();
-			jQuery("document").on("change", ".web_form_<?= $this->entity_name ?> .web_form_value", function(){
+			jQuery(".web_form_<?= $this->entity_name ?> .web_form_value").change(function(){
 				change_form_<?= $this->entity_name ?>();
 			});
 		<?php if (!is_admin()){ echo "});"; } ?>

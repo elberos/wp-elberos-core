@@ -72,6 +72,12 @@ class Elberos_Plugin
 			update_option( 'rank_math_review_notice_added', 1);
 		}
 		
+		/* Disable Rank Math Notice Pro */
+		if ( get_option( 'rank_math_pro_notice_date' ) > time() + 24 * 60 * 60 )
+		{
+			update_option( 'rank_math_pro_notice_date',  365 * 24 * 60 * 60);
+		}
+		
 		// Add Cron
 		add_filter( 'cron_schedules', 'Elberos_Plugin::cron_schedules' );
 		if ( !wp_next_scheduled( 'elberos_cron_send_mail' ) )
@@ -85,6 +91,9 @@ class Elberos_Plugin
 		
 		/* UTM form filter */
 		add_filter( 'elberos_form_utm', 'Elberos_Plugin::elberos_form_utm' );
+		
+		/* Load languages */
+		load_theme_textdomain( 'elberos', __DIR__ . '/languages' );
 	}	
 	
 	

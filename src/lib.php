@@ -21,6 +21,43 @@
 namespace Elberos;
 
 
+
+/**
+ * Return site option
+ */
+function get_option($key, $value = "")
+{
+	if ( ! is_multisite() )
+	{
+		return \get_option($key, $value);
+	}
+	return \get_network_option(1, $key, $value);
+}
+
+
+
+/**
+ * Save site option
+ */
+function save_option($key, $value)
+{
+	if ( ! is_multisite() )
+	{
+		if (!add_option($key, $value, "", "no"))
+		{
+			\update_option($key, $value);
+		}
+	}
+	else
+	{
+		if (!add_network_option(1, $key, $value, "", "no"))
+		{
+			\update_network_option(1, $key, $value);
+		}
+	}
+}
+
+
 /**
  * Get url parameters
  */
@@ -29,6 +66,31 @@ function url_get($key, $value = "")
 	return isset($_GET[$key]) ? $_GET[$key] : $value;
 }
 
+
+/**
+ * Add get parametr
+ */
+function url_get_add($url, $key, $value = "")
+{
+	$url_parts = parse_url($url);
+	$get_args = [];
+	
+	if (isset($url_parts['query']))
+	{
+		parse_str($url_parts['query'], $get_args);
+	}
+	
+	$get_args[$key] = $value;
+	$url_parts['query'] = http_build_query($get_args);
+	
+	$new_url = "";
+	if (isset($url_parts["scheme"])) $new_url .= $url_parts["scheme"] . "://";
+	if (isset($url_parts["host"])) $new_url .= $url_parts["host"];
+	if (isset($url_parts["path"])) $new_url .= $url_parts["path"];
+	if (isset($url_parts["query"])) $new_url .= "?" . $url_parts["query"];
+	
+	return $new_url;
+}
 
 
 /**
@@ -505,7 +567,7 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 function wp_langs()
 {
 	$res = [];
-	if ( defined( 'POLYLANG_VERSION' ) )
+	if ( defined( 'POLYLANG_VERSION' ) && function_exists("\\PLL") )
 	{
 		$links = \PLL()->links;
 		if ($links)
@@ -541,9 +603,9 @@ function wp_get_default_lang()
 function wp_hide_default_lang()
 {
 	$res = false;
-	if ( defined( "POLYLANG_VERSION" ) )
+	if ( defined( "POLYLANG_VERSION" ) && function_exists("\\PLL") )
 	{
-		$res = PLL()->options['hide_default'];
+		$res = \PLL()->options['hide_default'];
 	}
 	return $res;
 }
@@ -1016,6 +1078,8 @@ function wpdb_query($params)
 {
 	global $wpdb;
 	
+	$sql_arr = [];
+	$distinct = (isset($params["distinct"]) && $params["distinct"]) ? "DISTINCT" : "";
 	$table_name = isset($params["table_name"]) ? $params["table_name"] : "";
 	$fields = isset($params["fields"]) ? $params["fields"] : "t.*";
 	$join = isset($params["join"]) ? $params["join"] : "";
@@ -1026,7 +1090,6 @@ function wpdb_query($params)
 	$page = 0;
 	if (isset($params["page"])) $page = $params["page"];
 	
-	$sql_arr = [];
 	$args = isset($params["args"]) ? $params["args"] : [];
 	$where = isset($params["where"]) ? $params["where"] : "";
 	if ($where != "") $where = "where " . $where;
@@ -1034,27 +1097,23 @@ function wpdb_query($params)
 	/* Table prefix */
 	$table_name = str_replace("\${prefix}", $wpdb->prefix, $table_name);
 	$table_name = str_replace("\${base_prefix}", $wpdb->base_prefix, $table_name);
-	
-	/* where */
-	$where = wpdb_query_args($where, $args, $sql_arr);
-	
+		
 	/* Order by */
 	if ($order_by) $order_by = "ORDER BY " . $order_by;
+	
+	$sql = "SELECT SQL_CALC_FOUND_ROWS ${distinct} ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
+	$sql = wpdb_query_args($sql, $args, $sql_arr);
 	
 	$limit = "";
 	if ($per_page > 0)
 	{
 		$sql_arr[] = $per_page;
 		$sql_arr[] = $page * $per_page;
-		$limit = "LIMIT %d OFFSET %d";
+		$sql .= " LIMIT %d OFFSET %d";
 	}
 	
-	$sql = $wpdb->prepare
-	(
-		"SELECT SQL_CALC_FOUND_ROWS ${fields} FROM ${table_name} as t ${join} ${where}
-		${order_by} ${limit}",
-		$sql_arr
-	);
+	/* Query */
+	$sql = $wpdb->prepare($sql, $sql_arr);
 	
 	if ($log)
 	{
@@ -1293,4 +1352,18 @@ function decode_jwt($text, $jwt_key)
 	if (!$verify) return null;
 	
 	return $data;
+}
+
+
+/**
+ * Generate uuid
+ */
+function uid()
+{
+	$bytes = bin2hex(random_bytes(16));
+	return substr($bytes, 0, 8) . "-" .
+		substr($bytes, 8, 4) . "-" .
+		substr($bytes, 12, 4) . "-" .
+		substr($bytes, 16, 4) . "-" .
+		substr($bytes, 20);
 }
