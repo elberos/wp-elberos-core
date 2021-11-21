@@ -114,7 +114,7 @@ function loginLockdown_install() {
 	if( $wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name ) {
 		$sql = "CREATE TABLE " . $table_name . " (
 			`login_attempt_ID` bigint(20) NOT NULL AUTO_INCREMENT,
-			`user_id` bigint(20) NOT NULL,
+			`user_name` varchar(255) NOT NULL,
 			`login_attempt_date` datetime NOT NULL default '0000-00-00 00:00:00',
 			`login_attempt_IP` varchar(100) NOT NULL default '',
 			PRIMARY KEY  (`login_attempt_ID`),
@@ -131,7 +131,7 @@ function loginLockdown_install() {
 	if( $wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name ) {
 		$sql = "CREATE TABLE " . $table_name . " (
 			`lockdown_ID` bigint(20) NOT NULL AUTO_INCREMENT,
-			`user_id` bigint(20) NOT NULL,
+			`user_name` varchar(255) NOT NULL,
 			`lockdown_date` datetime NOT NULL default '0000-00-00 00:00:00',
 			`release_date` datetime NOT NULL default '0000-00-00 00:00:00',
 			`lockdown_IP` varchar(100) NOT NULL default '',
@@ -171,20 +171,12 @@ function incrementFails($username = "") {
 	global $loginlockdownOptions;
 	$table_name = $wpdb->base_prefix . "login_fails";
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
-
+	
 	$username = sanitize_user($username);
-	$user = get_user_by('login',$username);
-	if ( $user || "yes" == $loginlockdownOptions['lockout_invalid_usernames'] ) {
-		if ( $user === false ) { 
-			$user_id = -1;
-		} else {
-			$user_id = $user->ID;
-		}
-		$insert = "INSERT INTO " . $table_name . " (user_id, login_attempt_date, login_attempt_IP) " .
-				"VALUES ('" . $user_id . "', now(), '%s')";
-		$insert = $wpdb->prepare( $insert, $subnet[0] );
-		$results = $wpdb->query($insert);
-	}
+	$insert = "INSERT INTO " . $table_name . " (user_name, login_attempt_date, login_attempt_IP) " .
+			"VALUES (%s, now(), '%s')";
+	$insert = $wpdb->prepare( $insert, $username, $subnet[0] );
+	$results = $wpdb->query($insert);
 }
 
 function lockDown($username = "") {
@@ -194,19 +186,11 @@ function lockDown($username = "") {
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
 	$username = sanitize_user($username);
-	$user = get_user_by('login',$username);
-	if ( $user || "yes" == $loginlockdownOptions['lockout_invalid_usernames'] ) {
-		if ( $user === false ) { 
-			$user_id = -1;
-		} else {
-			$user_id = $user->ID;
-		}
-		$insert = "INSERT INTO " . $table_name . " (user_id, lockdown_date, release_date, lockdown_IP) " .
-				"VALUES ('" . $user_id . "', now(), date_add(now(), INTERVAL " .
-				$loginlockdownOptions['lockout_length'] . " MINUTE), '%s')";
-		$insert = $wpdb->prepare( $insert, $subnet[0] );
-		$results = $wpdb->query($insert);
-	}
+	$insert = "INSERT INTO " . $table_name . " (user_name, lockdown_date, release_date, lockdown_IP) " .
+			"VALUES (%s, now(), date_add(now(), INTERVAL " .
+			$loginlockdownOptions['lockout_length'] . " MINUTE), '%s')";
+	$insert = $wpdb->prepare( $insert, $username, $subnet[0] );
+	$results = $wpdb->query($insert);
 }
 
 function isLockedDown() {
@@ -214,11 +198,11 @@ function isLockedDown() {
 	$table_name = $wpdb->base_prefix . "lockdowns";
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
-	$stillLockedquery = "SELECT user_id FROM $table_name " . 
+	$stillLockedquery = "SELECT user_name FROM $table_name " . 
 					"WHERE release_date > now() AND " . 
 					"lockdown_IP LIKE %s";
-	$stillLockedquery = $wpdb->prepare($stillLockedquery,$subnet[1] . "%");
-
+	$stillLockedquery = $wpdb->prepare($stillLockedquery, $subnet[1] . "%");
+	//var_dump($stillLockedquery);
 	$stillLocked = $wpdb->get_var($stillLockedquery);
 
 	return $stillLocked;
@@ -228,8 +212,10 @@ function listLockedDown() {
 	global $wpdb;
 	$table_name = $wpdb->base_prefix . "lockdowns";
 
-	$listLocked = $wpdb->get_results("SELECT lockdown_ID, floor((UNIX_TIMESTAMP(release_date)-UNIX_TIMESTAMP(now()))/60) AS minutes_left, ".
-					"lockdown_IP FROM $table_name WHERE release_date > now()", ARRAY_A);
+	$listLocked = $wpdb->get_results(
+		"SELECT lockdown_ID, floor((UNIX_TIMESTAMP(release_date)-UNIX_TIMESTAMP(now()))/60) AS minutes_left, ".
+		"lockdown_IP FROM $table_name WHERE release_date > now()", ARRAY_A
+	);
 
 	return $listLocked;
 }
@@ -481,7 +467,14 @@ if ( isset($loginlockdown_db_version) ) {
 		
 		if ($user == null or (is_wp_error($user) && !in_array($user->get_error_code(), $ignore_codes)))
 		{
-			incrementFails($username);
+			if ( $attempts_left >= 0 )
+			{
+				incrementFails($username);
+			}
+			else
+			{
+				$attempts_left = 0;
+			}
 			if ( $attempts_left == 0 )
 			{
 				lockDown($username);
@@ -616,13 +609,12 @@ if ( isset($loginlockdown_db_version) ) {
 	function loginlockdown_release()
 	{
 		global $wpdb;
-		$table_name = $wpdb->base_prefix . "lockdowns";
 		$table_name_lockdowns = $wpdb->base_prefix . "lockdowns";
 		$table_name_login_fails = $wpdb->base_prefix . "login_fails";
 		$loginlockdownAdminOptions = get_loginlockdownOptions();
 		
-		// Log month's records
-		$release_date = gmdate('Y-m-d H:i:s', time() - 30*24*3600);
+		// Log 3 month's records
+		$release_date = gmdate('Y-m-d H:i:s', time() - 90*24*3600);
 		
 		// Delete lockdowns
 		$sql = "DELETE FROM $table_name_lockdowns " .
