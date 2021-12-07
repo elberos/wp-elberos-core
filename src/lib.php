@@ -1367,3 +1367,39 @@ function uid()
 		substr($bytes, 16, 4) . "-" .
 		substr($bytes, 20);
 }
+
+
+/**
+ * Returns toc
+ */
+function get_toc($content)
+{
+	$res = [];
+	
+	if ( preg_match_all( '/(<h([1-6]{1})[^>]*>)(.*)<\/h\2>/msuU', $content, $matches, PREG_SET_ORDER ) )
+	{
+		foreach ($matches as $arr)
+		{
+			$h_name = $arr[1];
+			$h_title = trim($arr[3]);
+			
+			if ($h_name == "<h1>") $h_name = "h1";
+			else if ($h_name == "<h2>") $h_name = "h2";
+			else if ($h_name == "<h3>") $h_name = "h3";
+			else if ($h_name == "<h4>") $h_name = "h4";
+			else if ($h_name == "<h5>") $h_name = "h5";
+			else if ($h_name == "<h6>") $h_name = "h6";
+			
+			if (in_array($h_name, ["h1","h2","h3","h4","h5","h6"]))
+			{
+				$res[] =
+				[
+					"name" => $h_name,
+					"title" => $h_title,
+				];
+			}
+		}
+	}
+	
+	return $res;
+}
