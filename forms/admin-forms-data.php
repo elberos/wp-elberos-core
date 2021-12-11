@@ -219,7 +219,7 @@ class Data_Table extends \WP_List_Table
         $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('asc', 'desc'))) ? $_REQUEST['order'] : 'desc';
 		
 		$sql = $wpdb->prepare(
-			"SELECT t.*, forms.name as form_name FROM $table_name as t
+			"SELECT t.*, forms.name as form_name, forms.api_name as form_api_name FROM $table_name as t
 			INNER JOIN $forms_settings_table_name as forms on (forms.id = t.form_id)
 			ORDER BY $orderby $order LIMIT %d OFFSET %d",
 			$per_page,
@@ -259,7 +259,7 @@ class Data_Table extends \WP_List_Table
 		{
 			$item_id = (int) (isset($_REQUEST['id']) ? $_REQUEST['id'] : 0);
 			$sql = $wpdb->prepare(
-				"SELECT t.*, forms.name as form_name FROM $table_name as t
+				"SELECT t.*, forms.name as form_name, forms.api_name as form_api_name FROM $table_name as t
 				INNER JOIN $forms_settings_table_name as forms on (forms.id = t.form_id)
 				WHERE t.id = %d", $item_id
 			);

@@ -1200,7 +1200,7 @@ $(document).on('click', 'img.elberos_captcha_image', function(){
 });
 
 function scrollTop(top, duration, easing){
-	if (duration == undefined) duration = 'slow';
+	if (duration == undefined) duration = '400';
 	if (easing == undefined) easing = 'swing';
 	if (top == undefined) top = 0;
 	$('body,html').animate({'scrollTop': top}, duration, easing);

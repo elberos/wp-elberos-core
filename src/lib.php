@@ -1374,7 +1374,10 @@ function uid()
  */
 function get_toc($content)
 {
-	$res = [];
+	$res = [
+		"headers" => [],
+		"content" => $content,
+	];
 	
 	if ( preg_match_all( '/(<h([1-6]{1})[^>]*>)(.*)<\/h\2>/msuU', $content, $matches, PREG_SET_ORDER ) )
 	{
@@ -1382,6 +1385,7 @@ function get_toc($content)
 		{
 			$h_name = $arr[1];
 			$h_title = trim($arr[3]);
+			$h_id = sanitize_title($h_title);
 			
 			if ($h_name == "<h1>") $h_name = "h1";
 			else if ($h_name == "<h2>") $h_name = "h2";
@@ -1392,14 +1396,27 @@ function get_toc($content)
 			
 			if (in_array($h_name, ["h1","h2","h3","h4","h5","h6"]))
 			{
-				$res[] =
+				$replace = "<" . $h_name . " id=\"" . esc_attr($h_id) . "\">" .
+					$h_title .
+				"</" . $h_name . ">";
+				
+				$res["headers"][] =
 				[
+					"find" => $arr[0],
+					"replace" => $replace,
 					"name" => $h_name,
 					"title" => $h_title,
+					"id" => $h_id,
 				];
 			}
 		}
 	}
+	
+	foreach ($res["headers"] as $h)
+	{
+		$content = mb_eregi_replace( $h["find"], $h["replace"], $content );
+	}
+	$res["content"] = $content;
 	
 	return $res;
 }
