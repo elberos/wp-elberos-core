@@ -186,6 +186,19 @@ if ( !class_exists( MailSender::class ) )
 			$form_data_res = []; $form_data_utm = [];
 			$form_data = @json_decode($item['data'], true);
 			$form_utm = @json_decode($item['utm'], true);
+			
+			// elberos_form_get_data
+			$res = apply_filters
+			(
+				'elberos_form_get_data',
+				[
+					'item' => $item,
+					'data' => $form_data,
+					'name' => 'display_item',
+				]
+			);
+			$form_data = $res['data'];
+			
 			foreach ($form_data as $key => $value)
 			{
 				if ($value == "") continue;

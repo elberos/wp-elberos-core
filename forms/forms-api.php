@@ -160,7 +160,7 @@ class Api
 		/* If validate fields error */
 		if ($validation != null && count($validation) > 0)
 		{
-			$validation_error = isset($find_client_res['message']) ? $find_client_res['message'] : null;
+			$validation_error = isset($validation['message']) ? $validation['message'] : null;
 			return 
 			[
 				"success" => false,

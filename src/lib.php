@@ -1403,3 +1403,24 @@ function get_toc($content)
 	
 	return $res;
 }
+
+
+/**
+ * Returns posts
+ */
+function get_posts($args)
+{
+	$query = new \WP_Query;
+	$items = $query->query($args);
+	$paged = $query->query_vars["paged"];
+	if ($paged <= 0) $paged = 1;
+	return
+	[
+		"query" => $query,
+		"items" => $items,
+		"total" => $query->found_posts,
+		"posts_per_page" => $query->query["posts_per_page"],
+		"paged" => $paged,
+		"pages" => $query->max_num_pages,
+	];
+}
