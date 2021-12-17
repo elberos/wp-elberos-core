@@ -1441,3 +1441,34 @@ function get_posts($args)
 		"pages" => $query->max_num_pages,
 	];
 }
+
+
+/**
+ * Title split
+ */
+function title_cut_words($s, $len, $end = "")
+{
+	$res = "";
+	$res_len = 0;
+	$is_cut = false;
+	$s = trim($s);
+	$words = explode(' ', $s);
+	$words = array_filter($words, function($item){ return trim($item) != ""; });
+	foreach ($words as $word)
+	{
+		$res_len += mb_strlen($word);
+		if ($res_len > $len)
+		{
+			$is_cut = true;
+			break;
+		}
+		$res .= " " . $word;
+	}
+	
+	if ($is_cut)
+	{
+		$res .= $end;
+	}
+	
+	return $res;
+}

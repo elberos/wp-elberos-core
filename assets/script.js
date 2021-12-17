@@ -309,6 +309,8 @@ function ElberosFormGetData ( $form )
 		var item = $item.get(0);
 		var name = $item.attr('data-name');
 		var type = $item.attr('type');
+		var is_skip = $item.attr('data-value-skip');
+		if (is_skip == 1) continue;
 		if (type=='radio')
 		{
 			if (item.checked)
