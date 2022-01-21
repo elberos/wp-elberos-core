@@ -136,7 +136,7 @@ class Api
 		$form_id = $form['id'];
 		$form_settings = @json_decode($form['settings'], true);
 		$form_settings_fields = isset($form_settings['fields']) ? $form_settings['fields'] : [];
-		$data = isset($_POST["data"]) ? $_POST["data"] : [];
+		$data = stripslashes_deep(isset($_POST["data"]) ? $_POST["data"] : []);
 		
 		/* Add UTM */
 		$utm = isset($_POST["utm"]) ? $_POST["utm"] : [];
@@ -160,7 +160,7 @@ class Api
 		/* If validate fields error */
 		if ($validation != null && count($validation) > 0)
 		{
-			$validation_error = isset($find_client_res['message']) ? $find_client_res['message'] : null;
+			$validation_error = isset($validation['message']) ? $validation['message'] : null;
 			return 
 			[
 				"success" => false,

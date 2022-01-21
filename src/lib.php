@@ -1366,3 +1366,108 @@ function uid()
 		substr($bytes, 16, 4) . "-" .
 		substr($bytes, 20);
 }
+
+
+/**
+ * Returns toc
+ */
+function get_toc($content)
+{
+	$res = [
+		"headers" => [],
+		"content" => $content,
+	];
+	
+	if ( preg_match_all( '/(<h([1-6]{1})[^>]*>)(.*)<\/h\2>/msuU', $content, $matches, PREG_SET_ORDER ) )
+	{
+		foreach ($matches as $arr)
+		{
+			$h_name = $arr[1];
+			$h_title = trim($arr[3]);
+			$h_id = sanitize_title($h_title);
+			
+			if ($h_name == "<h1>") $h_name = "h1";
+			else if ($h_name == "<h2>") $h_name = "h2";
+			else if ($h_name == "<h3>") $h_name = "h3";
+			else if ($h_name == "<h4>") $h_name = "h4";
+			else if ($h_name == "<h5>") $h_name = "h5";
+			else if ($h_name == "<h6>") $h_name = "h6";
+			
+			if (in_array($h_name, ["h1","h2","h3","h4","h5","h6"]))
+			{
+				$replace = "<" . $h_name . " id=\"" . esc_attr($h_id) . "\">" .
+					$h_title .
+				"</" . $h_name . ">";
+				
+				$res["headers"][] =
+				[
+					"find" => $arr[0],
+					"replace" => $replace,
+					"name" => $h_name,
+					"title" => $h_title,
+					"id" => $h_id,
+				];
+			}
+		}
+	}
+	
+	foreach ($res["headers"] as $h)
+	{
+		$content = mb_eregi_replace( $h["find"], $h["replace"], $content );
+	}
+	$res["content"] = $content;
+	
+	return $res;
+}
+
+
+/**
+ * Returns posts
+ */
+function get_posts($args)
+{
+	$query = new \WP_Query;
+	$items = $query->query($args);
+	$paged = $query->query_vars["paged"];
+	if ($paged <= 0) $paged = 1;
+	return
+	[
+		"query" => $query,
+		"items" => $items,
+		"total" => $query->found_posts,
+		"posts_per_page" => $query->query["posts_per_page"],
+		"paged" => $paged,
+		"pages" => $query->max_num_pages,
+	];
+}
+
+
+/**
+ * Title split
+ */
+function title_cut_words($s, $len, $end = "")
+{
+	$res = "";
+	$res_len = 0;
+	$is_cut = false;
+	$s = trim($s);
+	$words = explode(' ', $s);
+	$words = array_filter($words, function($item){ return trim($item) != ""; });
+	foreach ($words as $word)
+	{
+		$res_len += mb_strlen($word);
+		if ($res_len > $len)
+		{
+			$is_cut = true;
+			break;
+		}
+		$res .= " " . $word;
+	}
+	
+	if ($is_cut)
+	{
+		$res .= $end;
+	}
+	
+	return $res;
+}

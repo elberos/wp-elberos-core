@@ -403,7 +403,12 @@ class Site
 			{
 				$title = isset($this->route_info['params']['title']) ?
 					$this->route_info['params']['title'] : "";
-				$this->add_breadcrumbs($title, $this->request['uri']);
+				$add_breadcrumbs = isset($this->route_info['params']['add_breadcrumbs']) ?
+					$this->route_info['params']['add_breadcrumbs'] : true;
+				if ($add_breadcrumbs && $title)
+				{
+					$this->add_breadcrumbs($title, $this->request['uri']);
+				}
 			}
 		}
 		
@@ -645,6 +650,21 @@ class Site
 		if ($this->route_info == null) return null;
 		if (!isset($this->route_info['params'])) return null;
 		return $this->route_info['params'];
+	}
+	
+	function get_route_match($match_name, $def = null)
+	{
+		if (!isset($this->route_info["matches"])) return $def;
+		if (!isset($this->route_info["matches"][$match_name])) return $def;
+		if (!isset($this->route_info["matches"][$match_name][0])) return $def;
+		return $this->route_info["matches"][$match_name][0];
+	}
+	
+	function get_route_name()
+	{
+		if ($this->route_info == null) return null;
+		if (!isset($this->route_info['route_name'])) return null;
+		return $this->route_info['route_name'];
 	}
 	
 	function get_category_by_id($cat_id)

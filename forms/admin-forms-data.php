@@ -131,8 +131,21 @@ class Data_Table extends \WP_List_Table
 	// Колонка DATA
 	function column_data($item)
 	{
-		$text = "";
+		$text = '';
 		$arr = json_decode($item['data'], true);
+		
+		// elberos_form_get_data
+		$res = apply_filters
+		(
+			'elberos_form_get_data',
+			[
+				'item' => $item,
+				'data' => $arr,
+				'name' => 'column_data',
+			]
+		);
+		$arr = $res['data'];
+		
 		$res = [];
 		foreach ($arr as $key => $value)
 		{
@@ -205,16 +218,15 @@ class Data_Table extends \WP_List_Table
         $orderby = (isset($_REQUEST['orderby']) && in_array($_REQUEST['orderby'], array_keys($this->get_sortable_columns()))) ? $_REQUEST['orderby'] : 'id';
         $order = (isset($_REQUEST['order']) && in_array($_REQUEST['order'], array('asc', 'desc'))) ? $_REQUEST['order'] : 'desc';
 		
-        $this->items = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT t.*, forms.name as form_name FROM $table_name as t
-				INNER JOIN $forms_settings_table_name as forms on (forms.id = t.form_id)
-				ORDER BY $orderby $order LIMIT %d OFFSET %d",
-				$per_page,
-				$paged * $per_page
-			),
-			ARRAY_A
+		$sql = $wpdb->prepare(
+			"SELECT t.*, forms.name as form_name, forms.api_name as form_api_name FROM $table_name as t
+			INNER JOIN $forms_settings_table_name as forms on (forms.id = t.form_id)
+			ORDER BY $orderby $order LIMIT %d OFFSET %d",
+			$per_page,
+			$paged * $per_page
 		);
+		//var_dump($sql);
+        $this->items = $wpdb->get_results($sql, ARRAY_A);
 
 
         $this->set_pagination_args(array(
@@ -235,6 +247,8 @@ class Data_Table extends \WP_List_Table
 		
 		$action = $this->current_action();
 		$table_name = $this->get_table_name();
+		$forms_settings_table_name = $this->get_forms_settings_table_name();
+		
 		$message = "";
 		$notice = "";
 		$nonce = isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : false;
@@ -244,9 +258,13 @@ class Data_Table extends \WP_List_Table
 		if (isset($_REQUEST['id']))
 		{
 			$item_id = (int) (isset($_REQUEST['id']) ? $_REQUEST['id'] : 0);
-			$item = $wpdb->get_row(
-				$wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $item_id), ARRAY_A
+			$sql = $wpdb->prepare(
+				"SELECT t.*, forms.name as form_name, forms.api_name as form_api_name FROM $table_name as t
+				INNER JOIN $forms_settings_table_name as forms on (forms.id = t.form_id)
+				WHERE t.id = %d", $item_id
 			);
+			//var_dump($sql);
+			$item = $wpdb->get_row($sql, ARRAY_A);
 			if (!$item)
 			{
 				$item = $default;
@@ -261,6 +279,19 @@ class Data_Table extends \WP_List_Table
 		$form_data_res = []; $form_data_utm = [];
 		$form_data = @json_decode($item['data'], true);
 		$form_utm = @json_decode($item['utm'], true);
+		
+		// elberos_form_get_data
+		$res = apply_filters
+		(
+			'elberos_form_get_data',
+			[
+				'item' => $item,
+				'data' => $form_data,
+				'name' => 'display_item',
+			]
+		);
+		$form_data = $res['data'];
+		
 		foreach ($form_data as $key => $value)
 		{
 			if ($value == "") continue;
@@ -320,10 +351,12 @@ class Data_Table extends \WP_List_Table
 								<td class='forms_data_item_key'>ID</td>
 								<td class='forms_data_item_value'><?php echo esc_html($item['id']); ?></td>
 							</tr>
+							<?php if ($item['form_title'] != ""){ ?>
 							<tr class='forms_data_item'>
 								<td class='forms_data_item_key'>Title</td>
 								<td class='forms_data_item_value'><?php echo esc_html($item['form_title']); ?></td>
 							</tr>
+							<?php } ?>
 							<?php echo implode("", $res_data); ?>
 							<tr class='forms_data_item'>
 								<td class='forms_data_item_key'>Дата</td>

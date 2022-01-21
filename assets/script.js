@@ -309,6 +309,8 @@ function ElberosFormGetData ( $form )
 		var item = $item.get(0);
 		var name = $item.attr('data-name');
 		var type = $item.attr('type');
+		var is_skip = $item.attr('data-value-skip');
+		if (is_skip == 1) continue;
 		if (type=='radio')
 		{
 			if (item.checked)
@@ -445,6 +447,10 @@ function ElberosFormSetErrorResponse ( $form, data, settings )
  */
 function ElberosFormClearResult($form)
 {
+	$form.find('.web_form__value, .web_form_value').each(function(){
+		$(this).removeClass('web_form__value--error');
+		$(this).removeClass('web_form_value--error');
+	});
 	$form.find('.web_form__field_result, .web_form_field_result').each(function(){
 		var def_value = $(this).attr("data-default");
 		if (def_value == undefined)
@@ -456,13 +462,27 @@ function ElberosFormClearResult($form)
 			$(this).html(def_value);
 		}
 	});
+	$form.find('.web_form_result, .web_form__result').each(function(){
+		var def_value = $(this).attr("data-default");
+		if (def_value == undefined)
+		{
+			$(this).html('');
+		}
+		else
+		{
+			$(this).html(def_value);
+		}
+	});
 	$form.find('.web_form__field_result').removeClass('web_form__field_result--error');
-	$form.find('.web_form__result').removeClass('web_form__result--error');
-	$form.find('.web_form__result').removeClass('web_form__result--success');
 	$form.find('.web_form_field_result').removeClass('web_form_field_result--error');
+	$form.find('.web_form__result').removeClass('web_form__result--error');
+	$form.find('.web_form__result').removeClass('web_form_result--error');
+	$form.find('.web_form__result').removeClass('web_form__result--success');
+	$form.find('.web_form__result').removeClass('web_form_result--success');
+	$form.find('.web_form_result').removeClass('web_form__result--error');
 	$form.find('.web_form_result').removeClass('web_form_result--error');
+	$form.find('.web_form_result').removeClass('web_form__result--success');
 	$form.find('.web_form_result').removeClass('web_form_result--success');
-	$form.find('.web_form_result').html('');
 }
 
 
@@ -508,15 +528,17 @@ function ElberosFormSetFieldsResult($form, data)
 	{
 		var $item = $(arr[i]);
 		var name = $item.attr('data-name');
-		var def_value = $item.attr("data-default");
-		var msg = (def_value == undefined) ? "" : def_value;
+		var def_value = $item.attr('data-default');
+		var msg = (def_value == undefined) ? '' : def_value;
 		if (data.fields != undefined && data.fields[name] != undefined)
 		{
-			msg = data.fields[name].join("<br/>");
+			msg = data.fields[name].join('<br/>');
+			if ($item.hasClass('web_form__field_result')) $item.addClass('web_form__field_result--error');
+			if ($item.hasClass('web_form_field_result')) $item.addClass('web_form_field_result--error');
+			$item.parents('.web_form__row').find('.web_form__value').addClass('web_form__value--error');
+			$item.parents('.web_form__row').find('.web_form_value').addClass('web_form_value--error');
+			$item.html(msg);
 		}
-		if ($item.hasClass('web_form__field_result')) $item.addClass('web_form__field_result--error');
-		if ($item.hasClass('web_form_field_result')) $item.addClass('web_form_field_result--error');
-		$item.html(msg);
 	}
 }
 
@@ -551,8 +573,8 @@ function ElberosFormSubmit ( $form, settings, callback )
 	}
 	
 	/* Result */
-	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
 	ElberosFormClearResult( $form );
+	$form.find('.web_form__result').html('Ожидайте идёт отправка запроса');
 	
 	var send_data =
 	{
@@ -1178,3 +1200,15 @@ function reloadAllCaptcha(){
 $(document).on('click', 'img.elberos_captcha_image', function(){
 	reloadAllCaptcha();
 });
+
+function scrollTop(top, duration, easing){
+	if (duration == undefined) duration = '400';
+	if (easing == undefined) easing = 'swing';
+	if (top == undefined) top = 0;
+	$('body,html').animate({'scrollTop': top}, duration, easing);
+}
+
+function scrollToElement(el, duration, easing){
+	var top = $(el).offset().top;
+	scrollTop(top, duration, easing);
+}

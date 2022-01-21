@@ -302,6 +302,101 @@ class Table extends \Elberos_WP_List_Table
 	
 	
 	/**
+	 * Returns true if show filter
+	 */
+	function is_show_filter()
+	{
+		//var_dump( "elberos_table_is_show_filter_" . get_called_class() );
+		$result = apply_filters("elberos_table_is_show_filter_" . get_called_class(), false);
+		return $result;
+	}
+	
+	
+	
+	/**
+	 * Show filter
+	 */
+	function show_filter()
+	{
+		do_action("elberos_table_show_filter_" . get_called_class());
+	}
+	
+	
+	
+	// Фильтр
+	function extra_tablenav( $which )
+	{
+		if ( $which == "top" && $this->is_show_filter())
+		{
+			$partner = isset($_GET["partner"]) ? $_GET["partner"] : "";
+			$partner_id = isset($_GET["partner_id"]) ? $_GET["partner_id"] : "";
+			$status = isset($_GET["status"]) ? $_GET["status"] : "";
+			$order = isset($_GET["order"]) ? $_GET["order"] : "";
+			$orderby = isset($_GET["orderby"]) ? $_GET["orderby"] : "";
+			$is_deleted = isset($_GET["is_deleted"]) ? $_GET["is_deleted"] : "";
+			?>
+			<style>
+			.extra_tablenav_filter select, .extra_tablenav_filter input{
+				display: inline-block;
+				vertical-align: top;
+			}
+			</style>
+			<div class="extra_tablenav_filter">
+				<?php $this->extra_tablenav_before() ?>
+				<?php $this->show_filter() ?>
+				<?php $this->extra_tablenav_after() ?>
+				<input type="button" class="button dosearch" value="Поиск">
+			</div>
+			<script>
+			function extra_tablenav_filter_dosearch()
+			{
+				var filter = [];
+				<?= $is_deleted == "true" ? "filter.push('is_deleted=true');" : "" ?>
+				<?= $order != "" ? "filter.push('order='+" . json_encode($order) . ");" : "" ?>
+				<?= $orderby != "" ? "filter.push('orderby='+" . json_encode($orderby) . ");" : "" ?>
+				jQuery(".extra_tablenav_filter .web_form_value").each(function(){
+					var name = jQuery(this).attr("name");
+					var value = jQuery(this).val();
+					if (value != "") filter.push(name + "=" + encodeURIComponent(value));
+				});
+				filter = filter.join("&");
+				if (filter != "") filter = "&" + filter;
+				document.location.href = 'admin.php?page=<?= esc_attr($this->get_page_name()) ?>'+filter;
+			}
+			jQuery(".extra_tablenav_filter .dosearch").click(function(){
+				extra_tablenav_filter_dosearch();
+			});
+			jQuery(".extra_tablenav_filter .web_form_value").keydown(function(e){
+				if (e.keyCode == 13)
+				{
+					e.preventDefault();
+					extra_tablenav_filter_dosearch();
+					return false;
+				}
+			});
+			</script>
+			<?php
+		}
+	}
+	
+	
+	
+	/**
+	 * Process items params
+	 */
+	function prepare_table_items_filter($params)
+	{
+		if (isset($_GET['is_deleted']) && $_GET['is_deleted']) $params["where"][] = "is_deleted=1";
+		else $params["where"][] = "is_deleted=0";
+		
+		$params = apply_filters("elberos_table_prepare_items_params_" . get_called_class(), $params);
+		
+		return $params;
+	}
+	
+	
+	
+	/**
 	 * Process item before
 	 */
 	function process_item_before($item, $old_item, $action)
@@ -315,6 +410,44 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function process_item_after($item, $old_item, $action, $success)
 	{
+	}
+	
+	
+	
+	/**
+	 * Prepare table items
+	 */
+	function prepare_table_items()
+	{
+		$params =
+		[
+			"where" => [],
+			"args" => [],
+			"order_by" => "id desc",
+			"join" => [],
+			"page" => isset($_GET['paged']) ? max(0, intval($_GET['paged']) - 1) : 0,
+			"per_page" => $this->per_page(),
+		];
+		
+		$params = $this->prepare_table_items_filter($params);
+		
+		list($items, $total_items, $pages, $page) = \Elberos\wpdb_query
+		([
+			"table_name" => $this->get_table_name(),
+			"where" => implode(" and ", $params['where']),
+			"join" => implode(" ", $params['join']),
+			"args" => $params['args'],
+			"order_by" => $params['order_by'],
+			"page" => $params['page'],
+			"per_page" => $params['per_page'],
+		]);
+		
+		$this->items = $items;
+		$this->set_pagination_args(array(
+			'total_items' => $total_items, 
+			'per_page' => $params['per_page'],
+			'total_pages' => ceil($total_items / $params['per_page']) 
+		));
 	}
 	
 	
@@ -471,15 +604,6 @@ class Table extends \Elberos_WP_List_Table
 		/* After */
 		$this->process_item_after($this->form_item, $old_item, 'create', $success);
 		do_action("elberos_wp_list_table_process_item_after", [$this, $this->form_item, $old_item, $action, $success]);
-	}
-	
-	
-	
-	/**
-	 * Prepare table items
-	 */
-	function prepare_table_items()
-	{
 	}
 	
 	

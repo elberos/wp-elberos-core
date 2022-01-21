@@ -186,6 +186,19 @@ if ( !class_exists( MailSender::class ) )
 			$form_data_res = []; $form_data_utm = [];
 			$form_data = @json_decode($item['data'], true);
 			$form_utm = @json_decode($item['utm'], true);
+			
+			// elberos_form_get_data
+			$res = apply_filters
+			(
+				'elberos_form_get_data',
+				[
+					'item' => $item,
+					'data' => $form_data,
+					'name' => 'display_item',
+				]
+			);
+			$form_data = $res['data'];
+			
 			foreach ($form_data as $key => $value)
 			{
 				if ($value == "") continue;
@@ -298,18 +311,15 @@ if ( !class_exists( MailSender::class ) )
 			
 			// Load forms items
 			$table_name = $wpdb->base_prefix . 'elberos_forms_data';
-			$items = $wpdb->get_results
-			(
-				$wpdb->prepare
-				(
-					"SELECT t.* FROM $table_name as t
-					WHERE
-						send_email_code=0
-					LIMIT 5",
-					[]
-				),
-				ARRAY_A
-			);
+			$forms_settings_table_name = $wpdb->base_prefix . 'elberos_forms';
+			
+			$sql = "SELECT t.*,
+				forms.name as form_name,
+				forms.api_name as form_api_name
+			FROM $table_name as t
+			INNER JOIN $forms_settings_table_name as forms on (forms.id = t.form_id)
+			WHERE send_email_code=0 LIMIT 5";
+			$items = $wpdb->get_results($sql, ARRAY_A);
 			
 			// Send forms email
 			foreach ($items as $item)
@@ -333,14 +343,7 @@ if ( !class_exists( MailSender::class ) )
 			
 			// Send delivery email
 			$table_name_delivery = $wpdb->base_prefix . 'elberos_delivery';
-			$sql = $wpdb->prepare
-			(
-				"SELECT t.* FROM `$table_name_delivery` as t
-				WHERE
-					status=0
-				LIMIT 5",
-				[]
-			);
+			$sql = "SELECT t.* FROM `$table_name_delivery` as t WHERE status=0 LIMIT 5";
 			$items = $wpdb->get_results( $sql, ARRAY_A );
 			//var_dump( $sql );
 			
