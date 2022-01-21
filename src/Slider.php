@@ -214,7 +214,7 @@ class Slider
 			$js_var_name = $this->id . "_elem";
 		
 		$js_code = [];
-		$js_code[] = new RawString("var " . $js_var_name . "_ = null;");
+		$js_code[] = new RawString("var " . $js_var_name . " = null;");
 		$js_code[] = new RawString("\$load.subscribe('elberos_slider_loaded', function(){");
 		$js_code[] = Html::level([
 			new RawString($js_var_name . " = new ElberosSlider(\$(" . json_encode("#" . $this->id) . "));"),

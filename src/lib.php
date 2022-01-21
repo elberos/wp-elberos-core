@@ -1224,7 +1224,6 @@ function wpdb_insert_or_update($table_name, $search, $insert, $update = null)
 		"select * from $table_name where $where_str limit 1",
 		$search
 	);
-	
 	$item = $wpdb->get_row($sql, ARRAY_A);
 	$item_id = 0;
 	
