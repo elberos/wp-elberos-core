@@ -114,7 +114,7 @@ function loginLockdown_install() {
 	if( $wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name ) {
 		$sql = "CREATE TABLE " . $table_name . " (
 			`login_attempt_ID` bigint(20) NOT NULL AUTO_INCREMENT,
-			`user_name` varchar(255) NOT NULL,
+			`user_id` varchar(255) NOT NULL,
 			`login_attempt_date` datetime NOT NULL default '0000-00-00 00:00:00',
 			`login_attempt_IP` varchar(100) NOT NULL default '',
 			PRIMARY KEY  (`login_attempt_ID`),
@@ -131,7 +131,7 @@ function loginLockdown_install() {
 	if( $wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name ) {
 		$sql = "CREATE TABLE " . $table_name . " (
 			`lockdown_ID` bigint(20) NOT NULL AUTO_INCREMENT,
-			`user_name` varchar(255) NOT NULL,
+			`user_id` varchar(255) NOT NULL,
 			`lockdown_date` datetime NOT NULL default '0000-00-00 00:00:00',
 			`release_date` datetime NOT NULL default '0000-00-00 00:00:00',
 			`lockdown_IP` varchar(100) NOT NULL default '',
@@ -173,7 +173,7 @@ function incrementFails($username = "") {
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 	
 	$username = sanitize_user($username);
-	$insert = "INSERT INTO " . $table_name . " (user_name, login_attempt_date, login_attempt_IP) " .
+	$insert = "INSERT INTO " . $table_name . " (user_id, login_attempt_date, login_attempt_IP) " .
 			"VALUES (%s, now(), '%s')";
 	$insert = $wpdb->prepare( $insert, $username, $subnet[0] );
 	$results = $wpdb->query($insert);
@@ -186,7 +186,7 @@ function lockDown($username = "") {
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
 	$username = sanitize_user($username);
-	$insert = "INSERT INTO " . $table_name . " (user_name, lockdown_date, release_date, lockdown_IP) " .
+	$insert = "INSERT INTO " . $table_name . " (user_id, lockdown_date, release_date, lockdown_IP) " .
 			"VALUES (%s, now(), date_add(now(), INTERVAL " .
 			$loginlockdownOptions['lockout_length'] . " MINUTE), '%s')";
 	$insert = $wpdb->prepare( $insert, $username, $subnet[0] );
@@ -198,7 +198,7 @@ function isLockedDown() {
 	$table_name = $wpdb->base_prefix . "lockdowns";
 	$subnet = calc_subnet($_SERVER['REMOTE_ADDR']);
 
-	$stillLockedquery = "SELECT user_name FROM $table_name " . 
+	$stillLockedquery = "SELECT user_id FROM $table_name " . 
 					"WHERE release_date > now() AND " . 
 					"lockdown_IP LIKE %s";
 	$stillLockedquery = $wpdb->prepare($stillLockedquery, $subnet[1] . "%");

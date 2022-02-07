@@ -1282,6 +1282,105 @@ function wpdb_insert_or_update($table_name, $search, $insert, $update = null)
 }
 
 
+/**
+ * Upload file
+ */
+function upload_file($image_path_full, $params = [])
+{
+	global $wpdb;
+	
+	$is_file = is_file($image_path_full);
+	if (!$is_file)
+	{
+		return -1;
+	}
+	
+	/* File title */
+	$new_file_name = basename($image_path_full);
+	$post_name = $new_file_name;
+	if (isset($params['title']))
+	{
+		$post_name = $params['title'];
+	}
+	
+	/* Get sha1 */
+	$sha1 = isset($params["sha1"]) ? $params["sha1"] : "";
+	if (!$sha1)
+	{
+		$sha1 = sha1_file($image_path_full);
+	}
+	
+	/* Find image by sha1 */
+	$sql = \Elberos\wpdb_prepare
+	(
+		"select * from " . $wpdb->base_prefix . "postmeta " .
+		"where meta_key='file_sha1' and meta_value=:meta_value limit 1",
+		[
+			"meta_value" => $sha1,
+		]
+	);
+	$row = $wpdb->get_row($sql, ARRAY_A);
+	if ($row)
+	{
+		if (isset($params['title']))
+		{
+			$post =
+			[
+				'ID' => $row["post_id"],
+				'post_title' => $post_name,
+				'post_content' => $post_name,
+				'post_name' => $post_name,
+			];
+			wp_update_post($post);
+		}
+		return $row["post_id"];
+	}
+	
+	/* Upload file */
+	$file_content = file_get_contents($image_path_full);
+	$wp_filetype = @wp_check_filetype($new_file_name, null );
+	$upload = @wp_upload_bits( $new_file_name, null, $file_content );
+	
+	if ( !$upload['error'] )
+	{
+		$file_url = $upload['url'];
+		
+		$attachment = array
+		(
+			'post_date' => date('Y-m-d H:i:s'),
+			'post_date_gmt' => gmdate('Y-m-d H:i:s'),
+			'post_title' => $post_name,
+			'post_status' => 'inherit',
+			'comment_status' => 'closed',
+			'ping_status' => 'closed',
+			'post_name' => $post_name,
+			'post_modified' => date('Y-m-d H:i:s'),
+			'post_modified_gmt' => gmdate('Y-m-d H:i:s'),
+			'post_type' => 'attachment',
+			'guid' => $file_url,
+			'post_mime_type' => $wp_filetype['type'],
+			'post_excerpt' => '',
+			'post_content' => $post_name
+		);
+		
+		$photo_id = @wp_insert_attachment( $attachment, $upload['file'] );
+		@update_post_meta( $photo_id, 'file_sha1', $sha1 );
+		
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		
+		/* Update metadata */
+		@update_attached_file( $photo_id, $upload['file'] );
+		@wp_update_attachment_metadata
+		(
+			$photo_id, @wp_generate_attachment_metadata( $photo_id, $upload['file'] )
+		);
+		
+		return $photo_id;
+	}
+
+	return -1;
+}
+
 
 /**
  * Check captch

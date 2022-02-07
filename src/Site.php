@@ -1032,7 +1032,10 @@ class Site
 			{
 				$matches = [];
 				$match = $route['match'];
-				if ($langs != null && count($langs) > 0)
+				$route_enable_locale = (isset($route['params']) && isset($route['params']['enable_locale'])) ?
+					$route['params']['enable_locale'] : true
+				;
+				if ($route_enable_locale && $langs != null && count($langs) > 0)
 				{
 					$match = "/(" . implode("|", $langs) . ")" . $match;
 				}
@@ -1135,9 +1138,9 @@ class Site
 		return isset($this->routes[$name]) ? $this->routes[$name]['match'] : '';
 	}
 
-	function isRouteNameBegins()
+	function isRouteNameBegins($url)
 	{
-		return false;
+		return $this->isUrlBegins($url);
 	}
 
 	function isUrlBegins($url)
