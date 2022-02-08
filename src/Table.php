@@ -307,8 +307,28 @@ class Table extends \Elberos_WP_List_Table
 	function is_show_filter()
 	{
 		//var_dump( "elberos_table_is_show_filter_" . get_called_class() );
-		$result = apply_filters("elberos_table_is_show_filter_" . get_called_class(), false);
+		list($_,$result) = apply_filters("elberos_table_is_show_filter_" . get_called_class(), [$this,false]);
 		return $result;
+	}
+	
+	
+	
+	/**
+	 * Returns filter elements
+	 */
+	function get_filter()
+	{
+		return [];
+	}
+	
+	
+	
+	/**
+	 * Show filter item
+	 */
+	function show_filter_item($item_name)
+	{
+		do_action("elberos_table_show_filter_item_" . get_called_class(), [$this, $item_name]);
 	}
 	
 	
@@ -318,7 +338,31 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function show_filter()
 	{
-		do_action("elberos_table_show_filter_" . get_called_class());
+		$filter = $this->get_filter();
+		
+		list($_,$filter) = apply_filters("elberos_table_get_filter_" . get_called_class(), [$this, $filter]);
+		
+		foreach ($filter as $item_name)
+		{
+			$this->show_filter_item($item_name);
+		}
+		
+		do_action("elberos_table_show_filter_" . get_called_class(), $this);
+	}
+	
+	
+	
+	/**
+	 * JQ filter sub
+	 */
+	function jq_filter_sub()
+	{
+		return
+		[
+			"is_deleted",
+			"order",
+			"orderby",
+		];
 	}
 	
 	
@@ -328,32 +372,49 @@ class Table extends \Elberos_WP_List_Table
 	{
 		if ( $which == "top" && $this->is_show_filter())
 		{
-			$partner = isset($_GET["partner"]) ? $_GET["partner"] : "";
-			$partner_id = isset($_GET["partner_id"]) ? $_GET["partner_id"] : "";
-			$status = isset($_GET["status"]) ? $_GET["status"] : "";
-			$order = isset($_GET["order"]) ? $_GET["order"] : "";
-			$orderby = isset($_GET["orderby"]) ? $_GET["orderby"] : "";
-			$is_deleted = isset($_GET["is_deleted"]) ? $_GET["is_deleted"] : "";
 			?>
 			<style>
+			.tablenav{
+				height: auto !important;
+			}
+			.extra_tablenav_filter{
+				display: block;
+				clear: both;
+				padding-top: 10px;
+				padding-bottom: 10px;
+			}
 			.extra_tablenav_filter select, .extra_tablenav_filter input{
 				display: inline-block;
 				vertical-align: top;
+				max-width: 150px;
 			}
 			</style>
+			<div style="clear: both;"></div>
 			<div class="extra_tablenav_filter">
 				<?php $this->extra_tablenav_before() ?>
 				<?php $this->show_filter() ?>
 				<?php $this->extra_tablenav_after() ?>
+			</div>
+			<div class="extra_tablenav_filter_search">
 				<input type="button" class="button dosearch" value="Поиск">
 			</div>
+			<div style="clear: both;"></div>
+			<?php $jq_filter_sub = $this->jq_filter_sub(); ?>
 			<script>
 			function extra_tablenav_filter_dosearch()
 			{
 				var filter = [];
-				<?= $is_deleted == "true" ? "filter.push('is_deleted=true');" : "" ?>
-				<?= $order != "" ? "filter.push('order='+" . json_encode($order) . ");" : "" ?>
-				<?= $orderby != "" ? "filter.push('orderby='+" . json_encode($orderby) . ");" : "" ?>
+				<?php
+					foreach ($jq_filter_sub as $sub_name)
+					{
+						$sub_value = isset($_GET[$sub_name]) ? $_GET[$sub_name] : "";
+						if ($sub_value != "")
+						{
+							echo "filter.push('" . $sub_name . "=" . esc_attr($sub_value) . "');\n";
+						}
+						
+					}
+				?>
 				jQuery(".extra_tablenav_filter .web_form_value").each(function(){
 					var name = jQuery(this).attr("name");
 					var value = jQuery(this).val();
@@ -363,7 +424,7 @@ class Table extends \Elberos_WP_List_Table
 				if (filter != "") filter = "&" + filter;
 				document.location.href = 'admin.php?page=<?= esc_attr($this->get_page_name()) ?>'+filter;
 			}
-			jQuery(".extra_tablenav_filter .dosearch").click(function(){
+			jQuery(".extra_tablenav_filter_search .dosearch").click(function(){
 				extra_tablenav_filter_dosearch();
 			});
 			jQuery(".extra_tablenav_filter .web_form_value").keydown(function(e){
@@ -386,10 +447,17 @@ class Table extends \Elberos_WP_List_Table
 	 */
 	function prepare_table_items_filter($params)
 	{
-		if (isset($_GET['is_deleted']) && $_GET['is_deleted']) $params["where"][] = "is_deleted=1";
-		else $params["where"][] = "is_deleted=0";
+		/* Is deleted */
+		if (isset($_GET["is_deleted"]) && ($_GET["is_deleted"] == "true" || $_GET["is_deleted"] == "1"))
+		{
+			$params["where"][] = "is_deleted=1";
+		}
+		else
+		{
+			$params["where"][] = "is_deleted=0";
+		}
 		
-		$params = apply_filters("elberos_table_prepare_items_params_" . get_called_class(), $params);
+		list($_,$params) = apply_filters("elberos_table_prepare_items_params_" . get_called_class(), [$this,$params]);
 		
 		return $params;
 	}

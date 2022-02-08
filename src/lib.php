@@ -1383,6 +1383,39 @@ function upload_file($image_path_full, $params = [])
 
 
 /**
+ * Update term id
+ */
+function update_term_id($post_id, $term_id)
+{
+	global $wpdb;
+	
+	/* Insert term id */
+	$sql = \Elberos\wpdb_prepare
+	(
+		"select * from " . $wpdb->prefix . "term_relationships " .
+		"where object_id=:object_id and term_taxonomy_id=:term_taxonomy_id limit 1",
+		[
+			"object_id" => $post_id,
+			"term_taxonomy_id" => $term_id,
+		]
+	);
+	$item = $wpdb->get_row($sql, ARRAY_A);
+	if (!$item)
+	{
+		$wpdb->insert
+		(
+			$wpdb->prefix . "term_relationships",
+			[
+				"object_id" => $post_id,
+				"term_taxonomy_id" => $term_id,
+				"term_order" => 0,
+			]
+		);
+	}
+}
+
+
+/**
  * Check captch
  */
 function captcha_validation($value)
