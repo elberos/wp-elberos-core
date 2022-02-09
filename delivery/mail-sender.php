@@ -130,7 +130,11 @@ if ( !class_exists( MailSender::class ) )
 			$headers->addTextHeader('User-Agent', 'PHP Swiftmail');
 			
 			// Add email to
-			$email_to = explode(",", $email_to);
+			if (gettype($email_to) != 'array')
+			{
+				$email_to = str_replace(";", ",", $email_to);
+				$email_to = explode(",", $email_to);
+			}
 			$email_to = array_map( function($item){ return trim($item); }, $email_to );
 			$message->setTo($email_to);
 			
@@ -180,7 +184,8 @@ if ( !class_exists( MailSender::class ) )
 			$item_title = $item['form_title'];
 			$form_position = $item['form_position'];
 			$form_title = FormsHelper::get_form_title($form_id);
-			$title = ($item_title != "" ? $item_title : $form_title) . " с сайта " . $site_name;
+			$title = ($item_title != "" ? $item_title : $form_title) . " с сайта " .
+				$site_name . " номер " . $item["id"];
 			$email_to = FormsHelper::get_form_email_to($form_id);
 			
 			$form_data_res = []; $form_data_utm = [];
