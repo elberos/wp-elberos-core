@@ -627,6 +627,7 @@ class Site
 			'params' =>
 			[
 				'callback' => $callback,
+				'enable_locale_any' => true,
 				'render' => function($site)
 				{
 					header("Content-Type: application/json; charset=UTF-8");
@@ -1032,9 +1033,12 @@ class Site
 			{
 				$matches = [];
 				$match = $route['match'];
+				$enable_locale_any = (isset($route['params']) && isset($route['params']['enable_locale_any'])) ?
+					$route['params']['enable_locale_any'] : false;
 				$route_enable_locale = (isset($route['params']) && isset($route['params']['enable_locale'])) ?
 					$route['params']['enable_locale'] : true
 				;
+				if ($route_enable_locale == false) $enable_locale_any = false;
 				if ($route_enable_locale && $langs != null && count($langs) > 0)
 				{
 					$match = "/(" . implode("|", $langs) . ")" . $match;
@@ -1047,9 +1051,10 @@ class Site
 				{
 					$this->route_info = $route;
 					$this->route_info['matches'] = $matches;
+					//var_dump($route['match']);
 					break;
 				}
-				if ($hide_default_lang)
+				if ($hide_default_lang || $enable_locale_any)
 				{
 					$match = $route['match'];
 					$match = str_replace("/", "\\/", $match);
@@ -1138,9 +1143,10 @@ class Site
 		return isset($this->routes[$name]) ? $this->routes[$name]['match'] : '';
 	}
 
-	function isRouteNameBegins($url)
+	function isRouteNameBegins($route_name_begin)
 	{
-		return $this->isUrlBegins($url);
+		$route_name = $this->get_route_name();
+		return strpos($route_name, $route_name_begin) === 0;
 	}
 
 	function isUrlBegins($url)
