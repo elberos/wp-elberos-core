@@ -271,6 +271,16 @@ function formatMoney($value, $decimals=2)
 
 
 /**
+ * Convert to number
+ */ 
+function to_number($value)
+{
+	return preg_replace('/^[0-9]/', '', $value);
+}
+
+
+
+/**
  * Make index
  *
  * @param array $arr
@@ -379,6 +389,110 @@ function find_items($arr, $field_name, $value)
 			$row[] = $val;
 	}
 	return $row;
+}
+
+
+
+/**
+ * Get $arr[$key] if exists or return default value
+ *
+ * @param array $arr 
+ * @param string|array $key 
+ * @param var $default Default value
+ * @return var
+ */
+function attr($arr, $key_arr, $default = null){
+	if ($arr == null) return $default;
+	
+	if (gettype($key_arr) != 'array')
+		$key_arr = explode(".", $key_arr);
+	
+	$sz = count($key_arr);
+	$res = &$arr;
+	
+	for ($i=0; $i<$sz; $i++){
+		
+		$key = $key_arr[$i];
+		if (!isset($res[$key]))
+			return $default;
+		
+		$res = &$res[$key];
+	}
+	
+	return $res;
+}
+
+
+
+/**
+ * Set $arr[$key] if exists or return default value
+ *
+ * @param array $arr 
+ * @param string|array $key 
+ * @param var $default Default value
+ * @return var
+ */
+function push(&$arr, $key_arr, $val)
+{
+	if (gettype($key_arr) != 'array')
+		$key_arr = explode(".", $key_arr);
+	
+	$sz = count($key_arr);
+	$res = &$arr;
+	
+	for ($i=0; $i<$sz; $i++)
+	{
+		
+		$key = $key_arr[$i];
+		if ($i == $sz - 1)
+		{
+			$res[$key] = $val;
+			break;
+		}
+		
+		if (!isset($res[$key]))
+			$res[$key] = [];
+		
+		$res = &$res[$key];
+	}
+	
+	return $res;
+}
+
+
+
+/**
+ * Set $arr[$key] if exists or return default value
+ *
+ * @param array $arr 
+ * @param string|array $key 
+ * @param var $default Default value
+ * @return var
+ */
+function add(&$arr, $key_arr, $val)
+{
+	if (gettype($key_arr) != 'array')
+		$key_arr = explode(".", $key_arr);
+	
+	$sz = count($key_arr);
+	$res = &$arr;
+	
+	for ($i=0; $i<$sz; $i++)
+	{
+		$key = $key_arr[$i];
+		if ($i == $sz - 1)
+		{
+			$res[$key][] = $val;
+			break;
+		}
+		
+		if (!isset($res[$key]))
+			$res[$key] = [];
+		
+		$res = &$res[$key];
+	}
+	
+	return $res;
 }
 
 
@@ -559,6 +673,17 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 	if ($dt)
 	{
 		$dt->setTimezone( new \DateTimeZone( get_wp_timezone() ) );
+		return $dt->format($format);
+	}
+	return "";
+}
+
+function gm_to_datetime($date, $tz = 'UTC', $format = 'Y-m-d H:i:s')
+{
+	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', 'UTC');
+	if ($dt)
+	{
+		$dt->setTimezone( new \DateTimeZone( $tz ) );
 		return $dt->format($format);
 	}
 	return "";

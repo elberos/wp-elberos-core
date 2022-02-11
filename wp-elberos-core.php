@@ -197,6 +197,7 @@ class Elberos_Plugin
 		(
 			"api:captcha:create", "/api/captcha/create/", null,
 			[
+				'enable_locale_any' => true,
 				"render" => function()
 				{
 					require_once __DIR__ . "/src/class-c4wp-create-image-captcha.php";

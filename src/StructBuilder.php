@@ -445,12 +445,12 @@ class StructBuilder
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
 		
 		<?php } else if ($type == "textarea") { ?>
-		<textarea type="text" class="web_form_input web_form_value" style="min-height: 200px;"
+		<textarea type="text" class="web_form_input web_form_value web_form_input--textarea" style="min-height: 200px;"
 			placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
 			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
 		
 		<?php } else if ($type == "select") { ?>
-		<select type="text" class="web_form_input web_form_value" placeholder="<?= esc_attr($placeholder) ?>"
+		<select type="text" class="web_form_input web_form_value web_form_input--select" placeholder="<?= esc_attr($placeholder) ?>"
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>"
 			<?= $readonly ?>>
 				

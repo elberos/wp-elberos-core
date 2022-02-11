@@ -792,7 +792,7 @@ ol, ul {
 		margin-bottom: 5px;
 		font-weight: bold;
 	}
-	&__input--text, &__input--textarea, &_input--text, &_input--textarea{
+	&__input--text, &__input--textarea, &__input--select, &_input--text, &_input--textarea, &_input--select{
 		border: 1px #B3B3B3 solid;
 		border-radius: 0;
 		background-color: white;
@@ -801,7 +801,7 @@ ol, ul {
 			outline: 0;
 		}
 	}
-	&__input--text, &__input--textarea, &_input--text, &_input--textarea{
+	&__input--text, &__input--textarea, &__input--select, &_input--text, &_input--textarea, &_input--select{
 		width: 100%;
 		padding: 10px;
 	}
