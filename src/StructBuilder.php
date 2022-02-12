@@ -141,9 +141,23 @@ class StructBuilder
 	/**
 	 * Add table field
 	 */
-	public function addTableField($field_name)
+	public function addTableField($field_name, $field_name_before = "")
 	{
-		if (!in_array($field_name, $this->table_fields)) $this->table_fields[] = $field_name;
+		if (!in_array($field_name, $this->table_fields))
+		{
+			if ($field_name == "")
+			{
+				$this->table_fields[] = $field_name;
+			}
+			else
+			{
+				$pos = array_search($field_name_before, $this->table_fields);
+				if ($pos !== false)
+				{
+					array_splice($this->table_fields, $pos + 1, 0, [$field_name]);
+				}
+			}
+		}
 		return $this;
 	}
 	
@@ -152,9 +166,23 @@ class StructBuilder
 	/**
 	 * Add table field
 	 */
-	public function addFormField($field_name)
+	public function addFormField($field_name, $field_name_before = "")
 	{
-		if (!in_array($field_name, $this->form_fields)) $this->form_fields[] = $field_name;
+		if (!in_array($field_name, $this->form_fields))
+		{
+			if ($field_name == "")
+			{
+				$this->form_fields[] = $field_name;
+			}
+			else
+			{
+				$pos = array_search($field_name_before, $this->form_fields);
+				if ($pos !== false)
+				{
+					array_splice($this->form_fields, $pos + 1, 0, [$field_name]);
+				}
+			}
+		}
 		return $this;
 	}
 	
