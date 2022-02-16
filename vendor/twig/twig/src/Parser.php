@@ -52,7 +52,7 @@ class Parser
 
     public function getVarName(): string
     {
-        return sprintf('__internal_%s', hash('sha256', __METHOD__.$this->stream->getSourceContext()->getCode().$this->varNameSalt++));
+        return sprintf('__internal_parse_%d', $this->varNameSalt++);
     }
 
     public function parse(TokenStream $stream, $test = null, bool $dropNeedle = false): ModuleNode
@@ -193,7 +193,7 @@ class Parser
 
     public function peekBlockStack()
     {
-        return isset($this->blockStack[\count($this->blockStack) - 1]) ? $this->blockStack[\count($this->blockStack) - 1] : null;
+        return $this->blockStack[\count($this->blockStack) - 1] ?? null;
     }
 
     public function popBlockStack(): void

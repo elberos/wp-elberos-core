@@ -14,7 +14,7 @@
 		"files": [ "wp-elberos-core.php" ]
 	},
 	"require": {
-		"twig/twig": "^3.0",
+		"twig/twig": "^3.3.8",
 		"swiftmailer/swiftmailer": "^5.4"
 	}
 }
