@@ -796,14 +796,11 @@ ol, ul {
 		border: 1px #B3B3B3 solid;
 		border-radius: 0;
 		background-color: white;
-		
+		width: 100%;
+		padding: 6px;
 		&:focus, &:active {
 			outline: 0;
 		}
-	}
-	&__input--text, &__input--textarea, &__input--select, &_input--text, &_input--textarea, &_input--select{
-		width: 100%;
-		padding: 10px;
 	}
 	&__input--textarea, &_input--textarea{
 		resize: vertical;

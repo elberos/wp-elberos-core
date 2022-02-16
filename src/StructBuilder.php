@@ -303,6 +303,23 @@ class StructBuilder
 	
 	
 	/**
+	 * Get select value
+	 */
+	public function getSelectOption($field_name, $value)
+	{
+		$field = $this->getField($field_name);
+		$options = isset( $field['options'] ) ? $field['options'] : [];
+		$option = \Elberos\find_item($options, "id", $value);
+		if ($option)
+		{
+			return $option;
+		}
+		return null;
+	}
+	
+	
+	
+	/**
 	 * Update data
 	 */
 	public function update($item, $data)

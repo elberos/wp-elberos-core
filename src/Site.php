@@ -412,7 +412,7 @@ class Site
 			}
 		}
 		
-		if ($this->page_vars["is_category"] or $this->page_vars["is_single"])
+		else if ($this->page_vars["is_category"] or $this->page_vars["is_single"])
 		{
 			$url = "";
 			if ($category_base != "" && $category_base != ".")
@@ -440,7 +440,7 @@ class Site
 			}
 		}
 		
-		if ($this->page_vars["is_page"] && $this->post instanceof \WP_POST)
+		else if ($this->page_vars["is_page"] && $this->post instanceof \WP_POST)
 		{
 			$this->add_breadcrumbs($this->post->post_title, $this->remove_site_url(get_the_permalink($this->post)) );
 		}
