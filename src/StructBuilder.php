@@ -477,6 +477,11 @@ class StructBuilder
 			placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
 			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
 		
+		<?php } else if ($type == "ckeditor") { ?>
+		<textarea type="text" class="ckeditor-small" style="min-height: 200px;"
+			placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
+			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
+		
 		<?php } else if ($type == "select") { ?>
 		<select type="text" class="web_form_input web_form_value web_form_input--select" placeholder="<?= esc_attr($placeholder) ?>"
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>"
