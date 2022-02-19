@@ -21,6 +21,9 @@
 namespace Elberos;
 
 
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
 
 /**
  * Return site option

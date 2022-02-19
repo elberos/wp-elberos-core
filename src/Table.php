@@ -80,6 +80,16 @@ class Table extends \Elberos_WP_List_Table
 	
 	
 	/**
+	 * Return true if is_deleted enabled
+	 */
+	function is_enable_deleted_filter()
+	{
+		return true;
+	}
+	
+	
+	
+	/**
 	 * Page name
 	 */
 	function get_page_name()
@@ -448,13 +458,16 @@ class Table extends \Elberos_WP_List_Table
 	function prepare_table_items_filter($params)
 	{
 		/* Is deleted */
-		if (isset($_GET["is_deleted"]) && ($_GET["is_deleted"] == "true" || $_GET["is_deleted"] == "1"))
+		if ($this->is_enable_deleted_filter())
 		{
-			$params["where"][] = "is_deleted=1";
-		}
-		else
-		{
-			$params["where"][] = "is_deleted=0";
+			if (isset($_GET["is_deleted"]) && ($_GET["is_deleted"] == "true" || $_GET["is_deleted"] == "1"))
+			{
+				$params["where"][] = "is_deleted=1";
+			}
+			else
+			{
+				$params["where"][] = "is_deleted=0";
+			}
 		}
 		
 		list($_,$params) = apply_filters("elberos_table_prepare_items_params_" . get_called_class(), [$this,$params]);
