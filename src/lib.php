@@ -1413,6 +1413,119 @@ function wpdb_insert_or_update($table_name, $search, $insert, $update = null)
 }
 
 
+
+/**
+ * Upload bits
+ */
+function wp_upload_bits_ext($name, $sha1, $bits, $time = null)
+{
+	if ( empty( $name ) )
+	{
+		return array( 'error' => __( 'Empty filename' ) );
+	}
+
+	$wp_filetype = wp_check_filetype( $name );
+	if ( ! $wp_filetype['ext'] && ! current_user_can( 'unfiltered_upload' ) )
+	{
+		return array( 'error' => __( 'Sorry, you are not allowed to upload this file type.' ) );
+	}
+
+	$upload = wp_upload_dir( $time );
+
+	if ( false !== $upload['error'] )
+	{
+		return $upload;
+	}
+	
+	$upload_bits_error = apply_filters
+	(
+		'wp_upload_bits',
+		array(
+			'name' => $name,
+			'bits' => $bits,
+			'time' => $time,
+		)
+	);
+	if ( ! is_array( $upload_bits_error ) )
+	{
+		$upload['error'] = $upload_bits_error;
+		return $upload;
+	}
+
+	$filename = wp_unique_filename( $upload['path'], $name );
+	
+	/* File name to subfolder */
+	$sha1_2 = substr($sha1, 0, 2);
+	if (strlen($sha1_2) < 2) $sha1_2 = "aa";
+	$filename = $sha1_2 . "/" . $filename;
+	
+	/* Make dir */
+	$new_file = $upload['path'] . "/$filename";
+	if ( ! wp_mkdir_p( dirname( $new_file ) ) )
+	{
+		if ( 0 === strpos( $upload['basedir'], ABSPATH ) )
+		{
+			$error_path = str_replace( ABSPATH, '', $upload['basedir'] ) . $upload['subdir'];
+		}
+		else
+		{
+			$error_path = wp_basename( $upload['basedir'] ) . $upload['subdir'];
+		}
+
+		$message = sprintf
+		(
+			/* translators: %s: Directory path. */
+			__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+			$error_path
+		);
+		return array( 'error' => $message );
+	}
+
+	$ifp = @fopen( $new_file, 'wb' );
+	if ( ! $ifp )
+	{
+		return array
+		(
+			/* translators: %s: File name. */
+			'error' => sprintf( __( 'Could not write file %s' ), $new_file ),
+		);
+	}
+
+	fwrite( $ifp, $bits );
+	fclose( $ifp );
+	clearstatcache();
+
+	// Set correct file permissions.
+	$stat  = @stat( dirname( $new_file ) );
+	$perms = $stat['mode'] & 0007777;
+	$perms = $perms & 0000666;
+	chmod( $new_file, $perms );
+	clearstatcache();
+
+	// Compute the URL.
+	$url = $upload['url'] . "/$filename";
+
+	if ( is_multisite() )
+	{
+		clean_dirsize_cache( $new_file );
+	}
+
+	/** This filter is documented in wp-admin/includes/file.php */
+	return apply_filters
+	(
+		'wp_handle_upload',
+		array(
+			'file'  => $new_file,
+			'url'   => $url,
+			'type'  => $wp_filetype['type'],
+			'error' => false,
+		),
+		'sideload'
+	);
+}
+
+ 
+
 /**
  * Upload file
  */
@@ -1470,7 +1583,7 @@ function upload_file($image_path_full, $params = [])
 	/* Upload file */
 	$file_content = file_get_contents($image_path_full);
 	$wp_filetype = @wp_check_filetype($new_file_name, null );
-	$upload = @wp_upload_bits( $new_file_name, null, $file_content );
+	$upload = @wp_upload_bits_ext( $new_file_name, $sha1, $file_content );
 	
 	if ( !$upload['error'] )
 	{
