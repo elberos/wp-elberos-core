@@ -17,8 +17,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
- 
+
 namespace Elberos;
+
+
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
 
 use Elberos\RawString;
 

@@ -6,6 +6,10 @@
  * @author   Devnath verma <devnathverma@gmail.com>
  */
 
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
+
 class Elberos_C4WP_Create_Image_Captcha {
 
     // Configuration Options
@@ -115,6 +119,30 @@ class Elberos_C4WP_Create_Image_Captcha {
 		imagejpeg($c4wp_image,NULL,90);
         imagedestroy($c4wp_image);
     }
+	
+	
+	
+	/**
+	 * Flush captcha
+	 */
+	public function flushCaptcha()
+	{
+		if ($this->c4wp_key != "")
+		{
+			$cookie_text = md5($c4wp_return_words . NONCE_SALT);
+			$cookie_jwt = \Elberos\create_jwt
+			(
+				[
+					"d" => $cookie_text,
+					"t" => time(),
+				],
+				NONCE_KEY
+			);
+			setcookie($this->c4wp_key, $cookie_jwt, time() + 24*60*60, '/');
+		}
+	}
+	
+	
 	
 	/**
 	 * The Functions return hexrgb color 

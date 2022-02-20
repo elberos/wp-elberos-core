@@ -21,6 +21,11 @@
 
 namespace Elberos;
 
+
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
+
 use Elberos\Forms\FormsHelper;
 
 

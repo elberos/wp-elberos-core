@@ -22,6 +22,10 @@
 namespace Elberos;
 
 
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
+
 class Forms
 {
 	/**

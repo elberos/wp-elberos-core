@@ -21,6 +21,9 @@
  *  limitations under the License.
  */
 
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
 
 if ( !class_exists( 'Elberos_Plugin' ) ) 
 {
@@ -200,22 +203,7 @@ class Elberos_Plugin
 				'enable_locale_any' => true,
 				"render" => function()
 				{
-					require_once __DIR__ . "/src/class-c4wp-create-image-captcha.php";
-					$captcha = new Elberos_C4WP_Create_Image_Captcha
-					([
-						"c4wp_key" => "elberos_captcha",
-						"c4wp_image_width" => 200,
-						"c4wp_image_height" => 60,
-						"c4wp_fonts" => __DIR__ . "/assets/fonts/Roboto-Regular.ttf",
-						"c4wp_char_on_image" => 6,
-						"c4wp_possible_letters" => "qwertyuiopasdfghjklzxcvbnm",
-						"c4wp_background_color" => "52e9eb",
-						"c4wp_noice_color" => "a5524a",
-						"c4wp_text_color" => "000000",
-						"c4wp_random_dots" => 50,
-						"c4wp_random_lines" => 4,
-					]);
-					$captcha->createCaptcha();
+					\Elberos\generate_captcha();
 					return "";
 				}
 			]

@@ -21,6 +21,10 @@
 namespace Elberos;
 
 
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
+
 class Table extends \Elberos_WP_List_Table
 {
 	var $struct;

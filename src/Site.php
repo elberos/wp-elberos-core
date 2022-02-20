@@ -20,6 +20,11 @@
 
 namespace Elberos;
 
+
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
+
 // Переопределение SEO код плагина Rank Math на код из шаблона
 add_action
 (
@@ -218,25 +223,7 @@ class Site
 	function render_page($template, $context = null)
 	{
 		if ($context == null) $context = $this->context;
-		if (gettype($template) == 'array')
-		{
-			foreach ($template as $t)
-			{
-				try
-				{
-					$res = $this->twig->render($t, $context);
-					return $res;
-				}
-				catch (\Twig\Error\LoaderError $err)
-				{
-				}
-			}
-		}
-		else
-		{
-			return $this->twig->render($template, $context);
-		}
-		return "";
+		return \Elberos\twig_render($this->twig, $template, $context);
 	}
 	
 	

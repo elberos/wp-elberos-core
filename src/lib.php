@@ -1083,8 +1083,11 @@ function create_twig()
 /**
  * Twig render
  */
-function twig_render($twig, $template, $context)
+function twig_render($twig, $template, $context = [])
 {
+	/* set this to context */
+	$context["this"] = $context;
+	
 	if (gettype($template) == 'array')
 	{
 		foreach ($template as $t)
@@ -1569,6 +1572,54 @@ function captcha_validation($value)
 	
 	return $cookie_text1 == $cookie_text2;
 }
+
+
+
+/**
+ * Generate captcha
+ */
+function create_c4wp()
+{
+	require_once __DIR__ . "/class-c4wp-create-image-captcha.php";
+	$captcha = new \Elberos_C4WP_Create_Image_Captcha
+	([
+		"c4wp_key" => "elberos_captcha",
+		"c4wp_image_width" => 200,
+		"c4wp_image_height" => 60,
+		"c4wp_fonts" => dirname(__DIR__) . "/assets/fonts/Roboto-Regular.ttf",
+		"c4wp_char_on_image" => 6,
+		"c4wp_possible_letters" => "qwertyuiopasdfghjklzxcvbnm",
+		"c4wp_background_color" => "52e9eb",
+		"c4wp_noice_color" => "a5524a",
+		"c4wp_text_color" => "000000",
+		"c4wp_random_dots" => 50,
+		"c4wp_random_lines" => 4,
+	]);
+	return $captcha;
+}
+
+
+
+/**
+ * Generate captcha
+ */
+function generate_captcha()
+{
+	$captcha = create_c4wp();
+	$captcha->createCaptcha();
+}
+
+
+
+/**
+ * Flush captcha
+ */
+function flush_captcha()
+{
+	$captcha = create_c4wp();
+	$captcha->flushCaptcha();
+}
+
 
 
 /**

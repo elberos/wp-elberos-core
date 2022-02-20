@@ -7,6 +7,11 @@
  * @since 3.1.0
  */
 
+ 
+/* Check if Wordpress */
+if (!defined('ABSPATH')) exit;
+
+
 /**
  * Base class for displaying a list of items in an ajaxified HTML table.
  *
