@@ -1634,6 +1634,7 @@ function update_term_id($post_id, $term_id)
 	global $wpdb;
 	
 	if ($post_id <= 0) return;
+	if ($term_id <= 0) return;
 	
 	/* Insert term id */
 	$sql = \Elberos\wpdb_prepare
