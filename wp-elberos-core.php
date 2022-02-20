@@ -95,6 +95,10 @@ class Elberos_Plugin
 		/* UTM form filter */
 		add_filter( 'elberos_form_utm', 'Elberos_Plugin::elberos_form_utm' );
 		
+		/* Allow gutenberg */
+		//add_filter( 'use_block_editor_for_post_type', 'Elberos_Plugin::allow_gutenberg', 100, 2 );
+		//add_action('init', 'Elberos_Plugin::register_post_types');
+		
 		/* Load languages */
 		load_theme_textdomain( 'elberos', __DIR__ . '/languages' );
 	}	
@@ -276,6 +280,88 @@ class Elberos_Plugin
 	public static function elberos_twig($twig)
 	{
 		$twig->getLoader()->addPath(__DIR__ . "/templates", "core");
+	}
+	
+	
+	
+	/**
+	 * Allow guttenberg
+	 */
+	public static function allow_gutenberg($use, $post_type)
+	{
+		if (in_array( $post_type, [ 'post', 'page' ] ))
+		{
+			return false;
+		}
+		return $use;
+	}
+	
+	
+	
+	/**
+	 * Register post types
+	 */
+	public static function register_post_types()
+	{
+		global $wp_rewrite;
+		/*
+		register_post_type( 'gutenberg',
+		[
+			'label'  => null,
+			'labels' => [
+				'name'               => 'Gutenberg', // основное название для типа записи
+				'singular_name'      => 'Gutenberg', // название для одной записи этого типа
+				'add_new'            => 'Добавить пост', // для добавления новой записи
+				'add_new_item'       => 'Добавление поста', // заголовка у вновь создаваемой записи в админ-панели.
+				'edit_item'          => 'Редактирование пост', // для редактирования типа записи
+				'new_item'           => 'Новый пост', // текст новой записи
+				'view_item'          => 'Смотреть пост', // для просмотра записи этого типа.
+				'search_items'       => 'Искать пост', // для поиска по этим типам записи
+				'not_found'          => 'Не найдено', // если в результате поиска ничего не было найдено
+				'not_found_in_trash' => 'Не найдено в корзине', // если не было найдено в корзине
+				'parent_item_colon'  => '', // для родителей (у древовидных типов)
+				'menu_name'          => 'Gutenberg', // название меню
+			],
+			'description'         => 'Gutenberg',
+			'public'              => true,
+			'publicly_queryable'  => true, // зависит от public
+			'exclude_from_search' => true, // зависит от public
+			'show_ui'             => true, // зависит от public
+			'show_in_nav_menus'   => true, // зависит от public
+			'show_in_menu'        => true, // показывать ли в меню адмнки
+			'show_in_admin_bar'   => true, // зависит от show_in_menu
+			'show_in_rest'        => true, // добавить в REST API. C WP 4.7
+			'rest_base'           => null, // $post_type. C WP 4.7
+			'menu_position'       => 4,
+			'menu_icon'           => null,
+			'capability_type'   => 'post',
+			//'capabilities'      => 'post', // массив дополнительных прав для этого типа записи
+			//'map_meta_cap'      => null, // Ставим true чтобы включить дефолтный обработчик специальных прав
+			'hierarchical'        => false,
+			'supports'            => [ 'title', 'editor' ], // 'title','editor','author','thumbnail','excerpt','trackbacks','custom-fields','comments','revisions','page-attributes','post-formats'
+			'taxonomies'          => [],
+			'has_archive'         => 'catalog',
+			'rewrite'             => false,
+			'query_var'  => true,
+		] );
+		
+		add_permastruct
+		(
+			"gutenberg",
+			"ru/gutenberg/%gutenberg%",
+			[
+				'with_front' => false,
+				'ep_mask' => EP_NONE,
+				'paged' => true,
+				'feed' => true,
+				'forcomments' => false,
+				'walk_dirs' => true,
+				'endpoints' => true,
+			]
+		);
+		
+		add_rewrite_rule('^ru/gutenberg/([^/]*)$', 'index.php?gutenberg=$matches[1]', 'top');
+		*/
 	}
 	
 }
