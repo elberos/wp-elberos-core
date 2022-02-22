@@ -823,17 +823,18 @@ class Site
 		{
 			return $this->route_info['params']['full_title'];
 		}
-		if ((is_single() or is_page()) and class_exists(\RankMath\Paper\Paper::class))
+		if ($this->route_info == null and (is_single() or is_page()) and class_exists(\RankMath\Paper\Paper::class))
 		{
 			return \RankMath\Paper\Paper::get()->get_title();
 		}
 		return $title . $this->title_suffix . $this->site_name;
 	}
 	
-	public function setTitle($title, $is_full_title = true)
+	public function setTitle($title, $is_full_title = false)
 	{
 		$this->title = $title;
-		if ($is_full_title) $this->full_title = $this->get_page_full_title($title);
+		if (!$is_full_title) $this->full_title = $this->get_page_full_title($title);
+		else $this->full_title = $title;
 	}
 	
 	public function setDescription($description)
@@ -1136,7 +1137,7 @@ class Site
 		return strpos($route_name, $route_name_begin) === 0;
 	}
 
-	function isUrlBegins($url)
+	function isUrlBegins($url, $enable_langs = true)
 	{
 		$langs = \Elberos\wp_langs();
 		$hide_default_lang = \Elberos\wp_hide_default_lang();
@@ -1150,17 +1151,25 @@ class Site
 		$match = "";
 		
 		// Match with lang
-		if ($langs != null && count($langs) > 0)
+		if ($enable_langs && $langs != null && count($langs) > 0)
 		{
 			$match = "/(" . implode("|", $langs) . ")" . $url;
 		}
+		else
+		{
+			$match = $url;
+		}
 		$match = str_replace("/", "\\/", $match);
 		$match = "/^" . $match . ".*/i";
+		
+		//var_dump($match);
+		//var_dump($request_uri);
+		
 		$flag = preg_match_all($match, $request_uri, $matches);
 		if ($flag) return true;
 		
 		// Default lang
-		if ($hide_default_lang)
+		if ($enable_langs && $hide_default_lang)
 		{
 			$match = str_replace("/", "\\/", $url);
 			$match = "/^" . $match . ".*/i";
