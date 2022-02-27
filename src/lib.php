@@ -939,7 +939,7 @@ function check_nonce($text1)
 /**
  * Returns image url
  */
-function get_image_url($post_id, $size)
+function get_image_url($post_id, $size = 'thumbnail')
 {
 	$img = wp_get_attachment_image_src($post_id, $size);
 	if ($img)

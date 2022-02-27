@@ -367,6 +367,29 @@ class Table extends \Elberos_WP_List_Table
 	
 	
 	/**
+	 * Show filter wrap
+	 */
+	function show_filter_wrap()
+	{
+		?>
+		<div style="clear: both;"></div>
+		<div class="extra_tablenav_filter">
+			<div class="extra_tablenav_filter_items">
+				<?php $this->extra_tablenav_before() ?>
+				<?php $this->show_filter() ?>
+				<?php $this->extra_tablenav_after() ?>
+			</div>
+			<div class="extra_tablenav_filter_search">
+				<input type="button" class="button dosearch" value="Поиск">
+			</div>
+		</div>
+		<div style="clear: both;"></div>
+		<?php
+	}
+	
+	
+	
+	/**
 	 * JQ filter sub
 	 */
 	function jq_filter_sub()
@@ -387,32 +410,7 @@ class Table extends \Elberos_WP_List_Table
 		if ( $which == "top" && $this->is_show_filter())
 		{
 			?>
-			<style>
-			.tablenav{
-				height: auto !important;
-			}
-			.extra_tablenav_filter{
-				display: block;
-				clear: both;
-				padding-top: 10px;
-				padding-bottom: 10px;
-			}
-			.extra_tablenav_filter select, .extra_tablenav_filter input{
-				display: inline-block;
-				vertical-align: top;
-				max-width: 150px;
-			}
-			</style>
-			<div style="clear: both;"></div>
-			<div class="extra_tablenav_filter">
-				<?php $this->extra_tablenav_before() ?>
-				<?php $this->show_filter() ?>
-				<?php $this->extra_tablenav_after() ?>
-			</div>
-			<div class="extra_tablenav_filter_search">
-				<input type="button" class="button dosearch" value="Поиск">
-			</div>
-			<div style="clear: both;"></div>
+			<?php $this->show_filter_wrap() ?>
 			<?php $jq_filter_sub = $this->jq_filter_sub(); ?>
 			<script>
 			function extra_tablenav_filter_dosearch()
@@ -438,7 +436,7 @@ class Table extends \Elberos_WP_List_Table
 				if (filter != "") filter = "&" + filter;
 				document.location.href = 'admin.php?page=<?= esc_attr($this->get_page_name()) ?>'+filter;
 			}
-			jQuery(".extra_tablenav_filter_search .dosearch").click(function(){
+			jQuery(".extra_tablenav_filter .dosearch").click(function(){
 				extra_tablenav_filter_dosearch();
 			});
 			jQuery(".extra_tablenav_filter .web_form_value").keydown(function(e){
@@ -484,7 +482,7 @@ class Table extends \Elberos_WP_List_Table
 	/**
 	 * Process item before
 	 */
-	function process_item_before($item, $old_item, $action)
+	function process_item_before(&$item, $old_item, $action)
 	{
 	}
 	
@@ -494,6 +492,15 @@ class Table extends \Elberos_WP_List_Table
 	 * Process item after
 	 */
 	function process_item_after($item, $old_item, $action, $success)
+	{
+	}
+	
+	
+	
+	/**
+	 * Process item end
+	 */
+	function process_item_end($old_item, $action, $success)
 	{
 	}
 	
@@ -632,8 +639,13 @@ class Table extends \Elberos_WP_List_Table
 			$action = "create";
 			
 			/* Before */
-			$this->process_item_before($process_item, $old_item, 'create');
-			do_action("elberos_wp_list_table_process_item_before", [$this, $process_item, $old_item, 'create']);
+			$res = apply_filters("elberos_wp_list_table_process_item_before", [
+				"this" => $this,
+				"process_item" => $process_item,
+				"old_item" => $old_item,
+				"action" => 'create',
+			]);
+			$process_item = $res["process_item"];
 			
 			/* Request */
 			$result = $wpdb->insert($table_name, $process_item);
@@ -661,8 +673,13 @@ class Table extends \Elberos_WP_List_Table
 			$action = "update";
 			
 			/* Before */
-			$this->process_item_before($process_item, $old_item, 'update');
-			do_action("elberos_wp_list_table_process_item_before", [$this, $process_item, $old_item, 'update']);
+			$res = apply_filters("elberos_wp_list_table_process_item_before", [
+				"this" => $this,
+				"process_item" => $process_item,
+				"old_item" => $old_item,
+				"action" => 'update'
+			]);
+			$process_item = $res["process_item"];
 			
 			/* Request */
 			$result = $wpdb->update($table_name, $process_item, array('id' => $item_id));
@@ -680,15 +697,24 @@ class Table extends \Elberos_WP_List_Table
 			}
 		}
 		
+		/* After */
+		$this->process_item_after($process_item, $old_item, $action, $success);
+		$res = apply_filters("elberos_wp_list_table_process_item_after", [
+			"this" => $this,
+			"process_item" => $process_item,
+			"old_item" => $old_item,
+			"action" => $action,
+			"success" => $success
+		]);
+		
 		/* Get new value */
 		if ($item_id > 0)
 		{
 			$this->form_item = $this->do_get_item_query($item_id);
 		}
 		
-		/* After */
-		$this->process_item_after($this->form_item, $old_item, 'create', $success);
-		do_action("elberos_wp_list_table_process_item_after", [$this, $this->form_item, $old_item, $action, $success]);
+		/* End */
+		$this->process_item_end($old_item, $action, $success);
 	}
 	
 	
@@ -753,11 +779,32 @@ class Table extends \Elberos_WP_List_Table
 			width: 60%;
 			text-align: center;
 		}
+		.tablenav{
+			height: auto !important;
+		}
 		.tablenav .table_filter select, .tablenav .table_filter input{
 			vertical-align: middle;
 			max-width: 150px;
 		}
+		.extra_tablenav_filter_items{
+			display: flex;
+			clear: both;
+			padding-top: 10px;
+			padding-bottom: 10px;
+		}
+		.extra_tablenav_filter select, .extra_tablenav_filter input{
+			display: inline-block;
+			vertical-align: top;
+			max-width: 150px;
+		}
+		.extra_tablenav_filter .web_form_value{
+			display: block;
+			margin: 1px;
+		}
 		</style>
+		<script>
+		var $ = jQuery;
+		</script>
 		<?php
 	}
 	
