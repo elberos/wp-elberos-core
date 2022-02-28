@@ -38,7 +38,7 @@ class Api
 	public static function init()
 	{
 		add_action('elberos_register_routes', '\\Elberos\\Forms\\Api::register_routes');
-		add_action('elberos_form_validate_fields', '\\Elberos\\Forms\\Api::elberos_form_validate_fields');
+		add_action('elberos_form_validate_fields', '\\Elberos\\Forms\\Api::elberos_form_validate_fields', -1000);
 	}
 	
 	
@@ -156,6 +156,8 @@ class Api
 				"validation" => [],
 				"post_data" => $data,
 				"form_data" => [],
+				"code" => 1,
+				"message" => "",
 			]
 		);
 		$validation = $res["validation"];
@@ -172,6 +174,16 @@ class Api
 					__("Ошибка. Проверьте корректность данных", "elberos"),
 				"fields" => isset($validation["fields"]) ? $validation["fields"] : [],
 				"code" => -2,
+			];
+		}
+		if ($res["code"] < 0)
+		{
+			return 
+			[
+				"success" => false,
+				"message" => $res["message"],
+				"fields" => $validation,
+				"code" => $code,
 			];
 		}
 		
