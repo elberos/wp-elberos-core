@@ -815,7 +815,7 @@ Object.assign( ElberosDialog.prototype, {
 	{
 		this.$el.remove();
 		//$('.elberos_dialog__shadow').remove();
-		this.$shadow.remove();
+		if (this.$shadow) this.$shadow.remove();
 		
 		if ($('.elberos_dialog__box').length == 0)
 		{
