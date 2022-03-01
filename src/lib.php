@@ -955,7 +955,7 @@ function get_image_url($post_id, $size = 'thumbnail')
 /**
  * Send curl
  */
-function curl($url, $post = null, $headers = null, $params = null)
+function curl($url, $params = null)
 {
 	$post = null;
 	$headers = null;
@@ -967,9 +967,9 @@ function curl($url, $post = null, $headers = null, $params = null)
 	if ($params != null)
 	{
 		if (isset($params['post'])) $post = $params['post'];
-		if (isset($params['headers'])) $post = $params['headers'];
-		if (isset($params['user_agent'])) $post = $params['user_agent'];
-		if (isset($params['cookie_file'])) $post = $params['cookie_file'];
+		if (isset($params['headers'])) $headers = $params['headers'];
+		if (isset($params['user_agent'])) $user_agent = $params['user_agent'];
+		if (isset($params['cookie_file'])) $cookie_file = $params['cookie_file'];
 	}
 	
 	# Сохраняем дескриптор сеанса cURL

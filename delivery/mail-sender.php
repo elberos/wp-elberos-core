@@ -46,23 +46,27 @@ if ( !class_exists( MailSender::class ) )
 			$uuid = isset($params['uuid']) ? $params['uuid'] : wp_generate_uuid4();
 			$gmtime_add = gmdate('Y-m-d H:i:s');
 			$gmtime_plan = isset($params['gmtime_plan']) ? $params['gmtime_plan'] : $gmtime_add;
+			$is_delete = isset($params['is_delete']) ? $params['is_delete'] : 0;
 			
 			// If array
 			if (gettype($email_to) == 'array') $email_to = implode(", ", $email_to);
 			
 			// Add email to Queue
-			$q = $wpdb->prepare
+			$wpdb->insert
 			(
-				"INSERT INTO $table_forms_delivery
-					(
-						worker, plan, dest, title, message, gmtime_add, gmtime_plan, uuid
-					) 
-					VALUES( %s, %s, %s, %s, %s, %s, %s, %s )",
+				$table_forms_delivery,
 				[
-					'email', $plan, $email_to, $title, $message, $gmtime_add, $gmtime_plan, $uuid
+					"worker" => "email",
+					"plan" => $plan,
+					"dest" => $email_to,
+					"title" => $title,
+					"message" => $message,
+					"gmtime_add" => $gmtime_add,
+					"gmtime_plan" => $gmtime_plan,
+					"uuid" => $uuid,
+					"is_delete" => $is_delete,
 				]
 			);
-			$wpdb->query($q);
 		}
 		
 		
@@ -378,24 +382,25 @@ if ( !class_exists( MailSender::class ) )
 				if ($send_email_code == 1) $status = 1;
 				$gmtime_send = gmdate('Y-m-d H:i:s', time());
 				
-				$sql = $wpdb->prepare
+				$data_update =
+				[
+					"status" => $status,
+					"send_email_code" => $send_email_code,
+					"send_email_error" => $send_email_error,
+					"gmtime_send" => $gmtime_send,
+				];
+				
+				if ($item["is_delete"])
+				{
+					$data_update["message"] = "*Содержимое удалено*";
+				}
+				
+				$wpdb->update
 				(
-					"UPDATE `$table_name_delivery` SET
-						status=%d,
-						send_email_code=%d,
-						send_email_error=%s,
-						gmtime_send=%s
-					WHERE id = %d",
-					[
-						$status,
-						$send_email_code,
-						$send_email_error,
-						$gmtime_send,
-						$item['id'],
-					]
+					$table_name_delivery,
+					$data_update,
+					[ "id"=>$item['id'] ]
 				);
-				//var_dump( $sql );
-				$wpdb->query( $sql );
 				
 				flush();
 				sleep( mt_rand(1,5) );
