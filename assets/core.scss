@@ -152,40 +152,48 @@ a.nolink:hover,a.nolink:visited,a.nolink:visited:hover{
 	@media (max-width: $width_large) {
 		&_item.lg{
 			display: block;
+			width: 100%;
 		}
 		@for $i from 1 through $grid_count {
 			&_item.lg_#{$i}, &_item.lg-#{$i}{
 				display: block;
+				width: 100%;
 			}
 		}
 	}
 	@media (max-width: $width_medium) {
 		&_item.md{
 			display: block;
+			width: 100%;
 		}
 		@for $i from 1 through $grid_count {
 			&_item.md_#{$i}, &_item.md-#{$i}{
 				display: block;
+				width: 100%;
 			}
 		}
 	}
 	@media (max-width: $width_small) {
 		&_item.sm{
 			display: block;
+			width: 100%;
 		}
 		@for $i from 1 through $grid_count {
 			&_item.sm_#{$i}, &_item.sm-#{$i}{
 				display: block;
+				width: 100%;
 			}
 		}
 	}
 	@media (max-width: $width_xsmall) {
 		&_item.xs{
 			display: block;
+			width: 100%;
 		}
 		@for $i from 1 through $grid_count {
 			&_item.xs_#{$i}, &_item.xs-#{$i}{
 				display: block;
+				width: 100%;
 			}
 		}
 	}
