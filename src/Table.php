@@ -1030,7 +1030,11 @@ class Table extends \Elberos_WP_List_Table
 	function display()
 	{
 		$this->display_css();
+		do_action("elberos_table_display_css_after_" . static::class, [$this]);
+		
 		$this->display_init();
+		do_action("elberos_table_init_after_" . static::class, [$this]);
+		
 		$this->display_action();
 	}
 	

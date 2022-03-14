@@ -174,7 +174,7 @@ class StructBuilder
 	{
 		if (!in_array($field_name, $this->form_fields))
 		{
-			if ($field_name == "")
+			if ($field_name_before == "")
 			{
 				$this->form_fields[] = $field_name;
 			}
