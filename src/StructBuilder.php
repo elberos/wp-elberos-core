@@ -468,6 +468,7 @@ class StructBuilder
 		$value = isset($item[$api_name]) ? $item[$api_name] : "";
 		$default = isset($field["default"]) ? $field["default"] : "";
 		$options = isset($field["options"]) ? $field["options"] : [];
+		$params = isset($field["params"]) ? $field["params"] : [];
 		$placeholder = isset($field["placeholder"]) ? $field["placeholder"] : "";
 		$show_select_value = isset($field["show_select_value"]) ? $field["show_select_value"] : true;
 		
@@ -479,32 +480,42 @@ class StructBuilder
 		}
 		
 		$form_render = isset($field["form_render"]) ? $field["form_render"] : null;
+		$min_height = isset($params["min-height"]) ? $params["min-height"] : "200px";
+		$field_id = "value_" . $api_name . "_" . mt_rand(0, 999999);
 		
 		if ($form_render) { call_user_func_array($form_render, [$this, $field, $item]);
 		?>
 		
 		<?php } else if ($type == "input") { ?>
-		<input type="text" class="web_form_input web_form_value web_form_input--text"
+		<input id="<?= $field_id ?>" type="text" class="web_form_input web_form_value web_form_input--text"
 			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
 			
 		<?php } else if ($type == "password") { ?>
-		<input type="password" class="web_form_input web_form_value web_form_input--text"
+		<input id="<?= $field_id ?>" type="password" class="web_form_input web_form_value web_form_input--text"
 			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
 		
 		<?php } else if ($type == "textarea") { ?>
-		<textarea type="text" class="web_form_input web_form_value web_form_input--textarea" style="min-height: 200px;"
+		<textarea id="<?= $field_id ?>" type="text" class="web_form_input web_form_value web_form_input--textarea"
+			style="min-height: <?= $min_height ?>;"
 			placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
-			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
+			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ></textarea>
+		<script>
+			<?= $field_id ?>.value = <?= json_encode($value) ?>;
+		</script>
 		
 		<?php } else if ($type == "ckeditor") { ?>
-		<textarea type="text" class="ckeditor-small" style="min-height: 200px;"
+		<textarea id="<?= $field_id ?>" type="text" class="ckeditor-small" style="min-height: <?= $min_height ?>;"
 			placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
-			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ><?= esc_html($value) ?></textarea>
+			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ></textarea>
+		<script>
+			<?= $field_id ?>.value = <?= json_encode($value) ?>;
+		</script>
 		
 		<?php } else if ($type == "select") { ?>
-		<select type="text" class="web_form_input web_form_value web_form_input--select" placeholder="<?= esc_attr($placeholder) ?>"
+		<select id="<?= $field_id ?>" type="text" class="web_form_input web_form_value web_form_input--select"
+			placeholder="<?= esc_attr($placeholder) ?>"
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>"
 			<?= $readonly ?>>
 				
@@ -527,7 +538,7 @@ class StructBuilder
 		
 		<?php $value_text = $this->getColumnValue($item, $api_name); ?>
 		
-		<input type="text" class="web_form_input web_form_value web_form_input--text"
+		<input id="<?= $field_id ?>" type="text" class="web_form_input web_form_value web_form_input--text"
 			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value_text) ?>" />
 		

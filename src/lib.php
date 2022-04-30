@@ -648,7 +648,7 @@ function get_wp_timezone()
 {
 	$timezone_string = get_option( 'timezone_string' );
 	if (!empty($timezone_string)) return $timezone_string;
-	$offset = get_option( 'gmt_offset' );
+	$offset = (double)get_option( 'gmt_offset' );
 	$hours = (int)$offset;
 	$minutes = abs(($offset - (int)$offset) * 60);
 	$offset = sprintf('%+03d:%02d', $hours, $minutes);
@@ -675,7 +675,10 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
 	if ($dt)
 	{
-		$dt->setTimezone( new \DateTimeZone( get_wp_timezone() ) );
+		$tz = get_wp_timezone();
+		if (!$tz) $tz = "UTC";
+		$tz = new \DateTimeZone( $tz );
+		$dt->setTimezone( $tz );
 		return $dt->format($format);
 	}
 	return "";
@@ -720,9 +723,9 @@ function wp_langs()
 function wp_get_default_lang()
 {
 	$default_lang = "ru";
-	if ( defined( "POLYLANG_VERSION" ) )
+	if ( defined( "POLYLANG_VERSION" ) && function_exists("\\PLL") )
 	{
-		$default_lang = PLL()->options['default_lang'];
+		$default_lang = \PLL()->options['default_lang'];
 	}
 	$default_lang = apply_filters("elberos_default_lang", $default_lang);
 	return $default_lang;

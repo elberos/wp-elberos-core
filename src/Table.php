@@ -768,13 +768,6 @@ class Table extends \Elberos_WP_List_Table
 			width: 60%;
 			margin-top: 20px;
 		}
-		.add_or_edit_form .web_form__label{
-			margin-bottom: 5px;
-		}
-		.add_or_edit_form .web_form_input{
-			width: 100%;
-			max-width: 100%;
-		}
 		.add_or_edit_form_buttons{
 			width: 60%;
 			text-align: center;
@@ -800,6 +793,13 @@ class Table extends \Elberos_WP_List_Table
 		.extra_tablenav_filter .web_form_value{
 			display: block;
 			margin: 1px;
+		}
+		.elberos_form .web_form__label{
+			margin-bottom: 5px;
+		}
+		.elberos_form .web_form_input{
+			width: 100%;
+			max-width: 100%;
 		}
 		</style>
 		<script>
@@ -920,7 +920,9 @@ class Table extends \Elberos_WP_List_Table
 				<div id="message" class="updated"><p><?php echo $message ?></p></div>
 			<?php endif;?>
 			
-			<form id="elberos_form" class="<?= esc_attr("web_form_" . $this->struct->entity_name) ?>" method="POST">
+			<form id="elberos_form" class="elberos_form <?= esc_attr("web_form_" . $this->struct->entity_name) ?>"
+				method="POST"
+			>
 				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
 				<?php $this->display_form_content() ?>
 				<?php $this->display_form_buttons() ?>
