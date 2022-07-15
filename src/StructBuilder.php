@@ -412,6 +412,7 @@ class StructBuilder
 			$form_show_add = isset($field["form_show_add"]) ? $field["form_show_add"] : true;
 			$form_show_edit = isset($field["form_show_edit"]) ? $field["form_show_edit"] : true;
 			$label = isset($field["label"]) ? $field["label"] : "";
+			$description = isset($field["description"]) ? $field["description"] : "";
 			
 			if (!$form_show) continue;
 			if (!$form_show_add and $action == "add") continue;
@@ -448,7 +449,14 @@ class StructBuilder
 				<div class="web_form_label"><?= esc_html($label) ?></div>
 				
 				<?php $this->renderFormField($field, $item); ?>
-				
+				<?php
+					if ($description != "")
+					{
+						?>
+						<div class="web_form_description"><?= nl2br(esc_html($description)) ?></div>
+						<?php
+					}
+				?>
 				<div class="web_form_field_result" data-name="<?= esc_attr($api_name) ?>" data-default="&nbsp;">&nbsp;</div>
 			</div>
 			<?php

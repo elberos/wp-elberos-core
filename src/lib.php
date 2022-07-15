@@ -945,6 +945,8 @@ function check_nonce($text1)
 function get_image_url($post_id, $size = 'thumbnail')
 {
 	$img = wp_get_attachment_image_src($post_id, $size);
+	//var_dump($post_id);
+	//var_dump($img);
 	if ($img)
 	{
 		$post = get_post( $post_id );
