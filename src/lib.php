@@ -940,6 +940,25 @@ function check_nonce($text1)
 
 
 /**
+ * Check wp nonce
+ */
+function check_wp_nonce($nonce_action)
+{
+	/* Check nonce */
+	$nonce = isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : false;
+	if ($nonce == false)
+	{
+		return false;
+	}
+	if (!wp_verify_nonce($nonce, $nonce_action))
+	{
+		return false;
+	}
+	return true;
+}
+
+
+/**
  * Returns image url
  */
 function get_image_url($post_id, $size = 'thumbnail')

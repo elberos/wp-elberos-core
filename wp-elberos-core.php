@@ -186,6 +186,16 @@ class Elberos_Plugin
 				\Elberos\Delivery\Log::show();
 			}
 		);
+		
+		add_submenu_page(
+			'options-general.php',
+			'Robots.txt', 'Robots.txt',
+			'manage_options', 'elberos-robots-txt',
+			function()
+			{
+				\Elberos\RobotsTXT::show();
+			}
+		);
 	}
 	
 	
@@ -205,6 +215,21 @@ class Elberos_Plugin
 				{
 					\Elberos\generate_captcha();
 					return "";
+				}
+			]
+		);
+		
+		/* robots.txt */
+		$site->add_route
+		(
+			"site:robots:txt", "/robots.txt", null,
+			[
+				'enable_locale_any' => true,
+				"render" => function()
+				{
+					header('Content-Type: text/plain; charset=utf-8');
+					$content = get_blog_option(null, "robots.txt");
+					return $content;
 				}
 			]
 		);
@@ -291,6 +316,7 @@ require_once __DIR__ . "/src/Image.php";
 require_once __DIR__ . "/src/Table.php";
 require_once __DIR__ . "/src/Update.php";
 require_once __DIR__ . "/src/Dialog.php";
+require_once __DIR__ . "/src/RobotsTXT.php";
 require_once __DIR__ . "/delivery/mail-sender.php";
 require_once __DIR__ . "/forms/forms.php";
 require_once __DIR__ . "/forms/forms-api.php";
