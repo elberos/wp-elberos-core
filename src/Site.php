@@ -377,12 +377,17 @@ class Site
 	{
 	}
 	
+	public function setup_breadcrumbs_main()
+	{
+		$this->add_breadcrumbs("Главная", "/");
+	}
+	
 	public function setup_breadcrumbs()
 	{
 		$category_base = get_option("category_base", "");
 		
 		$this->breadcrumbs = [];
-		$this->add_breadcrumbs("Главная", "/");
+		$this->setup_breadcrumbs_main();
 		
 		if ($this->route_info != null)
 		{
@@ -504,7 +509,15 @@ class Site
 			
 			/* Setup article tags */
 			$tags = wp_get_post_tags($this->post_id);
-			$this->article_tags = array_map( function ($item) { return $item->name; }, $tags );
+			
+			/* Get tags from rank math */
+			$rank_math_tags = get_post_meta($this->post_id, "rank_math_focus_keyword", true);
+			$rank_math_tags = explode(",", $rank_math_tags);
+			
+			$tags = array_map( function ($item) { return $item->name; }, $tags );
+			$tags = array_merge($tags, $rank_math_tags);
+			
+			$this->article_tags = $tags;
 			
 			/* Setup publisher */
 			$this->article_publisher = $this->get_site_name();
