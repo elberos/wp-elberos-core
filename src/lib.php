@@ -675,8 +675,12 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
 	if ($dt)
 	{
-		$tz = get_wp_timezone();
-		if (!$tz) $tz = "UTC";
+		if (defined("WP_TZ")) $tz = WP_TZ;
+		else
+		{
+			$tz = get_wp_timezone();
+			if (!$tz) $tz = "UTC";
+		}
 		$tz = new \DateTimeZone( $tz );
 		$dt->setTimezone( $tz );
 		return $dt->format($format);
@@ -940,11 +944,32 @@ function check_nonce($text1)
 
 
 /**
+ * Check wp nonce
+ */
+function check_wp_nonce($nonce_action)
+{
+	/* Check nonce */
+	$nonce = isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : false;
+	if ($nonce == false)
+	{
+		return false;
+	}
+	if (!wp_verify_nonce($nonce, $nonce_action))
+	{
+		return false;
+	}
+	return true;
+}
+
+
+/**
  * Returns image url
  */
 function get_image_url($post_id, $size = 'thumbnail')
 {
 	$img = wp_get_attachment_image_src($post_id, $size);
+	//var_dump($post_id);
+	//var_dump($img);
 	if ($img)
 	{
 		$post = get_post( $post_id );

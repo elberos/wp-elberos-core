@@ -464,11 +464,11 @@ class Table extends \Elberos_WP_List_Table
 		{
 			if (isset($_GET["is_deleted"]) && ($_GET["is_deleted"] == "true" || $_GET["is_deleted"] == "1"))
 			{
-				$params["where"][] = "is_deleted=1";
+				$params["where"][] = "t.is_deleted=1";
 			}
 			else
 			{
-				$params["where"][] = "is_deleted=0";
+				$params["where"][] = "t.is_deleted=0";
 			}
 		}
 		
@@ -513,6 +513,7 @@ class Table extends \Elberos_WP_List_Table
 	{
 		$params =
 		[
+			"fields" => [ "t.*" ],
 			"where" => [],
 			"args" => [],
 			"order_by" => "id desc",
@@ -526,6 +527,7 @@ class Table extends \Elberos_WP_List_Table
 		list($items, $total_items, $pages, $page) = \Elberos\wpdb_query
 		([
 			"table_name" => $this->get_table_name(),
+			"fields" => implode(",", $params['fields']),
 			"where" => implode(" and ", $params['where']),
 			"join" => implode(" ", $params['join']),
 			"args" => $params['args'],
