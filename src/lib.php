@@ -675,8 +675,12 @@ function wp_from_gmtime($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 	$dt = \Elberos\create_date_from_string($date, 'Y-m-d H:i:s', $tz);
 	if ($dt)
 	{
-		$tz = get_wp_timezone();
-		if (!$tz) $tz = "UTC";
+		if (defined("WP_TZ")) $tz = WP_TZ;
+		else
+		{
+			$tz = get_wp_timezone();
+			if (!$tz) $tz = "UTC";
+		}
 		$tz = new \DateTimeZone( $tz );
 		$dt->setTimezone( $tz );
 		return $dt->format($format);
