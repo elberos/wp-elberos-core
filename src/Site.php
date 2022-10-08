@@ -1021,6 +1021,7 @@ class Site
 			"query" => isset($arr['query']) ? $arr['query'] : "",
 		];
 		$request_uri = $this->request["path"];
+		$http_host = isset($_SERVER["HTTP_HOST"]) ? $_SERVER["HTTP_HOST"] : "";
 		
 		if (gettype($this->routes) == 'array')
 		{
@@ -1034,9 +1035,24 @@ class Site
 			{
 				$matches = [];
 				$match = $route['match'];
-				$enable_locale_any = (isset($route['params']) && isset($route['params']['enable_locale_any'])) ?
+				
+				$domain = (isset($route['params']) &&
+					isset($route['params']['domain'])) ?
+					$route['params']['domain'] : false
+				;
+				if ($domain)
+				{
+					if ($http_host != $domain)
+					{
+						continue;
+					}
+				}
+				
+				$enable_locale_any = (isset($route['params']) &&
+					isset($route['params']['enable_locale_any'])) ?
 					$route['params']['enable_locale_any'] : false;
-				$route_enable_locale = (isset($route['params']) && isset($route['params']['enable_locale'])) ?
+				$route_enable_locale = (isset($route['params']) &&
+					isset($route['params']['enable_locale'])) ?
 					$route['params']['enable_locale'] : true
 				;
 				if ($route_enable_locale == false) $enable_locale_any = false;
