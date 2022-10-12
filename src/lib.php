@@ -83,7 +83,14 @@ function url_get_add($url, $key, $value = "")
 		parse_str($url_parts['query'], $get_args);
 	}
 	
-	$get_args[$key] = $value;
+	if ($value)
+	{
+		$get_args[$key] = $value;
+	}
+	else if (isset($get_args[$key]))
+	{
+		unset($get_args[$key]);
+	}
 	$url_parts['query'] = http_build_query($get_args);
 	
 	$new_url = "";

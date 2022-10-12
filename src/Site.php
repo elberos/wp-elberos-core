@@ -51,7 +51,7 @@ class Site
 	public $wp_query = null;
 	public $site_name = "";
 	public $site_url = "";
-	public $robots;
+	public $robots = "";
 	public $categories = null;
 	public $language;
 	public $language_code;
@@ -393,11 +393,12 @@ class Site
 		{
 			if (isset($this->route_info['params']))
 			{
+				$is_render = isset($this->route_info['params']['render']);
 				$title = isset($this->route_info['params']['title']) ?
 					$this->route_info['params']['title'] : "";
 				$add_breadcrumbs = isset($this->route_info['params']['add_breadcrumbs']) ?
 					$this->route_info['params']['add_breadcrumbs'] : true;
-				if ($add_breadcrumbs && $title)
+				if ($add_breadcrumbs && $title && !$is_render)
 				{
 					$this->add_breadcrumbs($title, $this->request['uri']);
 				}
@@ -880,7 +881,8 @@ class Site
 		$route_params = $this->get_route_params();
 		if ($route_params != null)
 		{
-			return isset($route_params['description']) ? $route_params['description'] : get_bloginfo("description");
+			return isset($route_params['description']) ?
+				$route_params['description'] : get_bloginfo("description");
 		}
 		$str = $this->get_current_description();
 		return $str;
@@ -1015,7 +1017,8 @@ class Site
 		$arr = parse_url($current_uri);
 		
 		$this->request = [
-			"method" => isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) : "GET",
+			"method" => isset($_SERVER['REQUEST_METHOD']) ?
+				strtoupper($_SERVER['REQUEST_METHOD']) : "GET",
 			"uri" => $current_uri,
 			"path" => isset($arr['path']) ? $arr['path'] : "/",
 			"query" => isset($arr['query']) ? $arr['query'] : "",

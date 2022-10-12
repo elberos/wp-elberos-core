@@ -145,7 +145,7 @@ class StructBuilder
 	/**
 	 * Add table field
 	 */
-	public function addTableField($field_name, $field_name_before = "")
+	public function addTableField($field_name, $field_name_after = "")
 	{
 		if (!in_array($field_name, $this->table_fields))
 		{
@@ -155,7 +155,7 @@ class StructBuilder
 			}
 			else
 			{
-				$pos = array_search($field_name_before, $this->table_fields);
+				$pos = array_search($field_name_after, $this->table_fields);
 				if ($pos !== false)
 				{
 					array_splice($this->table_fields, $pos + 1, 0, [$field_name]);
@@ -170,17 +170,17 @@ class StructBuilder
 	/**
 	 * Add table field
 	 */
-	public function addFormField($field_name, $field_name_before = "")
+	public function addFormField($field_name, $field_name_after = "")
 	{
 		if (!in_array($field_name, $this->form_fields))
 		{
-			if ($field_name_before == "")
+			if ($field_name_after == "")
 			{
 				$this->form_fields[] = $field_name;
 			}
 			else
 			{
-				$pos = array_search($field_name_before, $this->form_fields);
+				$pos = array_search($field_name_after, $this->form_fields);
 				if ($pos !== false)
 				{
 					array_splice($this->form_fields, $pos + 1, 0, [$field_name]);
@@ -290,7 +290,8 @@ class StructBuilder
 			{
 				return call_user_func_array($field['column_value'], [$this, $item]);
 			}
-			if (isset($field['type']) && ($field['type'] == 'select' || $field['type'] == 'select_input_value'))
+			if (isset($field['type']) &&
+				($field['type'] == 'select' || $field['type'] == 'select_input_value'))
 			{
 				$options = isset( $field['options'] ) ? $field['options'] : [];
 				$option = \Elberos\find_item($options, "id", $value);
@@ -453,7 +454,9 @@ class StructBuilder
 					if ($description != "")
 					{
 						?>
-						<div class="web_form_description"><?= nl2br(esc_html($description)) ?></div>
+						<div class="web_form_description">
+							<?= nl2br(esc_html($description)) ?>
+						</div>
 						<?php
 					}
 				?>
@@ -495,17 +498,20 @@ class StructBuilder
 		?>
 		
 		<?php } else if ($type == "input") { ?>
-		<input id="<?= $field_id ?>" type="text" class="web_form_input web_form_value web_form_input--text"
+		<input id="<?= $field_id ?>" type="text"
+			class="web_form_input web_form_value web_form_input--text"
 			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
 			
 		<?php } else if ($type == "password") { ?>
-		<input id="<?= $field_id ?>" type="password" class="web_form_input web_form_value web_form_input--text"
+		<input id="<?= $field_id ?>" type="password"
+			class="web_form_input web_form_value web_form_input--text"
 			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
 			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>" value="<?= esc_attr($value) ?>" />
 		
 		<?php } else if ($type == "textarea") { ?>
-		<textarea id="<?= $field_id ?>" type="text" class="web_form_input web_form_value web_form_input--textarea"
+		<textarea id="<?= $field_id ?>" type="text"
+			class="web_form_input web_form_value web_form_input--textarea"
 			style="min-height: <?= $min_height ?>;"
 			placeholder="<?= esc_attr($placeholder) ?>" name="<?= esc_attr($api_name) ?>"
 			data-name="<?= esc_attr($api_name) ?>" <?= $readonly ?> ></textarea>
