@@ -1211,38 +1211,44 @@ class Site
 		return $flag;
 	}
 	
-	function post_preview($content, $count = 150)
+	function post_preview($content, $count = 150, $use_more_tag = true, $trim = "/[\n\r\t ]+/")
 	{
+		$f = false;
 		$allowed_tags = "";
-		$f = preg_match('/<!--\s?more(.*?)?-->/', $content, $readmore_matches);
-		if ($readmore_matches != null and isset($readmore_matches[0]))
+		$readmore_matches = null;
+		
+		if ($use_more_tag)
+		{
+			$f = preg_match('/<!--\s?more(.*?)?-->/', $content, $readmore_matches);
+		}
+		
+		if ($use_more_tag and $f and $readmore_matches != null and isset($readmore_matches[0]))
 		{
 			$pieces = explode($readmore_matches[0], $content);
-			if ($f)
-			{
-				$text = $pieces[0];
-				$allowed_tags = "<p><img><br/>";
-				$text = strip_tags($text, $allowed_tags);
-			}
-			else
-			{
-				$content = preg_replace('/<!--\s?more(.*?)?-->/', '', $content);
-				$content = strip_tags($content, $allowed_tags);
-				$content = trim(preg_replace("/[\n\r\t ]+/", ' ', $content), ' ');
-				$text = mb_substr($content, 0, $count) . "...";
-			}
+			$text = $pieces[0];
+			$allowed_tags = "<p><img><br/>";
+			$text = strip_tags($text, $allowed_tags);
 		}
 		else
 		{
 			$content = preg_replace('/<!--\s?more(.*?)?-->/', '', $content);
 			$content = strip_tags($content, $allowed_tags);
-			$content = trim(preg_replace("/[\n\r\t ]+/", ' ', $content), ' ');
-			$text = mb_substr($content, 0, $count) . "...";
+			
+			if ($trim)
+			{
+				$content = trim(preg_replace($trim, ' ', $content), ' ');
+			}
+				
+			if (mb_strlen($content) > $count)
+			{
+				$text = mb_substr($content, 0, $count) . "...";
+			}
+			else
+			{
+				$text = $content;
+			}
 		}
 		$preview = $text;
-		//$preview = str_replace("<p>", "", $preview);
-		//$preview = str_replace("</p>", "<br/>", $preview);
-		//$preview = \Timber\TextHelper::trim_words($preview, $count, "", "a span b i br blockquote p");
 		
 		return $preview;
 	}
