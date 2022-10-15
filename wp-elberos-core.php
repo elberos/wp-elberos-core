@@ -52,7 +52,7 @@ class Elberos_Plugin
 		add_action('elberos_register_routes', 'Elberos_Plugin::elberos_register_routes');
 		add_action('elberos_twig', 'Elberos_Plugin::elberos_twig');
 		//add_filter( 'wp_fatal_error_handler_enabled', '__return_false' );
-
+		
 		/* Disable Rank Math Seo Output */
 		add_action
 		(

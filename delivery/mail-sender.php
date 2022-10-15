@@ -359,11 +359,27 @@ if ( !class_exists( MailSender::class ) )
 			$table_name_delivery = $wpdb->base_prefix . 'elberos_delivery';
 			$sql = "SELECT t.* FROM `$table_name_delivery` as t WHERE status=0 LIMIT 5";
 			$items = $wpdb->get_results( $sql, ARRAY_A );
-			//var_dump( $sql );
+			//var_dump( $items );
 			
 			// Send forms email
 			foreach ($items as $item)
 			{
+				$sql = $wpdb->prepare
+				(
+					"UPDATE $table_name_delivery SET
+						`status`=-1,
+						`send_email_code`=-1,
+						`send_email_error`='Sending email'
+					WHERE `id` = %d and `status`=0",
+					[ $item['id'] ]
+				);
+				$wpdb->query( $sql );
+				
+				if ($wpdb->rows_affected == 0)
+				{
+					continue;
+				}
+				
 				$send_email_code = -1;
 				$send_email_error = "Unknown error";
 				list ($send_email_code, $send_email_error) =
