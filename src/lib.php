@@ -501,6 +501,29 @@ function add(&$arr, $key_arr, $val)
 
 
 /**
+ * Append new value to array
+ */
+function append($arr, $val)
+{
+	$arr[] = $val;
+	return $arr;
+}
+
+
+
+/**
+ * Returns index of
+ */
+function index_of($arr, $value)
+{
+	$index = array_search($value, $arr);
+	if ($index === false) return -1;
+	return $index;
+}
+
+
+
+/**
  * Contains fields
  *
  * @param array $item

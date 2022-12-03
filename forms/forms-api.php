@@ -38,7 +38,8 @@ class Api
 	public static function init()
 	{
 		add_action('elberos_register_routes', '\\Elberos\\Forms\\Api::register_routes');
-		add_action('elberos_form_validate_fields', '\\Elberos\\Forms\\Api::elberos_form_validate_fields', -1000);
+		add_action('elberos_form_validate_fields',
+			'\\Elberos\\Forms\\Api::elberos_form_validate_fields', -1000);
 	}
 	
 	
