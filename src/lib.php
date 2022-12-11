@@ -1283,7 +1283,8 @@ function wpdb_query($params)
 	/* Order by */
 	if ($order_by) $order_by = "ORDER BY " . $order_by;
 	
-	$sql = "SELECT SQL_CALC_FOUND_ROWS ${distinct} ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
+	$sql = "SELECT SQL_CALC_FOUND_ROWS ${distinct} ${fields} " .
+		"FROM ${table_name} as t ${join} ${where} ${order_by}";
 	$sql = wpdb_query_args($sql, $args, $sql_arr);
 	
 	$limit = "";
