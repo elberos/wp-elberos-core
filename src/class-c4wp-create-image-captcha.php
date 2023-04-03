@@ -129,6 +129,7 @@ class Elberos_C4WP_Create_Image_Captcha {
 	{
 		if ($this->c4wp_key != "")
 		{
+			/*
 			$cookie_text = md5($c4wp_return_words . NONCE_SALT);
 			$cookie_jwt = \Elberos\create_jwt
 			(
@@ -137,8 +138,9 @@ class Elberos_C4WP_Create_Image_Captcha {
 					"t" => time(),
 				],
 				NONCE_KEY
-			);
-			setcookie($this->c4wp_key, $cookie_jwt, time() + 24*60*60, '/');
+			);*/
+			$cookie_jwt = "";
+			setcookie($this->c4wp_key, $cookie_jwt, 0, '/');
 		}
 	}
 	

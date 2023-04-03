@@ -669,13 +669,13 @@ function tz_timestamp($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 
 function get_wp_timezone()
 {
-	$timezone_string = get_option( 'timezone_string' );
+	$timezone_string = \get_option( 'timezone_string' );
 	if (!empty($timezone_string)) return $timezone_string;
-	$offset = (double)get_option( 'gmt_offset' );
+	$offset = (double)\get_option( 'gmt_offset' );
 	$hours = (int)$offset;
 	$minutes = abs(($offset - (int)$offset) * 60);
-	$offset = sprintf('%+03d:%02d', $hours, $minutes);
-	return "GMT" . $offset;
+	$gmt_offset = sprintf('%+03d:%02d', $hours, $minutes);
+	return "GMT" . $gmt_offset;
 }
 
 function wp_create_date_from_string($date)
