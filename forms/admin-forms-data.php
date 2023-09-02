@@ -34,7 +34,7 @@ class Data
 	public static function show()
 	{
 		$table = new Data_Table();
-		$table->display();		
+		$table->display_page();
 	}
 }
 
@@ -397,7 +397,7 @@ class Data_Table extends \WP_List_Table
 		<?php
 	}
 	
-	function display()
+	function display_page()
 	{
 		FormsHelper::load_forms_settings();
 		

@@ -1011,7 +1011,8 @@ function curl($url, $params = null)
 	$post = null;
 	$headers = null;
 	$curl_version = curl_version();
-	$curl_version_text = ($curl_version != false && isset($curl_version['version'])) ? $curl_version['version'] : "0";
+	$curl_version_text = ($curl_version != false && isset($curl_version['version'])) ?
+		$curl_version['version'] : "0";
 	$user_agent = "curl-client/" . $curl_version_text;
 	$cookie_file = null;
 	
@@ -1036,8 +1037,20 @@ function curl($url, $params = null)
 		curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file);
 		curl_setopt($curl, CURLOPT_COOKIEJAR, $cookie_file);
 	}
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+	
+	if (isset($params['verify_ssl']) && $params['verify_ssl'] == false)
+	{
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+	}
+	
+	if (isset($params['http_auth']))
+	{
+		$username = isset($params['http_auth']['username']) ? $params['http_auth']['username'] : '';
+		$password = isset($params['http_auth']['password']) ? $params['http_auth']['password'] : '';
+		curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		curl_setopt($curl, CURLOPT_USERPWD, $username . ":" . $password);
+	}
 	
 	if ($post !== null)
 	{
