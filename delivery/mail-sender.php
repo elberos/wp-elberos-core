@@ -43,6 +43,10 @@ if ( !class_exists( MailSender::class ) )
 			global $wpdb;
 			$table_forms_delivery = $wpdb->base_prefix . 'elberos_delivery';
 			
+			if ($email_to == "") return;
+			if ($email_to == null) return;
+			if (gettype($email_to) == 'array' && count($email_to) == 0) return;
+			
 			$uuid = isset($params['uuid']) ? $params['uuid'] : wp_generate_uuid4();
 			$gmtime_add = gmdate('Y-m-d H:i:s');
 			$gmtime_plan = isset($params['gmtime_plan']) ? $params['gmtime_plan'] : $gmtime_add;
