@@ -1073,10 +1073,23 @@ function curl($url, $params = null)
 	# Получим HTTP-код ответа сервера
 	$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 	
+	$curl_errno = 0;
+	$curl_errstr = '';
+	if ($code == 0)
+	{
+		$curl_errno = curl_errno($curl);
+		$curl_errstr = curl_error($curl);
+	}
+	
 	# Завершаем сеанс cURL
 	curl_close($curl);
 	
-	return [$code, $out];
+	return [
+		"code" => $code,
+		"out" => $out,
+		"errno" => $curl_errno,
+		"errstr" => $curl_errstr,
+	];
 }
 
 

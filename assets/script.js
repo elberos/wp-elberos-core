@@ -607,6 +607,8 @@ function ElberosFormSubmit ( $form, settings, callback )
 			var metrika_event = settings.metrika_event;
 			var redirect = settings.redirect;
 			
+			callback = callback || settings.callback;
+			
 			ElberosFormSetResponse($form, res, settings);
 			
 			if (res.code == 1)
