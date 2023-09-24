@@ -508,6 +508,29 @@ function add(&$arr, $key_arr, $val)
 
 
 /**
+ * Append new value to array
+ */
+function append($arr, $val)
+{
+	$arr[] = $val;
+	return $arr;
+}
+
+
+
+/**
+ * Returns index of
+ */
+function index_of($arr, $value)
+{
+	$index = array_search($value, $arr);
+	if ($index === false) return -1;
+	return $index;
+}
+
+
+
+/**
  * Contains fields
  *
  * @param array $item
@@ -653,13 +676,13 @@ function tz_timestamp($date, $format = 'Y-m-d H:i:s', $tz = 'UTC')
 
 function get_wp_timezone()
 {
-	$timezone_string = get_option( 'timezone_string' );
+	$timezone_string = \get_option( 'timezone_string' );
 	if (!empty($timezone_string)) return $timezone_string;
-	$offset = (double)get_option( 'gmt_offset' );
+	$offset = (double)\get_option( 'gmt_offset' );
 	$hours = (int)$offset;
 	$minutes = abs(($offset - (int)$offset) * 60);
-	$offset = sprintf('%+03d:%02d', $hours, $minutes);
-	return "GMT" . $offset;
+	$gmt_offset = sprintf('%+03d:%02d', $hours, $minutes);
+	return "GMT" . $gmt_offset;
 }
 
 function wp_create_date_from_string($date)
@@ -995,7 +1018,8 @@ function curl($url, $params = null)
 	$post = null;
 	$headers = null;
 	$curl_version = curl_version();
-	$curl_version_text = ($curl_version != false && isset($curl_version['version'])) ? $curl_version['version'] : "0";
+	$curl_version_text = ($curl_version != false && isset($curl_version['version'])) ?
+		$curl_version['version'] : "0";
 	$user_agent = "curl-client/" . $curl_version_text;
 	$cookie_file = null;
 	
@@ -1020,8 +1044,20 @@ function curl($url, $params = null)
 		curl_setopt($curl, CURLOPT_COOKIEFILE, $cookie_file);
 		curl_setopt($curl, CURLOPT_COOKIEJAR, $cookie_file);
 	}
-	curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-	curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+	
+	if (isset($params['verify_ssl']) && $params['verify_ssl'] == false)
+	{
+		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
+		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+	}
+	
+	if (isset($params['http_auth']))
+	{
+		$username = isset($params['http_auth']['username']) ? $params['http_auth']['username'] : '';
+		$password = isset($params['http_auth']['password']) ? $params['http_auth']['password'] : '';
+		curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+		curl_setopt($curl, CURLOPT_USERPWD, $username . ":" . $password);
+	}
 	
 	if ($post !== null)
 	{
@@ -1044,10 +1080,23 @@ function curl($url, $params = null)
 	# Получим HTTP-код ответа сервера
 	$code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 	
+	$curl_errno = 0;
+	$curl_errstr = '';
+	if ($code == 0)
+	{
+		$curl_errno = curl_errno($curl);
+		$curl_errstr = curl_error($curl);
+	}
+	
 	# Завершаем сеанс cURL
 	curl_close($curl);
 	
-	return [$code, $out];
+	return [
+		"code" => $code,
+		"out" => $out,
+		"errno" => $curl_errno,
+		"errstr" => $curl_errstr,
+	];
 }
 
 
@@ -1267,7 +1316,8 @@ function wpdb_query($params)
 	/* Order by */
 	if ($order_by) $order_by = "ORDER BY " . $order_by;
 	
-	$sql = "SELECT SQL_CALC_FOUND_ROWS ${distinct} ${fields} FROM ${table_name} as t ${join} ${where} ${order_by}";
+	$sql = "SELECT SQL_CALC_FOUND_ROWS ${distinct} ${fields} " .
+		"FROM ${table_name} as t ${join} ${where} ${order_by}";
 	$sql = wpdb_query_args($sql, $args, $sql_arr);
 	
 	$limit = "";

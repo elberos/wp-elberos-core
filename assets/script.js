@@ -32,17 +32,31 @@ function getCookie(name)
 }
 function setCookie(name, value, options = {})
 {
-  options = { path: '/', ...options };
-  if (options.expires instanceof Date) options.expires = options.expires.toUTCString();
-  let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
-  for (let optionKey in options) {
-    updatedCookie += "; " + optionKey;
-    let optionValue = options[optionKey];
-    if (optionValue !== true) {
-      updatedCookie += "=" + optionValue;
-    }
-  }
-  document.cookie = updatedCookie;
+	if (options.path == undefined) options.path = "/";
+	if (options.expires != undefined)
+	{
+		if (options.expires instanceof Date)
+		{
+			options.expires = options.expires.toUTCString();
+		}
+		else
+		{
+			var d = new Date();
+			d.setTime(d.getTime() + options.expires * 1000);
+			options.expires = d.toUTCString();
+		}
+	}
+	let updatedCookie = encodeURIComponent(name) + "=" + encodeURIComponent(value);
+	for (let optionKey in options)
+	{
+		let optionValue = options[optionKey];
+		updatedCookie += "; " + optionKey;
+		if (optionValue !== true)
+		{
+			updatedCookie += "=" + optionValue;
+		}
+	}
+	document.cookie = updatedCookie;
 }
 function addGet(s, key, value)
 {
@@ -592,6 +606,8 @@ function ElberosFormSubmit ( $form, settings, callback )
 		{
 			var metrika_event = settings.metrika_event;
 			var redirect = settings.redirect;
+			
+			callback = callback || settings.callback;
 			
 			ElberosFormSetResponse($form, res, settings);
 			
