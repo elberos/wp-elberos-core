@@ -149,7 +149,7 @@ class StructBuilder
 	{
 		if (!in_array($field_name, $this->table_fields))
 		{
-			if ($field_name == "")
+			if ($field_name_after == "")
 			{
 				$this->table_fields[] = $field_name;
 			}

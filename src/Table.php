@@ -471,7 +471,6 @@ class Table extends \Elberos_WP_List_Table
 				$params["where"][] = "t.is_deleted=0";
 			}
 		}
-		
 		list($_,$params) = apply_filters("elberos_table_prepare_items_params_" . get_called_class(), [$this,$params]);
 		
 		return $params;
