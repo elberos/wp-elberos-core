@@ -1,142 +1,181 @@
 /* Forms */
 .web_form__title, .web_form__subtitle, .web_form_title, .web_form_subtitle {
-  text-align: center;
-  margin-bottom: 10px;
+	text-align: center;
+	margin-bottom: 10px;
 }
 .web_form__title, .web_form_title {
-  font-weight: bold;
-  font-size: 150%;
+	font-weight: bold;
+	font-size: 150%;
 }
 .web_form__result, .web_form_result {
-  text-align: center;
-  margin-top: 5px;
-  margin-bottom: 10px;
+	text-align: center;
+	margin-top: 5px;
+	margin-bottom: 10px;
 }
 .web_form__result--success, .web_form_result--success {
-  color: green;
+	color: green;
 }
 .web_form__result--error, .web_form_result--error {
-  color: red;
+	color: red;
 }
 .web_form__row, .web_form_row {
-  margin-bottom: 10px;
+	margin-bottom: 10px;
 }
 .web_form__field_result, .web_form_field_result {
-  color: red;
-  font-size: 12px;
+	color: red;
+	font-size: 12px;
 }
 .web_form__buttons, .web_form_buttons {
-  text-align: center;
+	text-align: center;
 }
 .web_form__field--checkbox, .web_form_field--checkbox {
-  margin-left: 5px;
-  vertical-align: sub;
+	margin-left: 5px;
+	vertical-align: sub;
 }
 .web_form__row--checkbox .web_form__field, .web_form__row--checkbox .web_form__label, .web_form_row--checkbox .web_form_field, .web_form_row--checkbox .web_form_label {
-  cursor: pointer;
+	cursor: pointer;
 }
 .web_form__textarea, .web_form_textarea {
-  min-height: 300px;
+	min-height: 300px;
 }
 .web_form__textarea.ckeditor, .web_form_textarea.ckeditor {
-  min-height: 450px;
+	min-height: 450px;
 }
 .web_form__field_image_preview, .web_form_field_image_preview {
-  display: block;
-  margin-bottom: 5px;
+	display: block;
+	margin-bottom: 5px;
 }
 .web_form__label, .web_form_label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+	display: block;
+	margin-bottom: 5px;
+	font-weight: bold;
 }
 .web_form__input--text, .web_form__input--textarea, .web_form_input--text, .web_form_input--textarea {
-  border: 1px #b3b3b3 solid;
-  border-radius: 0;
-  background-color: white;
+	border: 1px #b3b3b3 solid;
+	border-radius: 0;
+	background-color: white;
 }
 .web_form__input--text:focus, .web_form__input--textarea:focus, .web_form_input--text:focus, .web_form_input--textarea:focus, .web_form__input--text:active, .web_form__input--textarea:active, .web_form_input--text:active, .web_form_input--textarea:active {
-  outline: 0;
+	outline: 0;
 }
 .web_form__input--text, .web_form__input--textarea, .web_form_input--text, .web_form_input--textarea {
-  width: 100%;
-  padding: 10px;
+	width: 100%;
+	padding: 10px;
 }
 .web_form__input--textarea, .web_form_input--textarea {
-  resize: vertical;
+	resize: vertical;
 }
 .web_form select.web_form__input {
-  -moz-appearance: none;
-  /* Firefox */
-  -webkit-appearance: none;
-  /* Safari and Chrome */
-  appearance: none;
-  cursor: pointer;
+	-moz-appearance: none;
+	/* Firefox */
+	-webkit-appearance: none;
+	/* Safari and Chrome */
+	appearance: none;
+	cursor: pointer;
 }
 .web_form_captcha_item {
-  display: inline-block;
-  width: calc(50% - 5px);
-  vertical-align: middle;
+	display: inline-block;
+	width: calc(50% - 5px);
+	vertical-align: middle;
 }
 .web_form_captcha_item img {
-  height: 60px;
-  cursor: pointer;
+	height: 60px;
+	cursor: pointer;
 }
 .web_form_captcha_item_text {
-  padding-left: 10px;
+	padding-left: 10px;
 }
 .web_form--center {
-  width: 600px;
-  margin-right: auto;
-  margin-left: auto;
-  margin-top: 10px;
-  margin-bottom: 10px;
+	width: 600px;
+	margin-right: auto;
+	margin-left: auto;
+	margin-top: 10px;
+	margin-bottom: 10px;
 }
 .web_form--flat .web_form__row {
-  margin-bottom: 15px;
+	margin-bottom: 15px;
 }
 .web_form--flat .web_form__input--text, .web_form--flat .web_form__input--password, .web_form--flat .web_form__select, .web_form--flat .web_form__textarea {
-  display: block;
-  padding: 6px 6px;
-  width: 100%;
-  border: 1px #ccc solid;
-  background-color: white;
+	display: block;
+	padding: 6px 6px;
+	width: 100%;
+	border: 1px #ccc solid;
+	background-color: white;
 }
 .web_form--large .web_form__label {
-  font-size: 16px;
+	font-size: 16px;
 }
 .web_form--large .web_form__input--text, .web_form--large .web_form__input--password, .web_form--large .web_form__select, .web_form--large .web_form__textarea {
-  display: block;
-  padding: 8px 8px;
-  width: 100%;
-  border: 1px #ccc solid;
-  background-color: white;
-  font-size: 16px;
+	display: block;
+	padding: 8px 8px;
+	width: 100%;
+	border: 1px #ccc solid;
+	background-color: white;
+	font-size: 16px;
 }
 .web_form--large .web_form__buttons {
-  padding-top: 15px;
-  padding-bottom: 15px;
+	padding-top: 15px;
+	padding-bottom: 15px;
 }
 .web_form--large .web_form__buttons .button {
-  font-size: 16px;
+	font-size: 16px;
 }
 .web_form--horizontal {
-  font-size: 0;
+	font-size: 0;
 }
 .web_form--horizontal .web_form__row, .web_form--horizontal .web_form__buttons {
-  display: inline-block;
-  vertical-align: top;
-  width: calc(33% - 5px);
+	display: inline-block;
+	vertical-align: top;
+	width: calc(33% - 5px);
 }
 @media (max-width: 576px) {
-  .web_form--horizontal .web_form__row, .web_form--horizontal .web_form__buttons {
-    display: block;
-    width: 100%;
-  }
+	.web_form--horizontal .web_form__row, .web_form--horizontal .web_form__buttons {
+		display: block;
+		width: 100%;
+	}
 }
 .web_form--horizontal .web_form__result {
-  font-size: 14px;
+	font-size: 14px;
 }
 .web_form--horizontal .button {
-  width: 100%;
+	width: 100%;
+}
+
+/* Elberos input tags */
+.elberos_input_tags__wrap{
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	background-color: white;
+}
+.elberos_input_tags__tag{
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	background-color: #ccc;
+	padding: 4px 6px;
+	margin: 5px;
+	margin-right: 0px;
+	outline: 0;
+}
+.elberos_input_tags__content{
+	white-space: pre-wrap;
+}
+.elberos_input_tags__close{
+	display: inline-flex;
+    align-items: center;
+    justify-content: center;
+	font-size: 14px;
+	width: 14px;
+	cursor: pointer;
+}
+.elberos_input_tags__close:after{
+	content: "x";
+}
+.elberos_input_tags__span{
+	display: inline-block;
+	min-width: 110px;
+	margin: 5px;
+	padding: 4px 7px;
+	outline: 0;
 }

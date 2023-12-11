@@ -1228,3 +1228,122 @@ function scrollToElement(el, duration, easing){
 	var top = $(el).offset().top;
 	scrollTop(top, duration, easing);
 }
+
+
+/**
+ * Tags
+ */
+function ElberosTags($el)
+{
+	this.$el = $el.get(0);
+	this.$el.controller = this;
+	
+	this.$wrap = document.createElement("div");
+	this.$wrap.classList.add("elberos_input_tags__wrap");
+	
+	this.$span = document.createElement("span");
+	this.$span.classList.add("elberos_input_tags__span");
+	this.$span.contentEditable = "true";
+	this.$span.setAttribute("contenteditable", "true");
+	this.$span.addEventListener("keydown", this.onClick.bind(this));
+	
+	this.$wrap.append(this.$span);
+	
+	this.$el.after(this.$wrap);
+}
+
+Object.assign(ElberosTags.prototype, {
+	
+	addTag: function(value)
+	{
+		var $tag = document.createElement("div");
+		$tag.classList.add("elberos_input_tags__tag");
+		
+		var $content = document.createElement("div");
+		$content.classList.add("elberos_input_tags__content");
+		$content.innerText = value;
+		$tag.append($content);
+		
+		var $close = document.createElement("div");
+		$close.classList.add("elberos_input_tags__close");
+		$tag.append($close);
+		
+		$close.addEventListener("click", this.onClose($tag).bind(this));
+		
+		this.$wrap.insertBefore($tag, this.$span);
+	},
+	
+	onClose: function($tag)
+	{
+		return function(e)
+		{
+			$tag.remove();
+		};
+	},
+	
+	clearData: function()
+	{
+		var childNodes = this.$wrap.childNodes;
+		for (var i=0; i<childNodes.length; i++)
+		{
+			var $item = childNodes[i];
+			if (!$item.classList.contains("elberos_input_tags__tag")) continue;
+			$item.remove();
+		}
+	},
+	
+	setData: function(value)
+	{
+		this.clearData();
+		
+		var data = null;
+		try
+		{
+			data = JSON.parse(value);
+		}
+		catch (e)
+		{
+			return;
+		}
+		
+		if (!(data instanceof Array)) return;
+		
+		for (var i=0; i<data.length; i++)
+		{
+			var text = data[i];
+			this.addTag(text);
+		}
+	},
+	
+	getData: function()
+	{
+		var data = [];
+		
+		var childNodes = this.$wrap.childNodes;
+		for (var i=0; i<childNodes.length; i++)
+		{
+			var $item = childNodes[i];
+			if (!$item.classList.contains("elberos_input_tags__tag")) continue;
+			data.push($item.innerText);
+		}
+		
+		return JSON.stringify(data);
+	},
+	
+	onClick: function(e)
+	{
+		if (e.keyCode != 13) return;
+		var value = this.$span.innerText;
+		this.addTag(value);
+		this.$span.innerText = "";
+		e.preventDefault();
+		return false;
+	},
+	
+});
+
+$(document).ready(function(){
+	$('.elberos_input_tags').each(function(){
+		new ElberosTags($(this));
+	});
+});
