@@ -1246,6 +1246,7 @@ function ElberosTags($el)
 	this.$span.contentEditable = "true";
 	this.$span.setAttribute("contenteditable", "true");
 	this.$span.addEventListener("keydown", this.onClick.bind(this));
+	this.$span.addEventListener("focusout", this.onFocusOut.bind(this));
 	
 	this.$wrap.append(this.$span);
 	
@@ -1256,6 +1257,8 @@ Object.assign(ElberosTags.prototype, {
 	
 	addTag: function(value)
 	{
+		if (value == "") return;
+		
 		var $tag = document.createElement("div");
 		$tag.classList.add("elberos_input_tags__tag");
 		
@@ -1284,11 +1287,17 @@ Object.assign(ElberosTags.prototype, {
 	clearData: function()
 	{
 		var childNodes = this.$wrap.childNodes;
-		for (var i=0; i<childNodes.length; i++)
+		for (var i=childNodes.length - 1; i>=0; i--)
 		{
 			var $item = childNodes[i];
-			if (!$item.classList.contains("elberos_input_tags__tag")) continue;
-			$item.remove();
+			if ($item.classList.contains("elberos_input_tags__span"))
+			{
+				$item.innerHTML = "";
+			}
+			if ($item.classList.contains("elberos_input_tags__tag"))
+			{
+				$item.remove();
+			}
 		}
 	},
 	
@@ -1340,6 +1349,12 @@ Object.assign(ElberosTags.prototype, {
 		return false;
 	},
 	
+	onFocusOut: function()
+	{
+		var value = this.$span.innerText;
+		this.addTag(value);
+		this.$span.innerText = "";
+	},
 });
 
 $(document).ready(function(){
