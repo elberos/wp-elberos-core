@@ -401,8 +401,10 @@ class StructBuilder
 	/**
 	 * Render fields
 	 */
-	public function renderForm($item = [], $action = "")
+	public function renderForm($item = [], $action = "", $params = null)
 	{
+		if ($params == null) $params = [];
+		if (!isset($params["group"]))$params["group"] = "default";
 		foreach ($this->form_fields as $api_name)
 		{
 			$field = isset($this->fields[$api_name]) ? $this->fields[$api_name] : null;
@@ -411,12 +413,14 @@ class StructBuilder
 			$form_show = isset($field["form_show"]) ? $field["form_show"] : true;
 			$form_show_add = isset($field["form_show_add"]) ? $field["form_show_add"] : true;
 			$form_show_edit = isset($field["form_show_edit"]) ? $field["form_show_edit"] : true;
+			$group = isset($field["group"]) ? $field["group"] : "default";
 			$label = isset($field["label"]) ? $field["label"] : "";
 			$description = isset($field["description"]) ? $field["description"] : "";
 			
 			if (!$form_show) continue;
 			if (!$form_show_add and $action == "add") continue;
 			if (!$form_show_edit and $action == "edit") continue;
+			if ($params["group"] != $group) continue;
 			
 			/* Row style */
 			$style_row = "";
@@ -563,6 +567,14 @@ class StructBuilder
 					value="<?= esc_attr($value) ?>" />
 			</span>
 		</div>
+		
+		<?php } else if ($type == "tags") { ?>
+		<input id="<?= $field_id ?>" type="text"
+			class="web_form_input web_form_value web_form_input--text elberos_input_tags"
+			placeholder="<?= esc_attr($placeholder) ?>" <?= $readonly ?>
+			name="<?= esc_attr($api_name) ?>" data-name="<?= esc_attr($api_name) ?>"
+			value="<?= esc_attr($value) ?>" style="display: none;"
+		/>
 		
 		<?php
 		}
