@@ -253,11 +253,14 @@ class Table extends \Elberos_WP_List_Table
 		if ($action == 'trash')
 		{
 			$ids = $this->get_bulk_id();
-			if (is_array($ids)) $ids = implode(',', $ids);
-
-			if (!empty($ids))
+			if (!empty($ids) && gettype($ids) == 'array')
 			{
-				$sql = "update $table_name set is_deleted=1 WHERE id IN($ids)";
+				$sql = $wpdb->prepare
+				(
+					"update " . $table_name . " set is_deleted=1 WHERE id IN(" .
+						implode(",", array_fill(0, count($ids), "%d")) . ")",
+					$ids
+				);
 				$wpdb->query($sql);
 			}
 		}
@@ -265,11 +268,14 @@ class Table extends \Elberos_WP_List_Table
 		if ($action == 'notrash')
 		{
 			$ids = $this->get_bulk_id();
-			if (is_array($ids)) $ids = implode(',', $ids);
-
-			if (!empty($ids))
+			if (!empty($ids) && gettype($ids) == 'array')
 			{
-				$sql = "update $table_name set is_deleted=0 WHERE id IN($ids)";
+				$sql = $wpdb->prepare
+				(
+					"update " . $table_name . " set is_deleted=0 WHERE id IN(" .
+						implode(",", array_fill(0, count($ids), "%d")) . ")",
+					$ids
+				);
 				$wpdb->query($sql);
 			}
 		}
@@ -277,11 +283,14 @@ class Table extends \Elberos_WP_List_Table
 		if ($action == 'delete')
 		{
 			$ids = $this->get_bulk_id();
-			if (is_array($ids)) $ids = implode(',', $ids);
-
-			if (!empty($ids))
+			if (!empty($ids) && gettype($ids) == 'array')
 			{
-				$sql = "DELETE FROM $table_name WHERE id IN($ids)";
+				$sql = $wpdb->prepare
+				(
+					"DELETE FROM " . $table_name . " WHERE is_deleted=1 AND id IN(" .
+						implode(",", array_fill(0, count($ids), "%d")) . ")",
+					$ids
+				);
 				$wpdb->query($sql);
 			}
 		}
@@ -606,7 +615,7 @@ class Table extends \Elberos_WP_List_Table
 		
 		/* Check nonce */
 		$nonce = isset($_REQUEST['nonce']) ? $_REQUEST['nonce'] : false;
-		$nonce_action = basename(__FILE__);
+		$nonce_action = static::class;
 		if ($nonce == false)
 		{
 			return;
@@ -925,7 +934,7 @@ class Table extends \Elberos_WP_List_Table
 			<form id="elberos_form" class="elberos_form <?= esc_attr("web_form_" . $this->struct->entity_name) ?>"
 				method="POST"
 			>
-				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
+				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(static::class)?>"/>
 				<?php $this->display_form_content() ?>
 				<?php $this->display_form_buttons() ?>
 			</form>

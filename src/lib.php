@@ -1004,6 +1004,59 @@ function get_image_url($post_id, $size = 'thumbnail')
 
 
 /**
+ * Returns images url
+ */
+function get_images_url($photo_ids, $size = 'thumbnail')
+{
+	global $wpdb;
+	
+	$photos = [];
+	if (count($photo_ids) == 0) return [];
+	
+	$sql = $wpdb->prepare(
+		"SELECT * FROM {$wpdb->base_prefix}posts " .
+		"WHERE ID in (" . implode(",", array_fill(0, count($photo_ids), "%d")) . ")",
+		$photo_ids
+	);
+	$arr = $wpdb->get_results($sql, ARRAY_A);
+	foreach ($arr as $item)
+	{
+		$photo_id = $item["ID"];
+		$photos[$photo_id] = $item;
+	}
+	
+	$sql = $wpdb->prepare(
+		"SELECT post_id, meta_value FROM {$wpdb->base_prefix}postmeta " .
+		"WHERE post_id in (" . implode(",", array_fill(0, count($photo_ids), "%d")) . ") " .
+		"AND meta_key='_wp_attachment_metadata'",
+		$photo_ids
+	);
+	$arr = $wpdb->get_results($sql, ARRAY_A);
+	foreach ($arr as $item)
+	{
+		$photo_id = $item["post_id"];
+		$photos[$photo_id]["attachment_metadata"] = @unserialize($item["meta_value"]);
+	}
+	
+	$result = [];
+	foreach ($photos as $photo)
+	{
+		$photo_id = $photo["ID"];
+		$attachment_metadata = $photo["attachment_metadata"];
+		$url = isset($attachment_metadata["file"]) ? $attachment_metadata["file"] : null;
+		if (isset($attachment_metadata["sizes"]) && isset($attachment_metadata["sizes"][$size]))
+		{
+			$url = dirname($url);
+			$url .= "/" . $attachment_metadata["sizes"][$size]["file"];
+		}
+		$result[$photo_id] = "/wp-content/uploads/" . $url;
+	}
+	
+	return $result;
+}
+
+
+/**
  * Send curl
  */
 function curl($url, $params = null)
