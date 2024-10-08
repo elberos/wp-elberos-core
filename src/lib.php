@@ -1004,6 +1004,61 @@ function get_image_url($post_id, $size = 'thumbnail')
 
 
 /**
+ * Returns images urls
+ */
+function get_images_url($images_id)
+{
+	global $wpdb;
+	
+	/* Get uploads dir */
+	$uploads = wp_get_upload_dir();
+	$baseurl = $uploads["baseurl"];
+	
+	/* Get meta */
+	$wp_posts = $wpdb->prefix . "posts";
+	$wp_postmeta = $wpdb->prefix . "postmeta";
+	$sql = $wpdb->prepare
+	(
+		"SELECT postmeta.meta_value, post.ID as id, post.post_modified_gmt " .
+		"FROM " . $wp_postmeta . " as postmeta " .
+		"INNER JOIN " . $wp_posts . " as post on (post.ID = postmeta.post_id) " .
+		"WHERE postmeta.meta_key='_wp_attachment_metadata' AND " .
+		"postmeta.post_id in (" . implode(",", array_fill(0, count($images_id), "%d")) . ")",
+		$images_id
+	);
+	$posts_meta = $wpdb->get_results($sql, ARRAY_A);
+	
+	/* Get result */
+	$result = [];
+	foreach ($posts_meta as $item)
+	{
+		$item["meta_value"] = @unserialize($item["meta_value"]);
+		if ($item["meta_value"])
+		{
+			$file = $item["meta_value"]["file"];
+			$file_dir = dirname($file);
+			$item["meta_value"]["url"] =
+				$baseurl . "/" . $item["meta_value"]["file"] .
+				"?_=" . strtotime($item["post_modified_gmt"])
+			;
+			
+			foreach ($item["meta_value"]["sizes"] as $key => $size)
+			{
+				$item["meta_value"]["sizes"][$key]["url"] =
+					$baseurl . "/" . $file_dir . "/" .
+					$size["file"] . "?_=" . strtotime($item["post_modified_gmt"])
+				;
+			}
+		}
+		
+		$result[$item["id"]] = $item;
+	}
+	
+	return $result;
+}
+
+
+/**
  * Send curl
  */
 function curl($url, $params = null)
