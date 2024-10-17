@@ -73,18 +73,35 @@ function url_get($key, $value = "")
 /**
  * Add get parametr
  */
-function url_get_add($url, $key, $value = "")
+function url_get_add($url, $new_key, $new_value = "")
 {
 	$url_parts = parse_url($url);
 	$get_args = [];
 	
+	/* Parse query */
 	if (isset($url_parts['query']))
 	{
-		parse_str($url_parts['query'], $get_args);
+		$items = explode("&", $url_parts['query']);
+		foreach ($items as $item)
+		{
+			$arr = explode("=", $item);
+			$key = isset($arr[0]) ? $arr[0] : "";
+			$value = isset($arr[1]) ? $arr[1] : "";
+			if (!$key) continue;
+			if (!$value) continue;
+			$key = urldecode($key);
+			$get_args[$key] = $value;
+		}
+		$get_args = array_map(function($item){ return urldecode($item); }, $get_args);
 	}
 	
-	$get_args[$key] = $value;
-	$url_parts['query'] = http_build_query($get_args);
+	/* Change key */
+	if ($new_value) $get_args[$new_key] = $new_value;
+	else if (isset($get_args[$new_key])) unset($get_args[$new_key]);
+	
+	/* Build query */
+	if (count($get_args) > 0) $url_parts['query'] = http_build_query($get_args);
+	else $url_parts['query'] = null;
 	
 	$new_url = "";
 	if (isset($url_parts["scheme"])) $new_url .= $url_parts["scheme"] . "://";
@@ -1004,52 +1021,54 @@ function get_image_url($post_id, $size = 'thumbnail')
 
 
 /**
- * Returns images url
+ * Returns images urls
  */
-function get_images_url($photo_ids, $size = 'thumbnail')
+function get_images_url($images_id)
 {
 	global $wpdb;
 	
-	$photos = [];
-	if (count($photo_ids) == 0) return [];
+	/* Get uploads dir */
+	$uploads = wp_get_upload_dir();
+	$baseurl = $uploads["baseurl"];
 	
-	$sql = $wpdb->prepare(
-		"SELECT * FROM {$wpdb->base_prefix}posts " .
-		"WHERE ID in (" . implode(",", array_fill(0, count($photo_ids), "%d")) . ")",
-		$photo_ids
+	/* Get meta */
+	$wp_posts = $wpdb->prefix . "posts";
+	$wp_postmeta = $wpdb->prefix . "postmeta";
+	$sql = $wpdb->prepare
+	(
+		"SELECT postmeta.meta_value, post.ID as id, post.post_modified_gmt " .
+		"FROM " . $wp_postmeta . " as postmeta " .
+		"INNER JOIN " . $wp_posts . " as post on (post.ID = postmeta.post_id) " .
+		"WHERE postmeta.meta_key='_wp_attachment_metadata' AND " .
+		"postmeta.post_id in (" . implode(",", array_fill(0, count($images_id), "%d")) . ")",
+		$images_id
 	);
-	$arr = $wpdb->get_results($sql, ARRAY_A);
-	foreach ($arr as $item)
-	{
-		$photo_id = $item["ID"];
-		$photos[$photo_id] = $item;
-	}
+	$posts_meta = $wpdb->get_results($sql, ARRAY_A);
 	
-	$sql = $wpdb->prepare(
-		"SELECT post_id, meta_value FROM {$wpdb->base_prefix}postmeta " .
-		"WHERE post_id in (" . implode(",", array_fill(0, count($photo_ids), "%d")) . ") " .
-		"AND meta_key='_wp_attachment_metadata'",
-		$photo_ids
-	);
-	$arr = $wpdb->get_results($sql, ARRAY_A);
-	foreach ($arr as $item)
-	{
-		$photo_id = $item["post_id"];
-		$photos[$photo_id]["attachment_metadata"] = @unserialize($item["meta_value"]);
-	}
-	
+	/* Get result */
 	$result = [];
-	foreach ($photos as $photo)
+	foreach ($posts_meta as $item)
 	{
-		$photo_id = $photo["ID"];
-		$attachment_metadata = $photo["attachment_metadata"];
-		$url = isset($attachment_metadata["file"]) ? $attachment_metadata["file"] : null;
-		if (isset($attachment_metadata["sizes"]) && isset($attachment_metadata["sizes"][$size]))
+		$item["meta_value"] = @unserialize($item["meta_value"]);
+		if ($item["meta_value"])
 		{
-			$url = dirname($url);
-			$url .= "/" . $attachment_metadata["sizes"][$size]["file"];
+			$file = $item["meta_value"]["file"];
+			$file_dir = dirname($file);
+			$item["meta_value"]["url"] =
+				$baseurl . "/" . $item["meta_value"]["file"] .
+				"?_=" . strtotime($item["post_modified_gmt"])
+			;
+			
+			foreach ($item["meta_value"]["sizes"] as $key => $size)
+			{
+				$item["meta_value"]["sizes"][$key]["url"] =
+					$baseurl . "/" . $file_dir . "/" .
+					$size["file"] . "?_=" . strtotime($item["post_modified_gmt"])
+				;
+			}
 		}
-		$result[$photo_id] = "/wp-content/uploads/" . $url;
+		
+		$result[$item["id"]] = $item;
 	}
 	
 	return $result;
