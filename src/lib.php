@@ -73,18 +73,35 @@ function url_get($key, $value = "")
 /**
  * Add get parametr
  */
-function url_get_add($url, $key, $value = "")
+function url_get_add($url, $new_key, $new_value = "")
 {
 	$url_parts = parse_url($url);
 	$get_args = [];
 	
+	/* Parse query */
 	if (isset($url_parts['query']))
 	{
-		parse_str($url_parts['query'], $get_args);
+		$items = explode("&", $url_parts['query']);
+		foreach ($items as $item)
+		{
+			$arr = explode("=", $item);
+			$key = isset($arr[0]) ? $arr[0] : "";
+			$value = isset($arr[1]) ? $arr[1] : "";
+			if (!$key) continue;
+			if (!$value) continue;
+			$key = urldecode($key);
+			$get_args[$key] = $value;
+		}
+		$get_args = array_map(function($item){ return urldecode($item); }, $get_args);
 	}
 	
-	$get_args[$key] = $value;
-	$url_parts['query'] = http_build_query($get_args);
+	/* Change key */
+	if ($new_value) $get_args[$new_key] = $new_value;
+	else if (isset($get_args[$new_key])) unset($get_args[$new_key]);
+	
+	/* Build query */
+	if (count($get_args) > 0) $url_parts['query'] = http_build_query($get_args);
+	else $url_parts['query'] = null;
 	
 	$new_url = "";
 	if (isset($url_parts["scheme"])) $new_url .= $url_parts["scheme"] . "://";
