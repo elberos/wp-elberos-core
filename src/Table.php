@@ -847,6 +847,17 @@ class Table extends \Elberos_WP_List_Table
 	}
 	
 	
+	/**
+	 * Display table title
+	 */
+	function display_table_title()
+	{
+		echo '<h1 class="wp-heading-inline">';
+		echo $this->get_table_title();
+		echo '</h1>';
+		$this->display_table_add_button();
+	}
+	
 	
 	/**
 	 * Display table
@@ -863,10 +874,7 @@ class Table extends \Elberos_WP_List_Table
 		
 		?>
 		<div class="wrap">
-			<h1 class="wp-heading-inline">
-				<?= $this->get_table_title() ?>
-			</h1>
-			<?php $this->display_table_add_button() ?>
+			<?php $this->display_table_title() ?>
 			<hr class="wp-header-end">
 			
 			<div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
@@ -894,6 +902,14 @@ class Table extends \Elberos_WP_List_Table
 	}
 	
 	
+	/**
+	 * Display form title
+	 */
+	function display_form_title($item)
+	{
+		?><h1><?php $this->get_form_title($item); ?></h1><?php
+	}
+	
 	
 	/**
 	 * Display add or edit
@@ -915,20 +931,24 @@ class Table extends \Elberos_WP_List_Table
 			{
 				$notice = __('Элемент не найден', 'elberos-core');
 			}
-			?><div class="wrap"><div id="notice" class="error"><p><?php echo $notice ?></p></div></div><?php
+			?>
+			<div class="wrap">
+				<div class="error inline"><p><?php echo $notice ?></p></div>
+			</div>
+			<?php
 			return;
 		}
 		
 		?>
 		<div class="wrap">
 			<div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-			<h1><?php _e( $this->get_form_title($item) ); ?></h1>
+			<div><?php $this->display_form_title($item) ?></div>
 			
 			<?php if (!empty($notice)): ?>
-				<div id="notice" class="error"><p><?php echo $notice ?></p></div>
+				<div class="error inline"><p><?php echo $notice ?></p></div>
 			<?php endif;?>
 			<?php if (!empty($message)): ?>
-				<div id="message" class="updated"><p><?php echo $message ?></p></div>
+				<div class="updated inline"><p><?php echo $message ?></p></div>
 			<?php endif;?>
 			
 			<form id="elberos_form" class="elberos_form <?= esc_attr("web_form_" . $this->struct->entity_name) ?>"

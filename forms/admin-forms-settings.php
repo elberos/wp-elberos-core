@@ -271,29 +271,26 @@ class Settings_Table extends \WP_List_Table
 		
 		<div class="wrap">
 			<div class="icon32 icon32-posts-post" id="icon-edit"><br></div>
-			<h1><?php _e($item['id'] > 0 ? 'Forms Edit' : 'Forms Add', 'elberos-forms')?></h1>
+			<h1 class="wp-heading-inline">
+				<?php _e($item['id'] > 0 ? 'Forms Edit' : 'Forms Add', 'elberos-forms')?>
+			</h1>
+			<a type="button" class='button-primary' href='?page=elberos-forms-settings'> Back </a>
 			
 			<?php if (!empty($notice)): ?>
-				<div id="notice" class="error"><p><?php echo $notice ?></p></div>
+				<div id="notice" class="error inline"><p><?php echo $notice ?></p></div>
 			<?php endif;?>
 			<?php if (!empty($message)): ?>
-				<div id="message" class="updated"><p><?php echo $message ?></p></div>
+				<div id="message" class="updated inline"><p><?php echo $message ?></p></div>
 			<?php endif;?>
-			
-			<a type="button" class='button-primary' href='?page=elberos-forms-settings'> Back </a>
 			
 			<form id="form" method="POST">
 				<input type="hidden" name="nonce" value="<?php echo wp_create_nonce(basename(__FILE__))?>"/>
 				<input type="hidden" name="id" value="<?php echo $item['id'] ?>"/>
-				<div class="metabox-holder" id="poststuff">
-					<div id="post-body">
-						<div id="post-body-content">
-							<div class="add_or_edit_form" style="width: 60%">
-								<? $this->display_form($item) ?>
-							</div>
-							<input type="submit" class="button-primary" value="<?php _e('Save', 'elberos-forms')?>" >
-						</div>
+				<div id="post-body-content">
+					<div class="add_or_edit_form" style="width: 60%">
+						<? $this->display_form($item) ?>
 					</div>
+					<input type="submit" class="button-primary" value="<?php _e('Save', 'elberos-forms')?>" >
 				</div>
 			</form>
 		</div>

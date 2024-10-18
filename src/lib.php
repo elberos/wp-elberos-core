@@ -1030,20 +1030,24 @@ function get_images_url($images_id)
 	/* Get uploads dir */
 	$uploads = wp_get_upload_dir();
 	$baseurl = $uploads["baseurl"];
+	$posts_meta = [];
 	
 	/* Get meta */
 	$wp_posts = $wpdb->prefix . "posts";
 	$wp_postmeta = $wpdb->prefix . "postmeta";
-	$sql = $wpdb->prepare
-	(
-		"SELECT postmeta.meta_value, post.ID as id, post.post_modified_gmt " .
-		"FROM " . $wp_postmeta . " as postmeta " .
-		"INNER JOIN " . $wp_posts . " as post on (post.ID = postmeta.post_id) " .
-		"WHERE postmeta.meta_key='_wp_attachment_metadata' AND " .
-		"postmeta.post_id in (" . implode(",", array_fill(0, count($images_id), "%d")) . ")",
-		$images_id
-	);
-	$posts_meta = $wpdb->get_results($sql, ARRAY_A);
+	if (count($images_id) > 0)
+	{
+		$sql = $wpdb->prepare
+		(
+			"SELECT postmeta.meta_value, post.ID as id, post.post_modified_gmt " .
+			"FROM " . $wp_postmeta . " as postmeta " .
+			"INNER JOIN " . $wp_posts . " as post on (post.ID = postmeta.post_id) " .
+			"WHERE postmeta.meta_key='_wp_attachment_metadata' AND " .
+			"postmeta.post_id in (" . implode(",", array_fill(0, count($images_id), "%d")) . ")",
+			$images_id
+		);
+		$posts_meta = $wpdb->get_results($sql, ARRAY_A);
+	}
 	
 	/* Get result */
 	$result = [];
@@ -1707,7 +1711,7 @@ function upload_file($image_path_full, $params = [])
 	/* Find image by sha1 */
 	$sql = \Elberos\wpdb_prepare
 	(
-		"select * from " . $wpdb->base_prefix . "postmeta " .
+		"select * from " . $wpdb->prefix . "postmeta " .
 		"where meta_key='file_sha1' and meta_value=:meta_value limit 1",
 		[
 			"meta_value" => $sha1,
